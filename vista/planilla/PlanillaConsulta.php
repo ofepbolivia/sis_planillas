@@ -59,6 +59,22 @@ header("content-type: text/javascript; charset=UTF-8");
 
             /*this.addButton('ant_estado',{grupo:[0],argument: {estado: 'anterior'},text:'Anterior',iconCls: 'batras',disabled:true,handler:this.antEstado,tooltip: '<b>Pasar al Anterior Estado</b>'});
             this.addButton('sig_estado',{grupo:[0],text:'Siguiente',iconCls: 'badelante',disabled:true,handler:this.sigEstado,tooltip: '<b>Pasar al Siguiente Estado</b>'});*/
+            this.addButton('btnColumnas',
+                {	grupo:[0,1,2],
+                    iconCls: 'bcalculator',
+                    disabled: false,
+                    text:'Columnas',
+                    tooltip: 'Gestion de Columnas (solo es posible subir csv y editar columnas si el estado es calculo_columnas)',
+                    xtype: 'splitbutton',
+                    menu: [{
+                        text: 'Detalle Columnas',
+                        id: 'btnColumnasDetalle-' + this.idContenedor,
+                        handler: this.onButtonColumnasDetalle,
+                        tooltip: 'Detalle de Columnas por Empleado',
+                        scope: this
+                    }]
+                }
+            );
             this.addButton('diagrama_gantt',{grupo:[0,1,2],text:'Gant',iconCls: 'bgantt',disabled:true,handler:diagramGantt,tooltip: '<b>Diagrama Gantt de proceso macro</b>'});
 
             this.addButton('btnChequeoDocumentosWf',
@@ -128,7 +144,19 @@ header("content-type: text/javascript; charset=UTF-8");
             hidden:false,
             width:80
         }),
+        onButtonColumnasDetalle : function() {
+            var rec = {maestro: this.sm.getSelected().data};
 
+            Phx.CP.loadWindows('../../../sis_planillas/vista/funcionario_planilla/FuncionarioPlanillaColumna.php',
+                'Detalle de Columnas por Empleado',
+                {
+                    width:800,
+                    height:'90%'
+                },
+                rec,
+                this.idContenedor,
+                'FuncionarioPlanillaColumna');
+        },
         capturarEventos: function () {
             this.store.baseParams.id_gestion=this.cmbGestion.getValue();
             this.load({params:{start:0, limit:this.tam_pag}});

@@ -12,6 +12,7 @@ require_once(dirname(__FILE__).'/../reportes/RPrimaXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RAguinaldoXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RSegAguinaldoXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RCertificacionPresupuestaria.php');
+require_once(dirname(__FILE__).'/../reportes/RMinisterioTrabajoAguinaldoXLS.php');
 
 class ACTPlanilla extends ACTbase{
 
@@ -44,6 +45,10 @@ class ACTPlanilla extends ACTbase{
 
         }
 
+        if ($this->objParam->getParametro('id_tipo_planilla') != '') {
+            $this->objParam->addFiltro("plani.id_tipo_planilla = ". $this->objParam->getParametro('id_tipo_planilla'));
+        }
+
         if($this->objParam->getParametro('tipoReporte')=='excel_grid' || $this->objParam->getParametro('tipoReporte')=='pdf_grid'){
             $this->objReporte = new Reporte($this->objParam,$this);
             $this->res = $this->objReporte->generarReporteListado('MODPlanilla','listarPlanilla');
@@ -55,7 +60,7 @@ class ACTPlanilla extends ACTbase{
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
 
-    function listarReportePlanillaMinisterio(){ //var_dump($this->objParam->getParametro('id_tipo_planilla'));exit;
+    function listarReportePlanillaMinisterio(){
         $this->objFunc=$this->create('MODPlanilla');
 
         if ($this->objParam->getParametro('id_tipo_planilla') == 1) {
@@ -68,7 +73,11 @@ class ACTPlanilla extends ACTbase{
         } else if ($this->objParam->getParametro('id_tipo_planilla') == 7) {
             $this->res=$this->objFunc->listarReportePrimaMinisterio($this->objParam);
         } else if ($this->objParam->getParametro('id_tipo_planilla') == 4) {
-            $this->res=$this->objFunc->listarReporteAguinaldoMinisterio($this->objParam);
+            if($this->objParam->getParametro('formato')=='antiguo') {
+                $this->res=$this->objFunc->listarReporteAguinaldoMinisterio($this->objParam);
+            }else if($this->objParam->getParametro('formato')=='nuevo'){
+                $this->res = $this->objFunc->listarReporteAguinaldoMinisterioNuevo($this->objParam);
+            }
         } else if ($this->objParam->getParametro('id_tipo_planilla') == 5) {
             $this->res=$this->objFunc->listarReporteSegAguinaldoMinisterio($this->objParam);
         }
@@ -107,9 +116,16 @@ class ACTPlanilla extends ACTbase{
             $this->objReporteFormato->imprimeResumen();
         } else if ($this->objParam->getParametro('id_tipo_planilla') == 4) {
 
-            $this->objReporteFormato=new RAguinaldoXLS($this->objParam);
-            $this->objReporteFormato->imprimeDatosSueldo();
-            $this->objReporteFormato->imprimeResumen();
+            if($this->objParam->getParametro('formato')=='antiguo'){
+                $this->objReporteFormato=new RAguinaldoXLS($this->objParam);
+                $this->objReporteFormato->imprimeDatosSueldo();
+                $this->objReporteFormato->imprimeResumen();
+            }else if($this->objParam->getParametro('formato')=='nuevo'){
+                $this->objReporteFormato = new RMinisterioTrabajoAguinaldoXLS($this->objParam);
+                $this->objReporteFormato->imprimeDatosSueldo();
+                $this->objReporteFormato->imprimeResumen();
+                //$this->objReporteFormato->imprimeResumenRegional();
+            }
         } else if ($this->objParam->getParametro('id_tipo_planilla') == 5) {
 
             $this->objReporteFormato=new RSegAguinaldoXLS($this->objParam);

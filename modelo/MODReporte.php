@@ -264,9 +264,10 @@ class MODReporte extends MODbase{
 		$this->captura('codigo_columna','varchar');	
 		$this->captura('valor_columna','numeric');			
 		$this->captura('nombre','varchar');
+		$this->captura('categoria_prog','varchar');
 
 		//Ejecuta la instruccion
-		$this->armarConsulta();
+		$this->armarConsulta();//echo $this->consulta; exit;
 		$this->ejecutarConsulta();
 		
 		//Devuelve la respuesta
@@ -419,6 +420,37 @@ class MODReporte extends MODbase{
 
 
 
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        //echo($this->consulta);exit;
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        return $this->respuesta;
+    }
+    //Reporte Aguinaldo v2018 (franklin espinoza)
+    function reporteAguinaldo(){
+        //Definicion de variables para ejecucion del procedimientp
+        $this->procedimiento='plani.ft_reporte_sel';
+        $this->transaccion='PLA_REP_AGUI_SEL';
+        $this->tipo_procedimiento='SEL';//tipo de transaccion
+
+        $this->setCount(false);
+
+        //Definicion de la lista del resultado del query
+        $this->captura('gerencia','varchar');
+        $this->captura('contrato','varchar');
+        $this->captura('desc_funcionario','varchar');
+        $this->captura('cargo','varchar');
+        $this->captura('lugar','varchar');
+        $this->captura('codigo','varchar');
+        $this->captura('email_empresa','varchar');
+        $this->captura('correo','varchar');
+        $this->captura('telefonos','varchar');
+        $this->captura('celulares','varchar');
+        $this->captura('documento','varchar');
+        $this->captura('lugar_trabajo','varchar');
 
         //Ejecuta la instruccion
         $this->armarConsulta();

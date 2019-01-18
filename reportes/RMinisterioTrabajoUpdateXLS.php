@@ -211,7 +211,7 @@ class RMinisterioTrabajoUpdateXLS
         $this->docexcel->getActiveSheet()->setCellValue('R1','Caja de salud');//Modalidad de contrato
         $this->docexcel->getActiveSheet()->setCellValue('S1','AFP a la que aporta');//Horas pagadas (día)
         $this->docexcel->getActiveSheet()->setCellValue('T1','NUA/CUA');//
-        $this->docexcel->getActiveSheet()->setCellValue('U1','Sucursal o ubicacion adicional');//Nº de dominicales
+        $this->docexcel->getActiveSheet()->setCellValue('U1','Sucursal o ubicación adicional');//Nº de dominicales
         $this->docexcel->getActiveSheet()->setCellValue('V1','Clasificación laboral');//
         $this->docexcel->getActiveSheet()->setCellValue('W1','Cargo');//Horas extra
         $this->docexcel->getActiveSheet()->setCellValue('X1','Modalidad de contrato');//Horas de recargo nocturno
@@ -228,7 +228,7 @@ class RMinisterioTrabajoUpdateXLS
         $this->docexcel->getActiveSheet()->setCellValue('AI1','Monto horas extra dominicales');//Otros bonos o pagos
         $this->docexcel->getActiveSheet()->setCellValue('AJ1','Domingos trabajados');//Total ganado
         $this->docexcel->getActiveSheet()->setCellValue('AK1','Monto domingo trabajado');//Aporte a las AFPs
-        $this->docexcel->getActiveSheet()->setCellValue('AL1','Nro. Dominicales');//RC-IVA
+        $this->docexcel->getActiveSheet()->setCellValue('AL1','Nro. dominicales');//RC-IVA
         $this->docexcel->getActiveSheet()->setCellValue('AM1','Salario dominical');//Otros descuentos
         $this->docexcel->getActiveSheet()->setCellValue('AN1','Bono producción');//Total descuentos
         $this->docexcel->getActiveSheet()->setCellValue('AO1','Subsidio frontera');//Líqido pagable

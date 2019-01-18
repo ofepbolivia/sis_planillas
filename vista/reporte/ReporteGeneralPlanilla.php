@@ -20,7 +20,7 @@ header("content-type: text/javascript; charset=UTF-8");
 
         iniciarEventos : function(){
           this.Cmp.configuracion_reporte.on('select', function (cmb, rec, index) {
-            if(rec.data.tipo == 'programatica'){
+            if(rec.data.tipo == 'programatica' || rec.data.tipo == 'aguinaldo'){
                 this.Cmp.oficina.setVisible(false);
                 this.Cmp.oficina.reset();
                 this.Cmp.oficina.modificado = true;
@@ -41,7 +41,7 @@ header("content-type: text/javascript; charset=UTF-8");
                     mode : 'local',
                     store : new Ext.data.ArrayStore({
                         fields : ['tipo', 'valor'],
-                        data : [['contacto', 'Datos de Contacto'], ['programatica', 'Categoria Programatica']]
+                        data : [['contacto', 'Datos de Contacto'], ['programatica', 'Categoria Programatica'], ['aguinaldo', 'Planilla Aguinaldo']]
                     }),
                     anchor : '70%',
                     valueField : 'tipo',

@@ -14,6 +14,7 @@ require_once(dirname(__FILE__).'/../reportes/RBoletaGenerica.php');
 require_once(dirname(__FILE__).'/../reportes/RPlanillaActualizadaItemXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RGeneralPlanillaXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RPresupuestoRetroactivoXls.php');
+require_once(dirname(__FILE__).'/../reportes/RAguinaldoXLSv2.php');
 
 class ACTReporte extends ACTbase{
 
@@ -108,11 +109,16 @@ class ACTReporte extends ACTbase{
             $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
             $this->objParam->addParametro('config',$this->res->datos[0]);
             $this->objParam->addParametro('datos',$this->res2->datos);
-
-            //Instancia la clase de excel
-            $this->objReporteFormato=new RPlanillaGenericaXls($this->objParam);
-            $this->objReporteFormato->imprimeDatos();
-            $this->objReporteFormato->generarReporte();
+            if($id_reporte == 7 || $id_reporte == 8){
+                //Instancia la clase de excel para aguinaldo v2018
+                $this->objReporteFormato = new RAguinaldoXLSv2($this->objParam);
+                $this->objReporteFormato->generarReporte();
+            }else {
+                //Instancia la clase de excel
+                $this->objReporteFormato = new RPlanillaGenericaXls($this->objParam);
+                $this->objReporteFormato->imprimeDatos();
+                $this->objReporteFormato->generarReporte();
+            }
         }
 
 
@@ -323,6 +329,9 @@ class ACTReporte extends ACTbase{
         }else if($this->objParam->getParametro('configuracion_reporte') == 'programatica'){
             $this->res=$this->objFunc->reportePresupuestoCatProg($this->objParam);
             $titulo_archivo = 'Prespuesto Retroactivo';
+        }else if($this->objParam->getParametro('configuracion_reporte') == 'aguinaldo'){
+            $this->res=$this->objFunc->reporteAguinaldo($this->objParam);
+            $titulo_archivo = 'Planilla Aguinaldo';
         }
 
 
@@ -337,6 +346,8 @@ class ACTReporte extends ACTbase{
             $this->objReporte = new RGeneralPlanillaXls($this->objParam);
         }else if($this->objParam->getParametro('configuracion_reporte') == 'programatica'){
             $this->objReporte = new RPresupuestoRetroactivoXls($this->objParam);
+        }else if($this->objParam->getParametro('configuracion_reporte') == 'aguinaldo'){
+            $this->objReporte = new RAguinaldoXLSv2($this->objParam);
         }
 
         $this->objReporte->generarReporte();
