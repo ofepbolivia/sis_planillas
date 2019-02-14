@@ -1181,6 +1181,461 @@ $body$
         return v_consulta;
 
         end;
+    /*********************************
+        #TRANSACCION:  'PLA_MINTRA_AGUI_SEL'
+        #DESCRIPCION:	Reporte para ministerio de trabajo Formato Nuevo AGUINALDO
+        #AUTOR:		f.e.a
+        #FECHA:		18-02-2018 15:00:00
+        ***********************************/
+    elsif(p_transaccion='PLA_MINTRA_AGUI_SEL')then
+
+      begin
+
+        v_consulta = 'with empleados as (
+                select
+                uo.prioridad,
+                uo.id_uo,
+                (row_number() over (ORDER BY fun.desc_funcionario2 ASC))::integer as fila,
+                fp.id_funcionario_planilla,
+                (case when perso.id_tipo_doc_identificacion = 1 then ''CI''
+                      when perso.id_tipo_doc_identificacion = 5 then ''PASAPORTE''
+                      ELSE ''0'' end)::varchar as tipo_documento,
+                perso.ci,
+                perso.expedicion,
+                afp.nombre as afp,
+                fafp.nro_afp,
+                perso.apellido_paterno,
+                perso.apellido_materno,
+                ''''::varchar as apellido_casada,
+                split_part(perso.nombre,'' '',1)::varchar as primer_nombre,
+
+                trim(both '' '' from replace(perso.nombre,split_part(perso.nombre,'' '',1), ''''))::varchar as otros_nombres,
+
+                (case when lower(perso.nacionalidad) like ''%bolivi%'' then
+                ''Bolivia''
+                ELSE
+                perso.nacionalidad
+                end)::varchar as nacionalidad,
+                perso.fecha_nacimiento,
+
+                (case when upper(genero)= ''VARON'' then
+                ''M'' else
+                ''F'' end)::varchar as sexo,
+
+                (case when fafp.tipo_jubilado in (''jubilado_65'',''jubilado_55'') then
+                1
+                else
+                0 end)::integer as jubilado,
+
+                ''''::varchar as clasificacion_laboral,
+                car.nombre as cargo,
+
+                 plani.f_get_fecha_primer_contrato_empleado(fp.id_uo_funcionario, fp.id_funcionario, uofun.fecha_asignacion) as fecha_ingreso,
+                1::integer as modalidad_contrato,
+
+                (case when (uofun.fecha_finalizacion is not null and uofun.fecha_finalizacion <= p.fecha_planilla) then
+                	(case when (orga.f_existe_sgte_asignacion(uofun.fecha_finalizacion, uofun.id_funcionario) = 1) then
+                    	NULL
+                    else
+                    	uofun.fecha_finalizacion
+                    end)
+                else
+                	NULL
+                end)::date as fecha_finalizacion,
+
+                8::integer as horas_dia,
+                30::integer as dias_mes,
+				ofi.nombre as oficina,
+                (case when (perso.discapacitado= ''no'' OR perso.discapacitado= ''NO'') or perso.discapacitado is null then
+                0 else
+                1 end)::integer as discapacitado,
+
+                p.fecha_planilla as inicio_periodo,
+                p.fecha_planilla as fin_periodo,
+
+                EXTRACT(year from age( p.fecha_planilla,perso.fecha_nacimiento ))::integer as edad,
+                lug.nombre as lugar,
+                uofun.observaciones_finalizacion as motivo_retiro,
+                car.id_tipo_contrato,
+                lug.nombre as lugar_oficina,
+                f1.es_tutor
+                from plani.tplanilla p
+                --inner join param.tperiodo per on per.id_periodo = p.id_periodo
+                inner join plani.ttipo_planilla tp on tp.id_tipo_planilla = p.id_tipo_planilla
+                inner join plani.tfuncionario_planilla fp on fp.id_planilla = p.id_planilla
+                inner join orga.vfuncionario fun on fun.id_funcionario = fp.id_funcionario
+                inner join orga.tfuncionario f1 on f1.id_funcionario = fp.id_funcionario
+                inner join segu.tpersona perso on perso.id_persona = f1.id_persona
+                inner join orga.tuo_funcionario uofun on uofun.id_uo_funcionario = fp.id_uo_funcionario
+                inner join orga.tcargo car on car.id_cargo = uofun.id_cargo
+                left join orga.toficina ofi on ofi.id_oficina = car.id_oficina
+                left join param.tlugar lug on lug.id_lugar = ofi.id_lugar
+                inner join orga.tuo uo on uo.id_uo = orga.f_get_uo_gerencia(uofun.id_uo, NULL, NULL)
+                inner join plani.tfuncionario_afp fafp on fafp.id_funcionario_afp = fp.id_afp
+                inner join plani.tafp afp on afp.id_afp = fafp.id_afp
+                where tp.codigo = ''PLAGUIN'' and (p.fecha_planilla between ''20/12/2018''::date and ''31/12/2018''::date) and p.id_gestion = ' || v_parametros.id_gestion || '
+                order by fun.desc_funcionario2 ASC
+                )
+
+                select
+                emp.fila,
+                emp.tipo_documento,
+                emp.ci,
+                emp.expedicion,
+                to_char(emp.fecha_nacimiento,''DD/MM/YYYY''),
+                emp.apellido_paterno,
+                emp.apellido_materno,
+                (emp.primer_nombre||'' ''||emp.otros_nombres)::varchar as nombres,
+                emp.nacionalidad,
+                emp.sexo,
+                emp.jubilado,
+
+                (case when emp.afp is null and emp.nro_afp is null then 0 else 1 end)::integer as aporta_afp,
+                emp.discapacitado,
+                (case when emp.es_tutor = ''si'' then 1::integer else 0::integer end) as tutor_discapacidad,
+
+                to_char(emp.fecha_ingreso,''DD/MM/YYYY''),
+                coalesce(to_char(emp.fecha_finalizacion,''DD/MM/YYYY''),'''')::text,
+
+                (case when emp.fecha_finalizacion is not null and emp.motivo_retiro = ''fin contrato'' then ''2''
+                	  when (emp.fecha_finalizacion is not null or coalesce(to_char(emp.fecha_finalizacion,''DD/MM/YYYY''),'''') != '''') and (emp.motivo_retiro = ''retiro'' or emp.motivo_retiro = ''renuncia'')  then ''1''
+                      else '''' end)::varchar as motivo_retiro,
+
+                case when emp.ci = ''630048'' then ''7'' else ''6''::varchar end as caja_salud,
+                (case when emp.afp = ''PREVISION'' then 1 else 2 end)::integer as afp,
+                emp.nro_afp,
+                --emp.oficina,
+                --(''REGIONAL''||'' ''||emp.lugar_oficina)::varchar as oficina,
+                (case emp.lugar_oficina when ''COCHABAMBA'' then 1 when ''LA PAZ'' then 2 when ''SANTA CRUZ'' then 3 when ''TRINIDAD'' then 4 when ''TARIJA'' then 5
+                when ''COBIJA'' then 6 when ''SUCRE'' then 7 when ''UYUNI'' then 8 when ''POTOSI'' then 9 when ''ORURO'' then 10 when ''CHIMORE'' then 11
+                when ''YACUIBA'' then 12 when ''MONTEAGUDO'' then 13 end)::integer as oficina,
+                emp.clasificacion_laboral,
+                emp.cargo,
+                (case when tcont.id_tipo_contrato = 1 then 1 when tcont.id_tipo_contrato = 4 then 2 end)::integer as modalidad_contrato,
+                1::integer as tipo_contrato,
+
+                (case when cv.codigo_columna = ''HORNORM'' then
+                	cv.valor/emp.horas_dia
+                else
+                	cv.valor
+                end)::numeric as valor,
+
+                emp.horas_dia,
+                cv.codigo_columna,
+
+                (case when emp.fecha_ingreso >= emp.inicio_periodo then
+                ''si''
+                else
+                ''no'' end):: varchar as contrato_periodo,
+
+                (case when emp.fecha_finalizacion < emp.fin_periodo then
+                ''si''
+                else
+                ''no'' end):: varchar as retiro_periodo,
+
+                emp.edad,
+                emp.lugar
+
+                from empleados emp
+                inner join plani.tcolumna_valor cv on cv.id_funcionario_planilla = emp.id_funcionario_planilla
+                inner join plani.ttipo_columna tc on tc.id_tipo_columna = cv.id_tipo_columna
+                inner join orga.ttipo_contrato tcont on tcont.id_tipo_contrato = emp.id_tipo_contrato
+                where cv.codigo_columna in (''PROMHAB'',''PROMANT'',''PROMFRO'',''PROME'',''DIASAGUI'',''LIQPAG'')
+                order by emp.fila,tc.orden';
+		raise notice 'v_consulta: %', v_consulta;
+        --Devuelve la respuesta
+        return v_consulta;
+      end;
+    /*********************************
+        #TRANSACCION:  'PLA_MINTRA_SAGUI_SEL'
+        #DESCRIPCION:	Reporte para ministerio de trabajo Formato Nuevo Segundo AGUINALDO
+        #AUTOR:		f.e.a
+        #FECHA:		01-12-2018 15:00:00
+        ***********************************/
+    elsif(p_transaccion='PLA_MINTRA_SAGUI_SEL')then
+
+      begin
+
+        v_consulta = 'with empleados as (
+                select
+                uo.prioridad,
+                uo.id_uo,
+                (row_number() over (ORDER BY fun.desc_funcionario2 ASC))::integer as fila,
+                fp.id_funcionario_planilla,
+                (case when perso.id_tipo_doc_identificacion = 1 then ''CI''
+                      when perso.id_tipo_doc_identificacion = 5 then ''PASAPORTE''
+                      ELSE ''0'' end)::varchar as tipo_documento,
+                perso.ci,
+                perso.expedicion,
+                afp.nombre as afp,
+                fafp.nro_afp,
+                perso.apellido_paterno,
+                perso.apellido_materno,
+                ''''::varchar as apellido_casada,
+                split_part(perso.nombre,'' '',1)::varchar as primer_nombre,
+
+                trim(both '' '' from replace(perso.nombre,split_part(perso.nombre,'' '',1), ''''))::varchar as otros_nombres,
+
+                (case when lower(perso.nacionalidad) like ''%bolivi%'' then
+                ''Bolivia''
+                ELSE
+                perso.nacionalidad
+                end)::varchar as nacionalidad,
+                perso.fecha_nacimiento,
+
+                (case when upper(genero)= ''VARON'' then
+                ''M'' else
+                ''F'' end)::varchar as sexo,
+
+                (case when fafp.tipo_jubilado in (''jubilado_65'',''jubilado_55'') then
+                1
+                else
+                0 end)::integer as jubilado,
+
+                ''''::varchar as clasificacion_laboral,
+                car.nombre as cargo,
+
+                 plani.f_get_fecha_primer_contrato_empleado(fp.id_uo_funcionario, fp.id_funcionario, uofun.fecha_asignacion) as fecha_ingreso,
+                1::integer as modalidad_contrato,
+
+                (case when (uofun.fecha_finalizacion is not null and uofun.fecha_finalizacion <= p.fecha_planilla) then
+                	(case when (orga.f_existe_sgte_asignacion(uofun.fecha_finalizacion, uofun.id_funcionario) = 1) then
+                    	NULL
+                    else
+                    	uofun.fecha_finalizacion
+                    end)
+                else
+                	NULL
+                end)::date as fecha_finalizacion,
+
+                8::integer as horas_dia,
+                30::integer as dias_mes,
+				ofi.nombre as oficina,
+                (case when (perso.discapacitado= ''no'' OR perso.discapacitado= ''NO'') or perso.discapacitado is null then
+                0 else
+                1 end)::integer as discapacitado,
+
+                p.fecha_planilla as inicio_periodo,
+                p.fecha_planilla as fin_periodo,
+
+                EXTRACT(year from age( p.fecha_planilla,perso.fecha_nacimiento ))::integer as edad,
+                lug.nombre as lugar,
+                uofun.observaciones_finalizacion as motivo_retiro,
+                car.id_tipo_contrato,
+                lug.nombre as lugar_oficina,
+                f1.es_tutor
+                from plani.tplanilla p
+                --inner join param.tperiodo per on per.id_periodo = p.id_periodo
+                inner join plani.ttipo_planilla tp on tp.id_tipo_planilla = p.id_tipo_planilla
+                inner join plani.tfuncionario_planilla fp on fp.id_planilla = p.id_planilla
+                inner join orga.vfuncionario fun on fun.id_funcionario = fp.id_funcionario
+                inner join orga.tfuncionario f1 on f1.id_funcionario = fp.id_funcionario
+                inner join segu.tpersona perso on perso.id_persona = f1.id_persona
+                inner join orga.tuo_funcionario uofun on uofun.id_uo_funcionario = fp.id_uo_funcionario
+                inner join orga.tcargo car on car.id_cargo = uofun.id_cargo
+                left join orga.toficina ofi on ofi.id_oficina = car.id_oficina
+                left join param.tlugar lug on lug.id_lugar = ofi.id_lugar
+                inner join orga.tuo uo on uo.id_uo = orga.f_get_uo_gerencia(uofun.id_uo, NULL, NULL)
+                inner join plani.tfuncionario_afp fafp on fafp.id_funcionario_afp = fp.id_afp
+                inner join plani.tafp afp on afp.id_afp = fafp.id_afp
+                where tp.codigo = ''PLASEGAGUI'' and (p.fecha_planilla between ''20/12/2018''::date and ''31/12/2018''::date) and p.id_gestion = ' || v_parametros.id_gestion || '
+                order by fun.desc_funcionario2 ASC
+                )
+
+                select
+                emp.fila,
+                emp.tipo_documento,
+                emp.ci,
+                emp.expedicion,
+                to_char(emp.fecha_nacimiento,''DD/MM/YYYY''),
+                emp.apellido_paterno,
+                emp.apellido_materno,
+                (emp.primer_nombre||'' ''||emp.otros_nombres)::varchar as nombres,
+                emp.nacionalidad,
+                emp.sexo,
+                emp.jubilado,
+
+                (case when emp.afp is null and emp.nro_afp is null then 0 else 1 end)::integer as aporta_afp,
+                emp.discapacitado,
+                (case when emp.es_tutor = ''si'' then 1::integer else 0::integer end) as tutor_discapacidad,
+
+                to_char(emp.fecha_ingreso,''DD/MM/YYYY''),
+                coalesce(to_char(emp.fecha_finalizacion,''DD/MM/YYYY''),'''')::text,
+
+                (case when emp.fecha_finalizacion is not null and emp.motivo_retiro = ''fin contrato'' then ''2''
+                	  when (emp.fecha_finalizacion is not null or coalesce(to_char(emp.fecha_finalizacion,''DD/MM/YYYY''),'''') != '''') and (emp.motivo_retiro = ''retiro'' or emp.motivo_retiro = ''renuncia'')  then ''1''
+                      else '''' end)::varchar as motivo_retiro,
+
+                case when emp.ci = ''630048'' then ''7'' else ''6''::varchar end as caja_salud,
+                (case when emp.afp = ''PREVISION'' then 1 else 2 end)::integer as afp,
+                emp.nro_afp,
+                --emp.oficina,
+                --(''REGIONAL''||'' ''||emp.lugar_oficina)::varchar as oficina,
+                (case emp.lugar_oficina when ''COCHABAMBA'' then 1 when ''LA PAZ'' then 2 when ''SANTA CRUZ'' then 3 when ''TRINIDAD'' then 4 when ''TARIJA'' then 5
+                when ''COBIJA'' then 6 when ''SUCRE'' then 7 when ''UYUNI'' then 8 when ''POTOSI'' then 9 when ''ORURO'' then 10 when ''CHIMORE'' then 11
+                when ''YACUIBA'' then 12 when ''MONTEAGUDO'' then 13 end)::integer as oficina,
+                emp.clasificacion_laboral,
+                emp.cargo,
+                (case when tcont.id_tipo_contrato = 1 then 1 when tcont.id_tipo_contrato = 4 then 2 end)::integer as modalidad_contrato,
+                1::integer as tipo_contrato,
+
+                (case when cv.codigo_columna = ''HORNORM'' then
+                	cv.valor/emp.horas_dia
+                else
+                	cv.valor
+                end)::numeric as valor,
+
+                emp.horas_dia,
+                cv.codigo_columna,
+
+                (case when emp.fecha_ingreso >= emp.inicio_periodo then
+                ''si''
+                else
+                ''no'' end):: varchar as contrato_periodo,
+
+                (case when emp.fecha_finalizacion < emp.fin_periodo then
+                ''si''
+                else
+                ''no'' end):: varchar as retiro_periodo,
+
+                emp.edad,
+                emp.lugar
+
+                from empleados emp
+                inner join plani.tcolumna_valor cv on cv.id_funcionario_planilla = emp.id_funcionario_planilla
+                inner join plani.ttipo_columna tc on tc.id_tipo_columna = cv.id_tipo_columna
+                inner join orga.ttipo_contrato tcont on tcont.id_tipo_contrato = emp.id_tipo_contrato
+                where cv.codigo_columna in (''PROMHAB'',''PROMANT'',''PROMFRO'',''PROME'',''DIASAGUI'',''LIQPAG'')
+                order by emp.fila,tc.orden';
+		raise notice 'v_consulta: %', v_consulta;
+        --Devuelve la respuesta
+        return v_consulta;
+      end;
+    /*********************************
+        #TRANSACCION:  'PLA_REP_SIGMAC31_SEL'
+        #DESCRIPCION:	Reporte para sacar Formulario C31 SIGMA
+        #AUTOR:		f.e.a
+        #FECHA:		30-01-2019 15:00:00
+        ***********************************/
+    elsif(p_transaccion='PLA_REP_SIGMAC31_SEL')then
+
+      begin
+
+      	SELECT tpl.codigo, tp.id_gestion, coalesce(tp.id_periodo, 0)
+        INTO v_desc_planilla, v_id_gestion, v_id_periodo
+        FROM plani.tplanilla tp
+        INNER JOIN plani.ttipo_planilla tpl on tpl.id_tipo_planilla = tp.id_tipo_planilla
+        WHERE tp.id_proceso_wf =  v_parametros.id_proceso_wf;
+
+        select tg.gestion
+        into v_gestion
+        from param.tgestion tg
+        where tg.id_gestion = v_id_gestion;
+
+
+        if v_desc_planilla = 'PLASUB' or v_desc_planilla = 'PLASUE' then
+            v_inner_periodo = 'inner join param.tperiodo tper on tper.id_periodo = tpla.id_periodo
+                               inner join orga.tcargo_presupuesto tcp on tcp.id_cargo = tuof.id_cargo and tcp.id_gestion = '||v_id_gestion||' and
+                               ((tper.fecha_ini between tcp.fecha_ini and coalesce(tcp.fecha_fin,''31/12/'||v_gestion||'''::date)) or
+                               (tper.fecha_fin between tcp.fecha_ini and coalesce(tcp.fecha_fin,''31/12/'||v_gestion||'''::date)))';
+        else
+            v_inner_periodo = 'inner join param.tperiodo tper on tper.periodo = extract(''month'' from tpla.fecha_planilla) and tper.id_gestion = '||v_id_gestion||'
+                               inner join orga.tcargo_presupuesto tcp on tcp.id_cargo = tuof.id_cargo and tcp.id_gestion = '||v_id_gestion||' and
+                               ((tper.fecha_ini between tcp.fecha_ini and coalesce(tcp.fecha_fin,''31/12/'||v_gestion||'''::date)) or
+                               (tper.fecha_fin between tcp.fecha_ini and coalesce(tcp.fecha_fin,''31/12/'||v_gestion||'''::date)))';
+        end if;
+
+        --v_mes = {'Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre', 'Diciembre'};
+
+        v_consulta = 'SELECT
+                      (case
+                                when lower(ger.nombre_unidad) like ''%cobija%'' or tcar.nombre like ''%CIJ%'' then
+                                    ''5.CIJ''
+                                when tcar.codigo = ''0'' then
+                                    ''6.EVE''
+                                when (ca.codigo = ''SUPER'' and (tfp.id_funcionario != 10 or (tfp.id_funcionario = 10 and tper.periodo <= 7 and tpla.id_gestion = 16))) then
+                                    ''3.ESP''
+                                when (vcp.desc_programa ilike ''%ADM%'' or (ca.codigo = ''SUPER'' and tfp.id_funcionario = 10 and (tper.periodo > 7 or tpla.id_gestion >= 16))) then
+                                    ''1.ADM''
+                                when vcp.desc_programa ilike ''%OPE%'' then
+                                    ''2.OPE''
+                                when vcp.desc_programa ilike ''%COM%'' then
+                                    ''4.COM''
+                                else
+                                    ''SINCAT''
+                                end
+                                )::varchar as categoria_prog,
+                      vcp.codigo_programa::varchar as programa,
+                      vcp.codigo_proyecto::varchar as proyecto,
+                      vcp.codigo_actividad::varchar as actividad,
+                      vcp.codigo_fuente_fin::varchar as fuente_fin,
+                      vcp.codigo_origen_fin::varchar as origen_fin,
+
+                      COALESCE(tet.codigo::varchar,''00''::varchar) AS codigo_transf,
+                      tpar.codigo::varchar as cod_partida,
+                      tpar.nombre_partida::varchar AS nombre_partida,
+                      sum(tcv.valor)::numeric AS precio_total,
+
+                      extract(year from fecha_planilla)::varchar as gestion,
+                      ''<b>578</b> Boliviana de Aviación - BoA''::varchar AS entidad,
+                      ''<b>1</b> Boliviana de Aviación - BoA''::varchar AS direccion_admin,
+                      ''<b>1</b> Boliviana de Aviación - BoA''::varchar AS unidad_ejecutora,
+                      tcg.codigo::varchar AS clase_gasto,
+                      tipp.periodicidad::varchar as tipo_proceso,
+                      vcp.desc_programa::varchar,
+                      tper.periodo::varchar
+
+
+                      FROM plani.tplanilla tpla
+                      inner join plani.ttipo_planilla tipp on tipp.id_tipo_planilla = tpla.id_tipo_planilla
+                      inner join plani.tfuncionario_planilla tfp on tfp.id_planilla = tpla.id_planilla
+                      INNER JOIN orga.tuo_funcionario tuof on tuof.id_uo_funcionario = tfp.id_uo_funcionario
+                      INNER JOIN ORGA.tcargo tcar on tcar.id_cargo = tuof.id_cargo
+                      INNER JOIN ORGA.tescala_salarial es ON es.id_escala_salarial = tcar.id_escala_salarial
+                      INNER JOIN ORGA.tcategoria_salarial ca ON ca.id_categoria_salarial = es.id_categoria_salarial
+                      inner JOIN orga.tuo ger ON ger.id_uo = orga.f_get_uo_gerencia(tuof.id_uo, NULL::integer, NULL::date)
+                      '||v_inner_periodo||'
+                      inner join orga.vfuncionario vf on vf.id_funcionario = tfp.id_funcionario
+
+                      inner JOIN plani.tcolumna_valor tcv on tcv.id_funcionario_planilla = tfp.id_funcionario_planilla
+
+                      inner JOIN conta.trelacion_contable trc on trc.id_tabla = tcv.id_tipo_columna and trc.id_centro_costo = tcp.id_centro_costo and
+                      case when tfp.tipo_contrato = ''PLA'' then trc.id_tipo_relacion_contable = 27 when tfp.tipo_contrato = ''EVE'' then trc.id_tipo_relacion_contable = 28 else false end
+
+                      inner join param.tcentro_costo tcc on tcc.id_centro_costo = tcp.id_centro_costo
+                      inner join param.ttipo_cc ttc on ttc.id_tipo_cc = tcc.id_tipo_cc
+
+                      INNER JOIN pre.tpresupuesto	tp ON tp.id_presupuesto = tcc.id_centro_costo
+                      INNER JOIN pre.vcategoria_programatica vcp ON vcp.id_categoria_programatica = tp.id_categoria_prog
+
+                      INNER JOIN pre.tpartida tpar ON tpar.id_partida = trc.id_partida and tpar.id_gestion = '||v_id_gestion||'
+
+                      left join pre.tpresupuesto_partida_entidad tppe on tppe.id_partida = trc.id_partida and tppe.id_presupuesto = tp.id_presupuesto and tppe.id_gestion = '||v_id_gestion||'
+                      and case when tcv.codigo_columna = ''CAJSAL'' THEN (case when vf.ci = ''630048'' then tppe.id_entidad_transferencia = 22 else tppe.id_entidad_transferencia = 21 end) else (tppe.id_entidad_transferencia !=21 and tppe.id_entidad_transferencia !=22) end
+
+                      left join pre.tentidad_transferencia tet on tet.id_entidad_transferencia = tppe.id_entidad_transferencia and tet.id_gestion = '||v_id_gestion||'
+
+                      left join pre.tclase_gasto_partida tcgp on tcgp.id_partida = trc.id_partida
+                      left join pre.tclase_gasto tcg on tcg.id_clase_gasto = tcgp.id_clase_gasto
+                      WHERE tcp.id_gestion = '||v_id_gestion||' and tpla.estado_reg = ''activo'' AND tpla.id_proceso_wf = '||v_parametros.id_proceso_wf||'
+                      GROUP BY
+                            vcp.codigo_categoria,
+                            vcp.codigo_programa, vcp.codigo_proyecto, vcp.codigo_actividad, vcp.codigo_fuente_fin, vcp.codigo_origen_fin,
+                            ger.nombre_unidad, tcar.codigo, ca.codigo,tfp.id_funcionario,vcp.desc_programa,
+                            tpar.codigo,
+                            tpar.nombre_partida,
+                            tet.codigo,
+                            tcg.codigo,
+                            fecha_planilla,
+                            tipp.periodicidad,
+                            tper.periodo,
+                            tcar.nombre,
+                            tpla.id_gestion
+                      ORDER BY categoria_prog asc, vcp.codigo_categoria,  tpar.codigo asc';
+		raise notice 'v_consulta: %', v_consulta;
+        --Devuelve la respuesta
+        return v_consulta;
+      end;
 
     else
 

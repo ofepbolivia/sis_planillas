@@ -13,6 +13,8 @@ require_once(dirname(__FILE__).'/../reportes/RAguinaldoXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RSegAguinaldoXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RCertificacionPresupuestaria.php');
 require_once(dirname(__FILE__).'/../reportes/RMinisterioTrabajoAguinaldoXLS.php');
+require_once(dirname(__FILE__).'/../reportes/RMinisterioTrabajoSegAguinaldoXLS.php');
+require_once(dirname(__FILE__).'/../reportes/RElaboracionFormC31PDF.php');
 
 class ACTPlanilla extends ACTbase{
 
@@ -79,7 +81,11 @@ class ACTPlanilla extends ACTbase{
                 $this->res = $this->objFunc->listarReporteAguinaldoMinisterioNuevo($this->objParam);
             }
         } else if ($this->objParam->getParametro('id_tipo_planilla') == 5) {
-            $this->res=$this->objFunc->listarReporteSegAguinaldoMinisterio($this->objParam);
+            if($this->objParam->getParametro('formato')=='antiguo') {
+                $this->res=$this->objFunc->listarReporteSegAguinaldoMinisterio($this->objParam);
+            }else if($this->objParam->getParametro('formato')=='nuevo'){
+                $this->res = $this->objFunc->listarReporteSegAguinaldoMinisterioNuevo($this->objParam);
+            }
         }
         //obtener titulo del reporte
         $titulo = 'RepMinisterioTrabajo';
@@ -128,9 +134,16 @@ class ACTPlanilla extends ACTbase{
             }
         } else if ($this->objParam->getParametro('id_tipo_planilla') == 5) {
 
-            $this->objReporteFormato=new RSegAguinaldoXLS($this->objParam);
-            $this->objReporteFormato->imprimeDatosSueldo();
-            $this->objReporteFormato->imprimeResumen();
+            if($this->objParam->getParametro('formato')=='antiguo'){
+                $this->objReporteFormato=new RSegAguinaldoXLS($this->objParam);
+                $this->objReporteFormato->imprimeDatosSueldo();
+                $this->objReporteFormato->imprimeResumen();
+            }else if($this->objParam->getParametro('formato')=='nuevo'){
+                $this->objReporteFormato = new RMinisterioTrabajoSegAguinaldoXLS($this->objParam);
+                $this->objReporteFormato->imprimeDatosSueldo();
+                $this->objReporteFormato->imprimeResumen();
+                //$this->objReporteFormato->imprimeResumenRegional();
+            }
         }
 
         $this->objReporteFormato->generarReporte();
@@ -235,6 +248,29 @@ class ACTPlanilla extends ACTbase{
         $this->objFunc=$this->create('MODPlanilla');
         $this->res=$this->objFunc->listarPartidaObjetivo($this->objParam);
         $this->res->imprimirRespuesta($this->res->generarJson());
+    }
+
+    //Reporte Elaboracion Formulario C31 sigma(F.E.A) 30/01/2019
+    function reporteElaboracionFormC31 (){
+        $this->objFunc=$this->create('MODPlanilla');
+        $dataSource=$this->objFunc->reporteElaboracionFormC31();
+        $this->dataSource=$dataSource->getDatos();
+
+        $nombreArchivo = uniqid(md5(session_id()).'[Planilla - Elaboración C31]').'.pdf';
+        $this->objParam->addParametro('orientacion','P');
+        $this->objParam->addParametro('tamano','LETTER');
+        $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
+
+        $this->objReporte = new RElaboracionFormC31PDF($this->objParam);
+        $this->objReporte->setDatos($this->dataSource);
+        $this->objReporte->generarReporte();
+        $this->objReporte->output($this->objReporte->url_archivo,'F');
+
+
+        $this->mensajeExito=new Mensaje();
+        $this->mensajeExito->setMensaje('EXITO','Reporte.php','Reporte generado', 'Se generó con éxito el reporte: '.$nombreArchivo,'control');
+        $this->mensajeExito->setArchivoGenerado($nombreArchivo);
+        $this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
     }
 
 }
