@@ -338,7 +338,7 @@ class MODReporte extends MODbase{
         $this->captura('departamento','varchar');
         $this->captura('categoria_programatica','varchar');
         $this->captura('fecha_finalizacion','varchar');
-        //$this->captura('nivel','integer');
+        $this->captura('tiempo_empresa','interval');
         //$this->captura('centro_costo','varchar');
         //$this->captura('categoria_codigo','varchar');
 

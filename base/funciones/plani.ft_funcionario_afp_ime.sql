@@ -53,11 +53,11 @@ BEGIN
         	if (v_max_fecha_ini + interval '1 day' >= v_parametros.fecha_ini)then
         		raise exception 'Ya existe una Afp asignada para este empleado con fecha inicio: %',v_max_fecha_ini;
         	end if;
-        	
-        	update plani.tfuncionario_afp set
-				fecha_fin = v_parametros.fecha_ini - interval '1 day'
-			where fecha_fin is null and id_funcionario = v_parametros.id_funcionario;
-			
+        	if v_max_fecha_ini is not null then
+        	  update plani.tfuncionario_afp set
+				    fecha_fin = v_parametros.fecha_ini - interval '1 day'
+			      where fecha_fin is null and id_funcionario = v_parametros.id_funcionario;
+			    end if;
         	--Sentencia de la insercion
         	insert into plani.tfuncionario_afp(
 			id_afp,

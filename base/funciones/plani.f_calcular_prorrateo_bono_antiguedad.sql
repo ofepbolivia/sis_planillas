@@ -61,18 +61,30 @@ BEGIN
             end if;
         else
         	if v_valor_min = p_nivel_antiguedad and p_fecha_ini between p_fecha_per_ini and p_fecha_per_fin then
-                v_superior = 30-date_part('day',p_fecha_ini) + 1;
-                v_inferior = 15-date_part('day',p_fecha_ini) - 1;
-                v_resultado = ((v_salario_minimo*v_porcentaje/100)*3) * v_superior/30;
+                if  p_fecha_ini > p_fecha_per_ini then
+                  v_horas_normales = v_horas_normales - ((date_part('day', p_fecha_ini) - date_part('day', p_fecha_per_ini))*8);
+                  v_resultado = ((v_salario_minimo*v_porcentaje/100)*3)*v_horas_normales/v_horas_laborales;
+                else
+                  v_superior = 30-date_part('day',p_fecha_ini) + 1;
+                  v_inferior = 15-date_part('day',p_fecha_ini) - 1;
+                  v_resultado = ((v_salario_minimo*v_porcentaje/100)*3) * v_superior/30;
+                end if;
             else
             	if v_horas_normales = 240 then
                   v_resultado = ((v_salario_minimo*v_porcentaje/100)*3);
                 else
+                  if  p_fecha_ini > p_fecha_per_ini and (p_id_funcionario_planilla != 407376 AND p_id_funcionario_planilla != 407684) /*and (date_part('month', p_fecha_ini) = date_part('month', p_fecha_per_ini)*/ then
+                    v_horas_normales = v_horas_normales - ((date_part('day', p_fecha_ini) - date_part('day', p_fecha_per_ini))*8);
+                  end if;
                   v_resultado = ((v_salario_minimo*v_porcentaje/100)*3)*v_horas_normales/v_horas_laborales;
+
                 end if;
             end if;
 
         end if;
+	/*if (p_id_funcionario_planilla = 406666) then
+    	raise exception 'valores: %, %, %, %, %, %, %, %, %', p_fecha_ini, p_fecha_per_ini, v_horas_normales,v_horas_laborales, v_salario_minimo, v_porcentaje, p_fecha_ini, p_fecha_per_ini, v_resultado;
+    end if;*/
 
     elsif v_porcentaje = 11 then
 
@@ -157,7 +169,7 @@ BEGIN
     else
     	v_resultado = 0;
     end if;
-
+    --raise exception 'resultado: %', v_resultado;
     return v_resultado;
 EXCEPTION
 

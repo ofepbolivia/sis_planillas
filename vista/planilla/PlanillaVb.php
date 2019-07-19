@@ -354,6 +354,54 @@ header("content-type: text/javascript; charset=UTF-8");
 
             {
                 config:{
+                    name : 'periodo_pago',
+                    origen : 'PERIODO',
+                    fieldLabel : 'Periodo Pago',
+                    allowBlank : false,
+                    emptyText: 'Periodo Pago',
+                    gdisplayField : 'periodo',//mapea al store del grid
+                    gwidth : 100,
+
+                    disabled: true,
+                    renderer:function (value, p, record){
+                        var dato='Sin Periodo';
+                        dato = record.data['periodo_pago']=='1'?'Enero':dato;
+                        dato = record.data['periodo_pago']=='2'?'Febrero':dato;
+                        dato = record.data['periodo_pago']=='3'?'Marzo':dato;
+                        dato = record.data['periodo_pago']=='4'?'Abril':dato;
+                        dato = record.data['periodo_pago']=='5'?'Mayo':dato;
+                        dato = record.data['periodo_pago']=='6'?'Junio':dato;
+                        dato = record.data['periodo_pago']=='7'?'Julio':dato;
+                        dato = record.data['periodo_pago']=='8'?'Agosto':dato;
+                        dato = record.data['periodo_pago']=='9'?'Septiembre':dato;
+                        dato = record.data['periodo_pago']=='10'?'Octubre':dato;
+                        dato = record.data['periodo_pago']=='11'?'Noviembre':dato;
+                        dato = record.data['periodo_pago']=='12'?'Diciembre':dato;
+                        if  (dato=='Sin Periodo'){
+                            return String.format('<div ext:qtip="Pago"><span style="color: red">{0}</span></div>', dato);
+                        }else{
+                            return String.format('<div ext:qtip="Pago"><span style="color: green">{0}</span></div>', dato);
+                        }
+
+                    }
+                    //renderer : function (value, p, record){return String.format('{0}', );}
+                },
+                valueField: 'id_periodo',
+                displayField: 'periodo',
+                type : 'ComboRec',
+                id_grupo : 1,
+                filters : {
+                    pfiltro : 'per.periodo',
+                    type : 'numeric'
+                },
+
+                grid : true,
+                form : true,
+                bottom_filter : true
+            },
+
+            {
+                config:{
                     name:'id_uo',
                     hiddenName: 'id_uo',
                     origen:'UO',
@@ -509,6 +557,7 @@ header("content-type: text/javascript; charset=UTF-8");
             {name:'usr_mod', type: 'string'},
             {name:'codigo_poa', type: 'string'},
             {name:'obs_poa', type: 'string'},
+            {name:'periodo_pago', type: 'numeric'}
 
         ],
         sortInfo:{

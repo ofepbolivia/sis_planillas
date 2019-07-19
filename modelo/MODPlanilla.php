@@ -52,6 +52,8 @@ class MODPlanilla extends MODbase{
 		$this->captura('fecha_planilla','date');		
 		$this->captura('codigo_poa','varchar');
 		$this->captura('obs_poa','text');
+		$this->captura('periodo_pago','integer');
+		$this->captura('fecha_sigma','date');
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();
@@ -346,6 +348,8 @@ class MODPlanilla extends MODbase{
 		$this->setParametro('estado','estado','varchar');
 		$this->setParametro('id_depto','id_depto','integer');
 		$this->setParametro('fecha_planilla','fecha_planilla','date');
+		$this->setParametro('periodo_pago','periodo_pago','integer');
+		$this->setParametro('fecha_sigma','fecha_sigma','date');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -375,6 +379,8 @@ class MODPlanilla extends MODbase{
 		$this->setParametro('nro_planilla','nro_planilla','varchar');
 		$this->setParametro('estado','estado','varchar');
 		$this->setParametro('fecha_planilla','fecha_planilla','date');
+        $this->setParametro('periodo_pago','periodo_pago','integer');
+        $this->setParametro('fecha_sigma','fecha_sigma','date');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -544,6 +550,7 @@ class MODPlanilla extends MODbase{
 		$this->captura('gestion', 'integer');
 		$this->captura('codigo_poa', 'varchar');
 		$this->captura('codigo_descripcion', 'varchar');
+
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -773,8 +780,9 @@ class MODPlanilla extends MODbase{
         $this->captura('clase_gasto', 'varchar');
         $this->captura('tipo_proceso', 'varchar');
         $this->captura('desc_programa', 'varchar');
-        $this->captura('periodo', 'varchar');
-
+        $this->captura('periodo', 'integer');
+        $this->captura('tipo_planilla', 'varchar');
+        $this->captura('observaciones', 'varchar');
         //Ejecuta la instruccion
         $this->armarConsulta();
         //echo($this->consulta);exit;

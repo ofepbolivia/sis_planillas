@@ -201,7 +201,9 @@ BEGIN
 			id_proceso_wf,
 			estado,
 			id_depto,
-			fecha_planilla
+			fecha_planilla,
+            id_periodo_pago,
+            fecha_sigma
           	) values(
 			v_parametros.id_periodo,
 			v_parametros.id_gestion,
@@ -219,7 +221,9 @@ BEGIN
 			v_id_proceso_wf,
 			v_codigo_estado,
 			v_parametros.id_depto,
-			v_parametros.fecha_planilla
+			v_parametros.fecha_planilla,
+            v_parametros.periodo_pago,
+            v_parametros.fecha_sigma
 			)RETURNING id_planilla into v_id_planilla;
 
             execute 'select ' || v_tipo_planilla.funcion_obtener_empleados || '(' || v_id_planilla || ')'
@@ -243,12 +247,14 @@ BEGIN
 
 	elsif(p_transaccion='PLA_PLANI_MOD')then
 
-		begin
+		begin --raise exception 'periodo_pago: %', v_parametros.periodo_pago;
 			--Sentencia de la modificacion
 			update plani.tplanilla set
 			observaciones = v_parametros.observaciones,
 			id_usuario_mod = p_id_usuario,
 			fecha_planilla = v_parametros.fecha_planilla,
+            id_periodo_pago = v_parametros.periodo_pago,
+            fecha_sigma = v_parametros.fecha_sigma,
 			fecha_mod = now()
 			where id_planilla=v_parametros.id_planilla;
 

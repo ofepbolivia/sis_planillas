@@ -378,7 +378,7 @@ class RMinisterioTrabajoUpdateXLS
 
             if ($value['codigo_columna'] == 'SUELDOBA' || $value['codigo_columna'] == 'BONANT' || $value['codigo_columna'] == 'BONFRONTERA' ||
                 $value['codigo_columna'] == 'AFP_LAB' || $value['codigo_columna'] == 'CAJSAL' || $value['codigo_columna'] == 'IMPURET' ||
-                $value['codigo_columna'] == 'OTRO_DESC') {
+                $value['codigo_columna'] == 'OTRO_DESC' || $value['codigo_columna'] == 'REINBANT') {
 
                 if($value['codigo_columna'] == 'SUELDOBA' || $value['codigo_columna'] == 'BONANT' || $value['codigo_columna'] == 'BONFRONTERA') {
 
@@ -393,23 +393,28 @@ class RMinisterioTrabajoUpdateXLS
                     $columna++;
                 }else{
 
-                    if($value['codigo_columna'] == 'AFP_LAB') {
-                        $this->orden[2] = $value['valor'];
-                    }else if($value['codigo_columna'] == 'CAJSAL'){
-                        $this->orden[1] = $value['valor'];
-                    }else if($value['codigo_columna'] == 'IMPURET'){
+                    if ($value['codigo_columna'] == 'REINBANT'){
                         $this->orden[0] = $value['valor'];
-                    }else if($value['codigo_columna'] == 'OTRO_DESC'){
+                    }
+                    else if($value['codigo_columna'] == 'AFP_LAB') {
                         $this->orden[3] = $value['valor'];
+                    }else if($value['codigo_columna'] == 'CAJSAL'){
+                        $this->orden[2] = $value['valor'];
+                    }else if($value['codigo_columna'] == 'IMPURET'){
+                        $this->orden[1] = $value['valor'];
+                    }else if($value['codigo_columna'] == 'OTRO_DESC'){
+                        $this->orden[4] = $value['valor'];
                         for($i = 0;$i<count($this->orden);$i++){
                             // var_dump($i.'======>'.$this->orden[$i].'col:'.$columna.'row:'.$fila."\n");
                             if($i == 0){
+                                $this->docexcel->getActiveSheet()->getStyle('AP'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                            }else if($i == 1){
                                 $this->docexcel->getActiveSheet()->getStyle('AQ'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
-                            }else if($i==1){
-                                $this->docexcel->getActiveSheet()->getStyle('AR'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                             }else if($i==2){
-                                $this->docexcel->getActiveSheet()->getStyle('AS'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                                $this->docexcel->getActiveSheet()->getStyle('AR'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                             }else if($i==3){
+                                $this->docexcel->getActiveSheet()->getStyle('AS'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                            }else if($i==4){
                                 $this->docexcel->getActiveSheet()->getStyle('AT'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                             }
                             $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columna, $fila, $this->orden[$i]);
@@ -460,15 +465,16 @@ class RMinisterioTrabajoUpdateXLS
                 $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columna,$fila,0);
                 $columna++;
             }
-            if ($columna == 39) {
+
+            if ($columna == 39 ) {
                 $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columna,$fila,0);
                 $columna++;
             }
 
-            if ($columna == 41) {
+            /*if ($columna == 41) {
                 $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columna,$fila,0);
                 $columna++;
-            }
+            }*/
         }
 
 

@@ -11,7 +11,8 @@ header("content-type: text/javascript; charset=UTF-8");
 ?>
 <script>
 Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
-
+    fwidth: '60%',
+    fheight: '60%',
 	constructor:function(config){
 		this.maestro=config.maestro;		
     	//llama al constructor de la clase padre
@@ -119,6 +120,46 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
             });         
         } 
 	},
+    Grupos: [
+        {
+            layout: 'column',
+            border: false,
+            defaults: {
+                border: false
+            },
+            //labelAlign: 'top',
+
+            items: [
+                {
+                    bodyStyle: 'padding-right:10px;',
+                    items: [
+
+                        {
+                            xtype: 'fieldset',
+                            title: '<b style="color: green;">PLANILLA</b>',
+                            autoHeight: true,
+                            items: [],
+                            id_grupo: 0
+                        }
+                    ]
+                }
+                ,
+                {
+                    //labelAlign: 'top',
+                    bodyStyle: 'padding-right:10px;',
+                    items: [
+                        {
+                            xtype: 'fieldset',
+                            title: '<b style="color: red;">PRESUPUESTO (SIGMA)</b>',
+                            autoHeight: true,
+                            items: [],
+                            id_grupo: 1
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
 	gruposBarraTareas:[{name:'otro',title:'<H1 align="center"><i class="fa fa-eye"></i> En Registro</h1>',grupo:0,height:0},
 						{name:'comprobante_generado',title:'<H1 align="center"><i class="fa fa-eye"></i> En Contabilidad</h1>',grupo:1,height:0},
                        {name:'planilla_finalizada',title:'<H1 align="center"><i class="fa fa-eye"></i> Finalizadas</h1>',grupo:2,height:0}
@@ -153,10 +194,10 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 		{
 			config:{
 				name: 'nro_planilla',
-				fieldLabel: 'No',
+				fieldLabel: 'No Planilla',
 				allowBlank: false,
 				anchor: '80%',
-				gwidth: 100,
+				gwidth: 150,
 				maxLength:100
 			},
 				type:'TextField',
@@ -198,9 +239,12 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 				mode: 'remote',
 				pageSize: 20,
 				queryDelay: 200,
-				listWidth:280,
+                width: 270,
+				listWidth:270,
 				minChars: 2,
 				gwidth: 120,
+
+                msgTarget: 'side',
 				tpl: '<tpl for="."><div class="x-combo-list-item"><p>{codigo}</p><strong>{nombre}</strong> </div></tpl>'
 			},
 			type: 'ComboBox',
@@ -239,8 +283,10 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 	   				allowBlank:false,
 	   				fieldLabel: 'Depto',
 	   				gdisplayField:'desc_depto',//dibuja el campo extra de la consulta al hacer un inner join con orra tabla
-	   				width:250,
-   			        gwidth:180,
+                    width: 270,
+                    listWidth:270,
+   			        gwidth: 250,
+                    msgTarget: 'side',
 	   				baseParams:{tipo_filtro:'DEPTO_UO',estado:'activo',codigo_subsistema:'ORGA'},//parametros adicionales que se le pasan al store
 	      			renderer:function (value, p, record){return String.format('{0}', record.data['nombre_depto']);}
    			},
@@ -258,7 +304,10 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 	   				fieldLabel : 'Gestion',
 	   				allowBlank : false,
 	   				gdisplayField : 'gestion',//mapea al store del grid
-	   				gwidth : 100,
+	   				gwidth : 70,
+                    width: 270,
+                    listWidth:270,
+                    msgTarget: 'side',
 		   			renderer : function (value, p, record){return String.format('{0}', record.data['gestion']);}
 	       	     },
 	   			type : 'ComboRec',
@@ -276,19 +325,22 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 	   			config:{
 	   				name : 'id_periodo',
 	   				origen : 'PERIODO',
-	   				fieldLabel : 'Periodo',
+	   				fieldLabel : 'Mes Proceso',
 	   				allowBlank : true,
+                    disabled: true,
 	   				gdisplayField : 'periodo',//mapea al store del grid
-	   				gwidth : 100,
+	   				gwidth : 70,
+                    width: 270,
+                    listWidth:270,
 		   			renderer : function (value, p, record){return String.format('{0}', record.data['periodo']);}
 	       	     },
 	   			type : 'ComboRec',
 	   			id_grupo : 0,
-	   			filters : {	
+	   			filters : {
 			        pfiltro : 'per.periodo',
 					type : 'numeric'
 				},
-	   		   
+
 	   			grid : true,
 	   			form : true,
                 bottom_filter : true
@@ -299,18 +351,88 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 				fieldLabel: 'Fecha Planilla',
 				allowBlank: false,
 				qtip: 'Esta fecha se tomara como base para afectaciones contables y presupuestarias de esta planilla',
-				anchor: '80%',
+				//anchor: '80%',
 				gwidth: 100,
-							format: 'd/m/Y', 
-							renderer:function (value,p,record){return value?value.dateFormat('d/m/Y'):''}
+                width: 177,
+                format: 'd/m/Y',
+                msgTarget: 'side',
+                renderer:function (value,p,record){return value?value.dateFormat('d/m/Y'):''}
 			},
 				type:'DateField',
 				filters:{pfiltro:'plani.fecha_planilla',type:'date'},
-				id_grupo:1,
+				id_grupo:0,
 				grid:true,
 				form:true
 		},
-		
+
+        {
+            config:{
+                name : 'periodo_pago',
+                origen : 'PERIODO',
+                fieldLabel : 'Periodo Pago',
+                allowBlank : false,
+                emptyText: 'Periodo Pago',
+                gdisplayField : 'periodo',//mapea al store del grid
+                gwidth : 100,
+
+                disabled: true,
+                renderer:function (value, p, record){
+                    var dato='Sin Periodo';
+                    dato = record.data['periodo_pago']=='1'?'Enero':dato;
+                    dato = record.data['periodo_pago']=='2'?'Febrero':dato;
+                    dato = record.data['periodo_pago']=='3'?'Marzo':dato;
+                    dato = record.data['periodo_pago']=='4'?'Abril':dato;
+                    dato = record.data['periodo_pago']=='5'?'Mayo':dato;
+                    dato = record.data['periodo_pago']=='6'?'Junio':dato;
+                    dato = record.data['periodo_pago']=='7'?'Julio':dato;
+                    dato = record.data['periodo_pago']=='8'?'Agosto':dato;
+                    dato = record.data['periodo_pago']=='9'?'Septiembre':dato;
+                    dato = record.data['periodo_pago']=='10'?'Octubre':dato;
+                    dato = record.data['periodo_pago']=='11'?'Noviembre':dato;
+                    dato = record.data['periodo_pago']=='12'?'Diciembre':dato;
+                    if  (dato=='Sin Periodo'){
+                        return String.format('<div ext:qtip="Pago"><span style="color: red">{0}</span></div>', dato);
+                    }else{
+                        return String.format('<div ext:qtip="Pago"><span style="color: green">{0}</span></div>', dato);
+                    }
+
+                }
+                //renderer : function (value, p, record){return String.format('{0}', );}
+            },
+            valueField: 'id_periodo',
+            displayField: 'periodo',
+            type : 'ComboRec',
+            id_grupo : 1,
+            filters : {
+                pfiltro : 'per.periodo',
+                type : 'numeric'
+            },
+
+            grid : true,
+            form : true,
+            bottom_filter : true
+        },
+
+        {
+            config:{
+                name: 'fecha_sigma',
+                fieldLabel: 'Fecha Form C31.',
+                allowBlank: true,
+                qtip: 'Esta fecha se tomara como base para afectaciones contables y presupuestarias Sigma',
+                //anchor: '80%',
+                gwidth: 120,
+                width: 177,
+                format: 'd/m/Y',
+                msgTarget: 'side',
+                renderer:function (value,p,record){return value?value.dateFormat('d/m/Y'):''}
+            },
+            type:'DateField',
+            filters:{pfiltro:'plani.fecha_sigma',type:'date'},
+            id_grupo:1,
+            grid:true,
+            form:true
+        },
+        
 		{
    			config:{
        		    name:'id_uo',
@@ -318,15 +440,17 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
           		origen:'UO',
    				fieldLabel:'UO',
    				gdisplayField:'desc_uo',//mapea al store del grid
-   				gwidth:200,
+   				gwidth:100,
    				emptyText:'Dejar blanco para toda la empresa...',
-   				anchor: '80%',
+   				//anchor: '80%',
+                width: 270,
+                listWidth:270,
    				baseParams: {nivel: 'si'},
    				allowBlank:true,
-   			     renderer:function (value, p, record){return String.format('{0}', record.data['desc_uo']);}
+                renderer:function (value, p, record){return String.format('{0}', record.data['desc_uo']);}
        	     },
    			type:'ComboRec',
-   			id_grupo:1,
+   			id_grupo:0,
    			filters:{	
 		        pfiltro:'uo.codigo#uo.nombre_unidad',
 				type:'string'
@@ -338,18 +462,17 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 			config:{
 				name: 'observaciones',
 				fieldLabel: 'Observaciones',
-				allowBlank: true,
-				anchor: '80%',
-				gwidth: 100
+				allowBlank: false,
+				//anchor: '80%',
+                width: 290,
+				gwidth: 250
 			},
 				type:'TextArea',
 				filters:{pfiltro:'plani.observaciones',type:'string'},
-				id_grupo:1,
+				id_grupo:0,
 				grid:true,
 				form:true
 		},
-		
-		
 		
 		{
 			config:{
@@ -466,6 +589,8 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 		{name:'fecha_mod', type: 'date',dateFormat:'Y-m-d H:i:s.u'},
 		{name:'usr_reg', type: 'string'},
 		{name:'usr_mod', type: 'string'},
+		{name:'periodo_pago', type: 'numeric'},
+		{name:'fecha_sigma', type: 'date',dateFormat:'Y-m-d'},
 
 	],
 	sortInfo:{
@@ -488,13 +613,30 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 		},this);
 		
 		this.Cmp.id_gestion.on('select',function(c,r,i){
+            this.Cmp.id_periodo.setDisabled(false);
 			this.Cmp.id_periodo.reset();
 			this.Cmp.id_periodo.store.baseParams.id_gestion = r.data.id_gestion;
+            //this.Cmp.id_periodo.store.reload();
+			this.Cmp.periodo_pago.setDisabled(false);
+            this.Cmp.periodo_pago.reset();
+            this.Cmp.periodo_pago.store.baseParams.id_gestion = r.data.id_gestion;
 		},this);
+        this.getComponente('id_periodo').on('select',function (c,r,i) {
+
+            var fecha_actual = new Date();
+            fecha_actual.setDate(1);
+            fecha_actual.setMonth(r.data.periodo);
+            console.log('periodo',this.Cmp.id_periodo.getValue(), r.data.periodo,fecha_actual);
+            this.getComponente('fecha_sigma').setMinValue(fecha_actual);
+        }, this);
 		
 		
 	},
 	onButtonEdit : function () {
+
+        var rec = this.getSelectedData();
+        this.Cmp.periodo_pago.setDisabled(false);
+        this.Cmp.periodo_pago.store.baseParams.id_gestion = rec.id_gestion;
 		this.ocultarComponente(this.Cmp.id_depto);
     	this.ocultarComponente(this.Cmp.id_tipo_planilla);
     	this.ocultarComponente(this.Cmp.id_uo);

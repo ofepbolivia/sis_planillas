@@ -78,7 +78,7 @@ class RPrevisionesXLS
 		$this->docexcel->getActiveSheet()->getStyle('A4:I4')->applyFromArray($styleTitulos);
 		$this->docexcel->getActiveSheet()->mergeCells("C1:E1");
 		$styleTitulos['font']['size'] = 12;
-		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(2,1,'REPORTE DE PREVISIONES AL : ' . $this->objParam->getParametro('fecha'));
+		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(2,1,'PLANILLA DE PREVISIÓN PARA INDEMNIZACIÓN AL : ' . $this->objParam->getParametro('fecha'));
 		
 		$styleTitulos['font']['size'] = 10;
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(0,2,'Gerencia : ' . $this->objParam->getParametro('uo'));

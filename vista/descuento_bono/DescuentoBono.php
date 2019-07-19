@@ -14,10 +14,12 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 
 	constructor:function(config){
 		this.maestro=config.maestro;
+		this.moneda = 0;
     	//llama al constructor de la clase padre
 		Phx.vista.DescuentoBono.superclass.constructor.call(this,config);
 		this.init();
 		this.iniciarEventos();
+
 		this.load({params:{start:0, limit:this.tam_pag, id_funcionario :this.maestro.id_funcionario}})
 	},
 			
@@ -50,7 +52,8 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
                 fieldLabel:'Moneda',
                 gdisplayField:'desc_moneda',//mapea al store del grid
                 gwidth:80,
-                 renderer:function (value, p, record){return String.format('{0}', record.data['desc_moneda']);}
+                autoSelect:true,
+                renderer:function (value, p, record){return String.format('{0}', record.data['desc_moneda']);}
              },
             type:'ComboRec',
             id_grupo:1,
@@ -114,7 +117,8 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 				allowBlank: true,
 				anchor: '80%',
 				gwidth: 100,
-				maxLength:7
+				maxLength:7,
+                msgTarget: 'side'
 			},
 				type:'NumberField',
 				filters:{pfiltro:'desbon.valor_por_cuota',type:'numeric'},
@@ -312,9 +316,18 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 			this.Cmp.valor_por_cuota.allowBlank = false;
 		}
     },
+
     onButtonNew : function () {
-    	this.mostrarComponente(this.Cmp.id_tipo_columna);
+    	this.ocultarComponente(this.Cmp.valor_por_cuota);
+        this.ocultarComponente(this.Cmp.monto_total);
     	Phx.vista.DescuentoBono.superclass.onButtonNew.call(this);
+
+        this.Cmp.id_moneda.store.load({params:{start:0, limit:this.tam_pag}, scope:this, callback: function (param,op,suc) {
+            this.Cmp.id_moneda.setValue(param[0].data.id_moneda);
+            this.Cmp.id_moneda.collapse();
+            this.Cmp.id_tipo_columna.focus(false,  5);
+        }});
+
     },
     loadValoresIniciales:function()
     {	
@@ -323,6 +336,7 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
         Phx.vista.DescuentoBono.superclass.loadValoresIniciales.call(this);
     },
     iniciarEventos : function () {
+
 		this.Cmp.id_tipo_columna.on('select',function (c, r, i) {
 				
 			if (r.data.tipo_descuento_bono == 'monto_fijo_indefinido') {				
@@ -352,6 +366,7 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 				this.Cmp.monto_total.allowBlank = true;
 				
 				this.mostrarComponente(this.Cmp.valor_por_cuota);
+                this.Cmp.valor_por_cuota.reset();
 				this.Cmp.valor_por_cuota.allowBlank = false;
 			}
 			

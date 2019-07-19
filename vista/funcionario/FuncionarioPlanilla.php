@@ -14,7 +14,9 @@ Phx.vista.FuncionarioPlanilla = {
 	requireclase:'Phx.vista.funcionario',
 	title:'Funcionario',
 	nombreVista: 'FuncionarioPlanilla',
-	
+	bedit:false,
+    bnew:false,
+    bdel:false,
 	constructor: function(config) {
 	    
 	    
@@ -22,7 +24,7 @@ Phx.vista.FuncionarioPlanilla = {
         this.addButton('btnAfp',
         {
             text: 'AFP',
-            //grupo: [0,1],
+            grupo: [0,1,2],
             iconCls: 'blist',
             disabled: true,
             handler: this.onBtnAfp,
