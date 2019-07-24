@@ -46,7 +46,7 @@ BEGIN
     from param.f_get_periodo_gestion(v_planilla.fecha_planilla);
 
     --llenar tprorrateo con datos de la parametrizazion
-    if (v_planilla.tipo_presu_cc = 'parametrizacion' and v_planilla.calculo_horas = 'si') then
+    if (v_planilla.tipo_presu_cc = 'parametrizacion' and v_planilla.calculo_horas = 'si') then  --RAISE EXCEPTION 'A';
     	v_horas_laborales = plani.f_get_valor_parametro_valor('HORLAB',v_planilla.fecha_periodo);
     	for v_registros in (select fp.id_funcionario_planilla,ht.id_horas_trabajadas, fun.desc_funcionario1,
         					ht.porcentaje_sueldo,ht.horas_normales,ht.sueldo
@@ -55,6 +55,11 @@ BEGIN
                                     	fp.id_funcionario_planilla = ht.id_funcionario_planilla
                                     inner join orga.vfuncionario fun on fun.id_funcionario = fp.id_funcionario
                                     where fp.id_planilla = p_id_planilla) loop
+
+    		/*if (v_registros.id_funcionario_planilla = 328140) then
+                	--raise exception '%,%',v_valor_total,v_presupuesto.valor_presupuesto;
+            	raise exception 'A';
+            end if;*/
         	--obtener sueldo total y horas totales de columna valor
 
             select c.valor into v_valor_horas
@@ -140,8 +145,8 @@ BEGIN
                   	NULL
                   END,
                   p_tipo_generacion,
-                  v_presupuesto.porcentajes[v_count]*v_registros.sueldo/v_horas_laborales*v_registros.horas_normales/v_valor_total,
-                  v_presupuesto.porcentajes[v_count]*v_registros.horas_normales/v_valor_horas,
+                  v_presupuesto.porcentajes[v_count]*v_registros.sueldo/v_horas_laborales*v_registros.horas_normales/CASE WHEN v_valor_total = 0 THEN 1 ELSE v_valor_total END,
+                  v_presupuesto.porcentajes[v_count]*v_registros.horas_normales/CASE WHEN v_valor_horas = 0 THEN 1 ELSE v_valor_horas END,
                   v_presupuesto.id_oficina,
                   v_presupuesto.id_lugar,
                   v_presupuesto.tipo_contrato
@@ -153,13 +158,18 @@ BEGIN
 
 
     --llenar tprorrateo con los datos del ultimo centro de costo
-    elsif (v_planilla.tipo_presu_cc = 'prorrateo_aguinaldo') then
+    elsif (v_planilla.tipo_presu_cc = 'prorrateo_aguinaldo') then  --RAISE EXCEPTION 'B';
 
         for v_registros in (select fp.id_funcionario,fp.id_funcionario_planilla, fun.desc_funcionario1, p.id_gestion
         							from plani.tfuncionario_planilla fp
                                     inner join plani.tplanilla p on p.id_planilla = fp.id_planilla
                                     inner join orga.vfuncionario fun on fun.id_funcionario = fp.id_funcionario
                                     where fp.id_planilla = p_id_planilla) loop
+
+            /*if (v_registros.id_funcionario_planilla = 328140) then
+                	--raise exception '%,%',v_valor_total,v_presupuesto.valor_presupuesto;
+            	raise exception 'B';
+            end if;*/
 
             v_presupuesto = NULL;
             if (p_tipo_generacion = 'presupuestos') then
@@ -197,6 +207,31 @@ BEGIN
 
            for v_presupuesto in execute(v_consulta) loop
             	--se obtiene el porcentaje de los dias con el presupuesto de los dias del aguinaldo
+                /*if v_presupuesto.id_funcionario = 498 and v_presupuesto.tipo_contrato = 'EVE' then
+            		CONTINUE;
+            	end if;
+                if v_presupuesto.id_funcionario = 2032 and v_presupuesto.dias_presupuesto = 30 and v_presupuesto.fecha_asignacion = '1/12/2018'::date then
+            		CONTINUE;
+            	end if;
+                if v_presupuesto.id_funcionario = 2200 and v_presupuesto.tipo_contrato = 'EVE' then
+            		CONTINUE;
+            	end if;
+                if v_presupuesto.id_funcionario = 2306 and v_presupuesto.dias_presupuesto = 42 and v_presupuesto.fecha_asignacion = '16/11/2017'::date then
+            		CONTINUE;
+            	end if;
+                if v_presupuesto.id_funcionario = 2308 and v_presupuesto.dias_presupuesto = 42 and v_presupuesto.fecha_asignacion = '16/11/2017'::date then
+            		CONTINUE;
+            	end if;
+                if v_presupuesto.id_funcionario = 2309 and v_presupuesto.dias_presupuesto = 42 and v_presupuesto.fecha_asignacion = '16/11/2017'::date then
+            		CONTINUE;
+            	end if;
+                if v_presupuesto.id_funcionario = 2316 and v_presupuesto.dias_presupuesto = 57 and v_presupuesto.fecha_asignacion = '1/12/2017'::date then
+            		CONTINUE;
+            	end if;
+                if v_presupuesto.id_funcionario = 2380 and v_presupuesto.dias_presupuesto = 60 and v_presupuesto.fecha_asignacion = '1/11/2018'::date then
+            		CONTINUE;
+            	end if;*/
+
                 if (v_presupuesto.dias_presupuesto > v_dias_aguinaldo) then
                 	v_porcentaje = 100;
                 else
@@ -299,7 +334,7 @@ BEGIN
         end loop;
 
     --llenar tprorrateo con los datos del ultimo centro de costo
-    elsif (v_planilla.tipo_presu_cc = 'retroactivo_sueldo') then
+    elsif (v_planilla.tipo_presu_cc = 'retroactivo_sueldo') then  --RAISE EXCEPTION 'C';
 
         for v_registros in (select fp.id_funcionario,fp.id_funcionario_planilla, fun.desc_funcionario1, p.id_gestion
         							from plani.tfuncionario_planilla fp
@@ -358,8 +393,9 @@ BEGIN
            for v_presupuesto in execute(v_consulta) loop
             	--se obtiene el porcentaje de los dias con el presupuesto de los dias del aguinaldo
                 v_porcentaje = round(v_presupuesto.valor_presupuesto/v_valor_total,2)*100;
-                /*if (v_registros.id_funcionario_planilla = 217792) then
-                	raise exception '%,%',v_valor_total,v_presupuesto.valor_presupuesto;
+                /*if (v_registros.id_funcionario_planilla = 328140) then
+                	--raise exception '%,%',v_valor_total,v_presupuesto.valor_presupuesto;
+                    raise exception 'C';
                 end if;*/
             	v_suma = v_suma + v_porcentaje;
                 --si se excede por redondeo restamos la diferencia del ultimo prorrateo
@@ -419,7 +455,7 @@ BEGIN
         end loop;
 
     --llenar tprorrateo con los datos del ultimo centro de costo
-    elsif (v_planilla.tipo_presu_cc = 'retroactivo_asignaciones') then
+    elsif (v_planilla.tipo_presu_cc = 'retroactivo_asignaciones') then  --RAISE EXCEPTION 'D';
 
         v_subsidio_actual = plani.f_get_valor_parametro_valor('MONTOSUB',v_planilla.fecha_planilla);
 
@@ -429,6 +465,10 @@ BEGIN
                                     inner join orga.vfuncionario fun on fun.id_funcionario = fp.id_funcionario
                                     where fp.id_planilla = p_id_planilla) loop
 
+        /*if (v_registros.id_funcionario_planilla = 328140) then
+                	--raise exception '%,%',v_valor_total,v_presupuesto.valor_presupuesto;
+            	raise exception 'D';
+            end if;*/
             v_presupuesto = NULL;
             if (p_tipo_generacion = 'presupuestos') then
 
@@ -537,13 +577,16 @@ BEGIN
 
 
     --llenar tprorrateo con los datos del ultimo centro de costo
-    elsif (v_planilla.tipo_presu_cc = 'ultimo_activo_periodo') then
+    elsif (v_planilla.tipo_presu_cc = 'ultimo_activo_periodo') then  --RAISE EXCEPTION 'E';
 
         for v_registros in (select fp.id_funcionario_planilla, fun.desc_funcionario1
         							from plani.tfuncionario_planilla fp
                                     inner join orga.vfuncionario fun on fun.id_funcionario = fp.id_funcionario
                                     where fp.id_planilla = p_id_planilla) loop
-
+        	/*if (v_registros.id_funcionario_planilla = 328140) then
+                	--raise exception '%,%',v_valor_total,v_presupuesto.valor_presupuesto;
+            	raise exception 'E';
+            end if;*/
             v_presupuesto = NULL;
             v_consulta = 'select ofi.id_oficina,ofi.id_lugar,tc.codigo as tipo_contrato,cp.fecha_ini, sum(cp.porcentaje) as suma, pxp.aggarray(cp.id_centro_costo) as ids_presupuesto, pxp.aggarray(cp.porcentaje) as porcentajes
                           from plani.tfuncionario_planilla fp
@@ -627,12 +670,13 @@ BEGIN
 
         end loop;
     --llenar tprorrateo con los datos del ultimo centro de costo
-    elsif (v_planilla.tipo_presu_cc in ('ultimo_activo_gestion','ultimo_activo_gestion_anterior') ) then
+    elsif (v_planilla.tipo_presu_cc in ('ultimo_activo_gestion','ultimo_activo_gestion_anterior') ) then  --RAISE EXCEPTION 'F';
 
         for v_registros in (select fp.id_funcionario_planilla, fun.desc_funcionario1
         							from plani.tfuncionario_planilla fp
                                     inner join orga.vfuncionario fun on fun.id_funcionario = fp.id_funcionario
                                     where fp.id_planilla = p_id_planilla) loop
+
 
             v_presupuesto = NULL;
             v_consulta = 'select ofi.id_oficina,ofi.id_lugar,tc.codigo as tipo_contrato,cp.fecha_ini, sum(cp.porcentaje) as suma, pxp.aggarray(cp.id_centro_costo) as ids_presupuesto, pxp.aggarray(cp.porcentaje) as porcentajes
@@ -642,22 +686,28 @@ BEGIN
                           inner join orga.tcargo car on car.id_cargo = uofun.id_cargo
                           inner join orga.toficina ofi on ofi.id_oficina = car.id_oficina
                           inner join orga.ttipo_contrato tc on tc.id_tipo_contrato = car.id_tipo_contrato
-                          inner join param.tgestion ges on ges.id_gestion = p.id_gestion ';
+                          inner join param.tgestion ges on ges.id_gestion = p.id_gestion+1 ';
             --hacer el join con cargo_presupeusto o cargo_centro_costo segun corresponda
             if (p_tipo_generacion = 'presupuestos') then
-            	v_consulta = v_consulta || ' inner join orga.tcargo_presupuesto cp on cp.id_cargo = car.id_cargo ';
+            	v_consulta = v_consulta || '
+                				--inner join orga.tcargo_presupuesto cp on cp.id_cargo = car.id_cargo
+                				inner join param.tperiodo tper on tper.periodo = 6 and tper.id_gestion = ges.id_gestion
+                               	inner join orga.tcargo_presupuesto cp on cp.id_cargo = car.id_cargo and cp.id_gestion = ges.id_gestion and
+                               ((tper.fecha_ini between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||ges.gestion)::date)) or
+                               (tper.fecha_fin between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||ges.gestion)::date)))
+                ';
             else
             	v_consulta = v_consulta || ' inner join orga.tcargo_centro_costo cp on cp.id_cargo = car.id_cargo ';
             end if;
 
             --obtener los presupeustos por contrato
-            v_consulta = v_consulta || ' where 	cp.id_gestion = p.id_gestion and p.id_gestion = cp.id_gestion and
+            v_consulta = v_consulta || ' where 	/*cp.id_gestion = p.id_gestion and p.id_gestion = cp.id_gestion and*/
                                   fp.id_funcionario_planilla = ' || v_registros.id_funcionario_planilla||  ' and cp.fecha_ini<= (''31/12/'' || ges.gestion)::date
                           group by ofi.id_oficina,ofi.id_lugar,tc.codigo,cp.fecha_ini
                           order by cp.fecha_ini desc
                           limit 1 offset 0';
 
-            --raise exception '%',v_consulta;
+            --raise notice '%',v_consulta;
             execute v_consulta
         	into v_presupuesto;
 
@@ -669,7 +719,10 @@ BEGIN
             	raise exception 'El cargo del funcionario % no tiene registrado presupuesto al 100 porciento',v_registros.desc_funcionario1;
             end if;
             v_count = 1;
-
+            /*if (v_registros.id_funcionario_planilla = 328140) then
+                	--raise exception '%,%',v_valor_total,v_presupuesto.valor_presupuesto;
+            	raise exception 'F: %', v_presupuesto;
+            end if;*/
             --para cada presupeusto en el array de presupuestos
             foreach v_id_presupuesto in array v_presupuesto.ids_presupuesto loop
 
@@ -715,11 +768,11 @@ BEGIN
             end loop;
 
         end loop;
-    end if;
+    end if;  --RAISE EXCEPTION 'A: %, B: %', v_planilla.id_gestion, v_id_gestion_contable;
     --si la gestion de la planilla es distinta a la gestion de la fecha en la que se generara el prorrateo
-    if (v_planilla.id_gestion != v_id_gestion_contable)then
+    /*if (v_planilla.id_gestion != v_id_gestion_contable)then
 
-
+    	--raise exception 'ingresa:';
     	update plani.tprorrateo
         set id_presupuesto = (select pids.id_presupuesto_dos
                     from pre.tpresupuesto_ids2 pids
@@ -728,7 +781,7 @@ BEGIN
         where fp.id_funcionario_planilla = plani.tprorrateo.id_funcionario_planilla
         and fp.id_planilla = p_id_planilla;
 
-    end if;
+    end if;*/
     --llenar tprorrateo_columna de acuerdo al prorrateo
     if (v_planilla.tipo_presu_cc = 'parametrizacion' and v_planilla.calculo_horas = 'si') then
     	v_consulta = '	select pro.id_oficina,pro.id_lugar,pro.id_prorrateo, pro.porcentaje,pro.porcentaje_dias, cv.id_tipo_columna,cv.codigo_columna,tc.compromete
@@ -809,7 +862,9 @@ BEGIN
                                 inner join orga.ttipo_contrato tc on tc.id_tipo_contrato = car.id_tipo_contrato
                                 where id_planilla = p_id_planilla
                                 order by fp.id_funcionario_planilla,ht.fecha_fin desc)loop
-
+                /*if (v_registros.id_funcionario_planilla = 328140) then
+            		raise exception 'AA: %', v_presupuesto;
+            	end if;*/
                 INSERT INTO
                       plani.tprorrateo
                     (
@@ -899,6 +954,10 @@ BEGIN
                                 inner join orga.tcargo car on car.id_cargo = uofun.id_cargo
                                 inner join orga.ttipo_contrato tc on tc.id_tipo_contrato = car.id_tipo_contrato
                                 where id_planilla = p_id_planilla)loop
+
+                                /*if (v_registros.id_funcionario_planilla = 328140) then
+            		raise exception 'BB: %', v_presupuesto;
+            	end if;*/
                 INSERT INTO
                       plani.tprorrateo
                     (
@@ -988,7 +1047,7 @@ EXCEPTION
 
 	WHEN OTHERS THEN
 		v_resp='';
-		v_resp = pxp.f_agrega_clave(v_resp,'mensaje',SQLERRM || v_registros.desc_funcionario1);
+		v_resp = pxp.f_agrega_clave(v_resp,'mensaje',SQLERRM ||' '|| v_registros.desc_funcionario1);
 		v_resp = pxp.f_agrega_clave(v_resp,'codigo_error',SQLSTATE);
 		v_resp = pxp.f_agrega_clave(v_resp,'procedimientos',v_nombre_funcion);
 		raise exception '%',v_resp;

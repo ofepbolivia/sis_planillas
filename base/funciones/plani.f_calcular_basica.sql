@@ -63,6 +63,9 @@ $body$
     v_fecha_ini_actual		date;
     v_nivel_antiguedad		integer;
 
+    --f.e.a datos segundo aguinaldo
+    v_codigo_pla			varchar;
+	v_reg_aguinaldo			record;
 
   BEGIN
     v_nombre_funcion = 'plani.f_calcular_basica';
@@ -130,62 +133,93 @@ $body$
       end if;
     --Factor de Antiguedad
     ELSIF (p_codigo = 'FACTORANTI') THEN
-      select fp.id_uo_funcionario, fp.id_funcionario, uf.fecha_asignacion
-      into v_id_uo_funcionario, v_id_funcionario,v_fecha_ini
-      from plani.tfuncionario_planilla fp
-        inner join orga.tuo_funcionario uf on uf.id_uo_funcionario = fp.id_uo_funcionario
-      where fp.id_funcionario_planilla = p_id_funcionario_planilla;
+      --franklin.espinoza calculo segundo aguinaldo sin bono antiguedad 13/12/2018
+      select tpp.codigo
+      into v_codigo_pla
+      from plani.tfuncionario_planilla tfp
+      inner join plani.tplanilla tp on tp.id_planilla = tfp.id_planilla
+      inner join plani.ttipo_planilla tpp on tpp.id_tipo_planilla = tp.id_tipo_planilla
+      where tfp.id_funcionario_planilla = p_id_funcionario_planilla;
+
+      if v_codigo_pla != 'PLASEGAGUI' then
+        select fp.id_uo_funcionario, fp.id_funcionario, uf.fecha_asignacion
+        into v_id_uo_funcionario, v_id_funcionario,v_fecha_ini
+        from plani.tfuncionario_planilla fp
+          inner join orga.tuo_funcionario uf on uf.id_uo_funcionario = fp.id_uo_funcionario
+        where fp.id_funcionario_planilla = p_id_funcionario_planilla;
 
 
 
-      v_fecha_ini = plani.f_get_fecha_primer_contrato_empleado(v_id_uo_funcionario, v_id_funcionario, v_fecha_ini);
+        v_fecha_ini = plani.f_get_fecha_primer_contrato_empleado(v_id_uo_funcionario, v_id_funcionario, v_fecha_ini);
 
-      v_fecha_ini_actual = date(date_part('day', v_fecha_ini)||'/'||date_part('month', v_fecha_ini)||'/'||date_part('year', p_fecha_ini));
+        v_fecha_ini_actual = date(date_part('day', v_fecha_ini)||'/'||date_part('month', v_fecha_ini)||'/'||date_part('year', p_fecha_ini));
 
-      if v_fecha_ini_actual between p_fecha_ini and p_fecha_fin then
-        v_gestion:= (select (date_part('year', age(v_fecha_ini_actual, v_fecha_ini))));
-        v_periodo:= (select (date_part('month',age(v_fecha_ini_actual, v_fecha_ini))));
+        if v_fecha_ini_actual between p_fecha_ini and p_fecha_fin then
+          v_gestion:= (select (date_part('year', age(v_fecha_ini_actual, v_fecha_ini))));
+          v_periodo:= (select (date_part('month',age(v_fecha_ini_actual, v_fecha_ini))));
+        else
+          v_gestion:= (select (date_part('year', age(p_fecha_ini, v_fecha_ini))));
+          v_periodo:= (select (date_part('month',age(p_fecha_ini, v_fecha_ini))));
+        end if;
+
+        v_periodo:= v_periodo + (select coalesce(antiguedad_anterior,0) from orga.tfuncionario f where id_funcionario=v_id_funcionario);
+
+        v_periodo:=(select floor(v_periodo/12));
+
+        select porcentaje
+        into v_resultado
+        from plani.tantiguedad
+        where v_gestion + v_periodo BETWEEN valor_min and valor_max;
       else
-      	v_gestion:= (select (date_part('year', age(p_fecha_ini, v_fecha_ini))));
-      	v_periodo:= (select (date_part('month',age(p_fecha_ini, v_fecha_ini))));
+      	v_resultado = 0;
       end if;
-
-      v_periodo:= v_periodo + (select coalesce(antiguedad_anterior,0) from orga.tfuncionario f where id_funcionario=v_id_funcionario);
-
-      v_periodo:=(select floor(v_periodo/12));
-
-      select porcentaje
-      into v_resultado
-      from plani.tantiguedad
-      where v_gestion + v_periodo BETWEEN valor_min and valor_max;
 
     --Prorrateo de Antiguedad
     ELSIF (p_codigo = 'BONANT') THEN
+       --franklin.espinoza calculo segundo aguinaldo sin bono antiguedad 13/12/2018
+      select tpp.codigo
+      into v_codigo_pla
+      from plani.tfuncionario_planilla tfp
+      inner join plani.tplanilla tp on tp.id_planilla = tfp.id_planilla
+      inner join plani.ttipo_planilla tpp on tpp.id_tipo_planilla = tp.id_tipo_planilla
+      where tfp.id_funcionario_planilla = p_id_funcionario_planilla;
 
-      select fp.id_uo_funcionario, fp.id_funcionario, uf.fecha_asignacion
-      into v_id_uo_funcionario, v_id_funcionario,v_fecha_ini
-      from plani.tfuncionario_planilla fp
-        inner join orga.tuo_funcionario uf on uf.id_uo_funcionario = fp.id_uo_funcionario
-      where fp.id_funcionario_planilla = p_id_funcionario_planilla;
+      if v_codigo_pla != 'PLASEGAGUI' then
+        select fp.id_uo_funcionario, fp.id_funcionario, uf.fecha_asignacion
+        into v_id_uo_funcionario, v_id_funcionario,v_fecha_ini
+        from plani.tfuncionario_planilla fp
+          inner join orga.tuo_funcionario uf on uf.id_uo_funcionario = fp.id_uo_funcionario
+        where fp.id_funcionario_planilla = p_id_funcionario_planilla;
 
-      v_fecha_ini = plani.f_get_fecha_primer_contrato_empleado(v_id_uo_funcionario, v_id_funcionario, v_fecha_ini);
+        v_fecha_ini = plani.f_get_fecha_primer_contrato_empleado(v_id_uo_funcionario, v_id_funcionario, v_fecha_ini);
 
-      v_fecha_ini_actual = date(date_part('day', v_fecha_ini)||'/'||date_part('month', v_fecha_ini)||'/'||date_part('year', p_fecha_ini));
-      if v_fecha_ini_actual between p_fecha_ini and p_fecha_fin then
-        v_gestion:= (select (date_part('year', age(v_fecha_ini_actual, v_fecha_ini))));
-        v_periodo:= (select (date_part('month',age(v_fecha_ini_actual, v_fecha_ini))));
+        v_fecha_ini_actual = date(date_part('day', v_fecha_ini)||'/'||date_part('month', v_fecha_ini)||'/'||date_part('year', p_fecha_ini));
+        if v_fecha_ini_actual between p_fecha_ini and p_fecha_fin then
+          v_gestion:= (select (date_part('year', age(v_fecha_ini_actual, v_fecha_ini))));
+          v_periodo:= (select (date_part('month',age(v_fecha_ini_actual, v_fecha_ini))));
+        else
+          v_gestion:= (select (date_part('year', age(p_fecha_ini, v_fecha_ini))));
+          v_periodo:= (select (date_part('month',age(p_fecha_ini, v_fecha_ini))));
+        end if;
+
+        v_periodo:= v_periodo + (select coalesce(antiguedad_anterior,0) from orga.tfuncionario f where id_funcionario=v_id_funcionario);
+
+        v_periodo:=(select floor(v_periodo/12));
+        v_nivel_antiguedad = v_gestion + v_periodo;
+
+        --v_resultado = plani.f_calcular_prorrateo_bono_antiguedad(v_nivel_antiguedad, p_id_funcionario_planilla, v_id_funcionario, v_fecha_ini_actual, p_fecha_ini, p_fecha_fin);
+	  	/*if (select 1
+        	from plani.tlista_operaciones tlo
+        	inner join orga.vfuncionario vf on vf.ci = tlo.ci
+        	where  vf.id_funcionario = v_id_funcionario) then
+
+			v_resultado = 0;
+        else*/
+        	v_resultado = plani.f_calcular_prorrateo_bono_antiguedad(v_nivel_antiguedad, p_id_funcionario_planilla, v_id_funcionario, v_fecha_ini_actual, p_fecha_ini, p_fecha_fin);
+        --end if;
       else
-      	v_gestion:= (select (date_part('year', age(p_fecha_ini, v_fecha_ini))));
-      	v_periodo:= (select (date_part('month',age(p_fecha_ini, v_fecha_ini))));
+      	v_resultado = 0;
       end if;
-
-      v_periodo:= v_periodo + (select coalesce(antiguedad_anterior,0) from orga.tfuncionario f where id_funcionario=v_id_funcionario);
-
-      v_periodo:=(select floor(v_periodo/12));
-      v_nivel_antiguedad = v_gestion + v_periodo;
-
-      v_resultado = plani.f_calcular_prorrateo_bono_antiguedad(v_nivel_antiguedad, p_id_funcionario_planilla, v_id_funcionario, v_fecha_ini_actual, p_fecha_ini, p_fecha_fin);
-
     --Factor de Antiguedad
     ELSIF (p_codigo = 'FACTORANTICOMI') THEN
       select fp.id_uo_funcionario, fp.id_funcionario, uf.fecha_asignacion
@@ -253,7 +287,6 @@ $body$
         end loop;
         v_resultado = 0;
       else
-
 
         if (exists (select 1
                     from plani.tfuncionario_afp fa
@@ -451,6 +484,7 @@ $body$
                                               cv.codigo_columna = 'SALDODEPSIGPER'
         left join param.tperiodo per on per.id_periodo = p.id_periodo
       where ((tp.codigo = 'PLASUE' and p.id_periodo is not NULL and per.fecha_fin < coalesce(v_planilla.fecha_planilla,p_fecha_fin)) or (tp.codigo = 'PLAREISU' and p.id_periodo is null and p.fecha_planilla < coalesce(v_planilla.fecha_planilla,p_fecha_fin)))
+      and p.fecha_planilla = (p_fecha_ini-1)::date
       order by fecha_plani desc limit 1;
 
 
@@ -679,6 +713,15 @@ $body$
         v_i = v_i + 1;
       end loop;
 
+
+      /*v_resultado = 0;
+	  select coalesce(ta.valor,0::numeric)
+      into v_resultado
+      from plani.tfuncionario_planilla tfp
+      inner join orga.vfuncionario vf on vf.id_funcionario = tfp.id_funcionario
+      inner join plani.tantiguedad_tmp ta on ta.ci = vf.ci
+      where tfp.id_funcionario_planilla = p_id_funcionario_planilla;*/
+
     ELSIF (p_codigo = 'REINBANTCOMI') THEN
 
 
@@ -725,54 +768,65 @@ $body$
       end loop;
 
     ELSIF (p_codigo = 'BONFRONTERA') THEN
+	  --franklin.espinoza calculo segundo aguinaldo sin bono antiguedad 13/12/2018
+      select tpp.codigo
+      into v_codigo_pla
+      from plani.tfuncionario_planilla tfp
+      inner join plani.tplanilla tp on tp.id_planilla = tfp.id_planilla
+      inner join plani.ttipo_planilla tpp on tpp.id_tipo_planilla = tp.id_tipo_planilla
+      where tfp.id_funcionario_planilla = p_id_funcionario_planilla;
 
+      if v_codigo_pla != 'PLASEGAGUI' then
 
-      select sum( case when orga.f_get_haber_basico_a_fecha(car.id_escala_salarial,v_planilla.fecha_planilla) > ht.sueldo then
-
-        (orga.f_get_haber_basico_a_fecha(car.id_escala_salarial,v_planilla.fecha_planilla) / v_cantidad_horas_mes * ht.horas_normales * 0.2 * cv.valor) -
-        (ht.sueldo / v_cantidad_horas_mes * ht.horas_normales * 0.2 * cv.valor)
-                  else
-                    0
-                  end),
-        array_agg((case when orga.f_get_haber_basico_a_fecha(car.id_escala_salarial,v_planilla.fecha_planilla) > ht.sueldo then
+        select sum( case when orga.f_get_haber_basico_a_fecha(car.id_escala_salarial,v_planilla.fecha_planilla) > ht.sueldo then
 
           (orga.f_get_haber_basico_a_fecha(car.id_escala_salarial,v_planilla.fecha_planilla) / v_cantidad_horas_mes * ht.horas_normales * 0.2 * cv.valor) -
           (ht.sueldo / v_cantidad_horas_mes * ht.horas_normales * 0.2 * cv.valor)
-                   else
-                     0
-                   end) order by ht.id_horas_trabajadas asc) into v_resultado,v_resultado_array
-      from plani.tplanilla p
+                    else
+                      0
+                    end),
+          array_agg((case when orga.f_get_haber_basico_a_fecha(car.id_escala_salarial,v_planilla.fecha_planilla) > ht.sueldo then
+
+            (orga.f_get_haber_basico_a_fecha(car.id_escala_salarial,v_planilla.fecha_planilla) / v_cantidad_horas_mes * ht.horas_normales * 0.2 * cv.valor) -
+            (ht.sueldo / v_cantidad_horas_mes * ht.horas_normales * 0.2 * cv.valor)
+                     else
+                       0
+                     end) order by ht.id_horas_trabajadas asc) into v_resultado,v_resultado_array
+        from plani.tplanilla p
         inner join plani.ttipo_planilla tp on tp.id_tipo_planilla = p.id_tipo_planilla
         inner join plani.tfuncionario_planilla fp on fp.id_planilla = p.id_planilla
         inner join plani.thoras_trabajadas ht on ht.id_funcionario_planilla = fp.id_funcionario_planilla
         inner join orga.tuo_funcionario uofun on ht.id_uo_funcionario = uofun.id_uo_funcionario
         inner join orga.tcargo car on car.id_cargo = uofun.id_cargo
         inner join plani.tcolumna_valor cv on cv.id_funcionario_planilla = fp.id_funcionario_planilla
-      where fp.id_funcionario = v_planilla.id_funcionario and  tp.codigo = 'PLASUE' and
-            ht.estado_reg = 'activo' and p.id_gestion = v_planilla.id_gestion and cv.codigo_columna = 'FACFRONTERA' ;
-      v_tamano_array = array_length(v_resultado_array,1);
+        where fp.id_funcionario = v_planilla.id_funcionario and  tp.codigo = 'PLASUE' and
+              ht.estado_reg = 'activo' and p.id_gestion = v_planilla.id_gestion and cv.codigo_columna = 'FACFRONTERA' ;
+        v_tamano_array = array_length(v_resultado_array,1);
 
-      v_resultado = 0;
-      v_i = 1;
-      FOR v_detalle in (	select cd.id_columna_detalle, cd.valor,cd.valor_generado
-                          from plani.tcolumna_detalle cd
-                            inner join plani.tcolumna_valor cv
-                              on cv.id_columna_valor = cd.id_columna_valor
-                            inner join plani.thoras_trabajadas ht
-                              on ht.id_horas_trabajadas = cd.id_horas_trabajadas
-                          where cv.id_columna_valor = p_id_columna_valor and cv.estado_reg = 'activo'
-                          order by ht.id_horas_trabajadas asc) loop
-        if (v_detalle.valor = v_detalle.valor_generado) then
-          update plani.tcolumna_detalle set
-            valor = v_resultado_array[v_i],
-            valor_generado = v_resultado_array[v_i]
-          where id_columna_detalle = v_detalle.id_columna_detalle;
-          v_resultado = v_resultado + v_resultado_array[v_i];
-        else
-          v_resultado = v_resultado + v_detalle.valor;
-        end if;
-        v_i = v_i + 1;
-      end loop;
+        v_resultado = 0;
+        v_i = 1;
+        FOR v_detalle in (	select cd.id_columna_detalle, cd.valor,cd.valor_generado
+                            from plani.tcolumna_detalle cd
+                              inner join plani.tcolumna_valor cv
+                                on cv.id_columna_valor = cd.id_columna_valor
+                              inner join plani.thoras_trabajadas ht
+                                on ht.id_horas_trabajadas = cd.id_horas_trabajadas
+                            where cv.id_columna_valor = p_id_columna_valor and cv.estado_reg = 'activo'
+                            order by ht.id_horas_trabajadas asc) loop
+          if (v_detalle.valor = v_detalle.valor_generado) then
+            update plani.tcolumna_detalle set
+              valor = v_resultado_array[v_i],
+              valor_generado = v_resultado_array[v_i]
+            where id_columna_detalle = v_detalle.id_columna_detalle;
+            v_resultado = v_resultado + v_resultado_array[v_i];
+          else
+            v_resultado = v_resultado + v_detalle.valor;
+          end if;
+          v_i = v_i + 1;
+        end loop;
+      else
+      	v_resultado = 0;
+      end if;
 
     --Factor del zona franca
     ELSIF (p_codigo = 'RETLACPRE') THEN
@@ -1242,81 +1296,208 @@ $body$
       	end if;
       end if;
     ELSIF(p_codigo = 'PROMHAB1') THEN
-      select fp.id_funcionario_planilla
-      into v_id_funcionario_planilla_mes
-      from plani.tfuncionario_planilla fp
-        inner join plani.thoras_trabajadas ht on ht.id_funcionario_planilla = fp.id_funcionario_planilla
-        inner join orga.tfuncionario fun on fun.id_funcionario = fp.id_funcionario
-                                            and fun.id_funcionario = v_planilla.id_funcionario
-        inner join plani.tplanilla p on p.id_planilla=fp.id_planilla
-        inner join param.tperiodo pe on pe.id_periodo=p.id_periodo
-        inner join plani.ttipo_planilla tp on tp.id_tipo_planilla=p.id_tipo_planilla
-                                              and tp.codigo ='PLASUE' and p.estado not in ('registros_horas', 'registro_funcionarios','calculo_columnas','anulado')
-                                              and p.id_gestion=v_planilla.id_gestion and
-                                              pe.periodo != 12
-      group by fp.id_funcionario_planilla,pe.periodo
-      having sum(ht.horas_normales_contrato) = v_cantidad_horas_mes
-      order by  pe.periodo desc
-      limit 1
-      offset 0;
+      --franklin.espinoza calculo segundo aguinaldo sin bono antiguedad 13/12/2018
+      select tpp.codigo, tcon.codigo as tipo_contrato, tuo.fecha_finalizacion, tca.id_escala_salarial, tp.fecha_planilla, tfp.id_funcionario
+      into v_reg_aguinaldo
+      from plani.tfuncionario_planilla tfp
+      inner join plani.tplanilla tp on tp.id_planilla = tfp.id_planilla
+      inner join plani.ttipo_planilla tpp on tpp.id_tipo_planilla = tp.id_tipo_planilla
+      inner join orga.tuo_funcionario tuo on tuo.id_uo_funcionario = tfp.id_uo_funcionario
+      inner join orga.tcargo tca on tca.id_cargo = tuo.id_cargo
+      inner join orga.ttipo_contrato tcon on tcon.id_tipo_contrato = tca.id_tipo_contrato
+      where tfp.id_funcionario_planilla = p_id_funcionario_planilla;
 
-      select sum(ht.sueldo * ht.porcentaje_sueldo/100) into v_resultado
-      from plani.thoras_trabajadas ht
-      where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
+      if v_reg_aguinaldo.codigo != 'PLASEGAGUI' then
+        select fp.id_funcionario_planilla
+        into v_id_funcionario_planilla_mes
+        from plani.tfuncionario_planilla fp
+          inner join plani.thoras_trabajadas ht on ht.id_funcionario_planilla = fp.id_funcionario_planilla
+          inner join orga.tfuncionario fun on fun.id_funcionario = fp.id_funcionario
+                                              and fun.id_funcionario = v_planilla.id_funcionario
+          inner join plani.tplanilla p on p.id_planilla=fp.id_planilla
+          inner join param.tperiodo pe on pe.id_periodo=p.id_periodo
+          inner join plani.ttipo_planilla tp on tp.id_tipo_planilla=p.id_tipo_planilla
+                                                and tp.codigo ='PLASUE' and p.estado not in ('registros_horas', 'registro_funcionarios','calculo_columnas','anulado')
+                                                and p.id_gestion=v_planilla.id_gestion and
+                                                pe.periodo != 12
+        group by fp.id_funcionario_planilla,pe.periodo
+        having sum(ht.horas_normales_contrato) = v_cantidad_horas_mes
+        order by  pe.periodo desc
+        limit 1
+        offset 0;
 
+        select sum(ht.sueldo * ht.porcentaje_sueldo/100) into v_resultado
+        from plani.thoras_trabajadas ht
+        where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
+	  else
+
+        select fp.id_funcionario_planilla
+        into v_id_funcionario_planilla_mes
+        from plani.tfuncionario_planilla fp
+          inner join plani.thoras_trabajadas ht on ht.id_funcionario_planilla = fp.id_funcionario_planilla
+          inner join orga.tfuncionario fun on fun.id_funcionario = fp.id_funcionario
+                                              and fun.id_funcionario = v_planilla.id_funcionario
+          inner join plani.tplanilla p on p.id_planilla=fp.id_planilla
+          inner join param.tperiodo pe on pe.id_periodo=p.id_periodo
+          inner join plani.ttipo_planilla tp on tp.id_tipo_planilla=p.id_tipo_planilla
+                                                and tp.codigo ='PLASUE' and p.estado not in ('registros_horas', 'registro_funcionarios','calculo_columnas','anulado')
+                                                and p.id_gestion=v_planilla.id_gestion and
+                                                pe.periodo != 12
+        group by fp.id_funcionario_planilla,pe.periodo
+        having sum(ht.horas_normales_contrato) = v_cantidad_horas_mes
+        order by  pe.periodo desc
+        limit 1
+        offset 0;
+
+        select sum(ht.sueldo * ht.porcentaje_sueldo/100) into v_resultado
+        from plani.thoras_trabajadas ht
+        where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
+
+        if COALESCE(v_reg_aguinaldo.fecha_finalizacion, '31/12/9999'::date) <= '31/08/2018'::DATE AND v_reg_aguinaldo.tipo_contrato = 'PLA' then
+        	v_resultado = orga.f_get_haber_basico_a_fecha(v_reg_aguinaldo.id_escala_salarial, v_reg_aguinaldo.fecha_planilla);
+        end if;
+
+      end if;
 
     ELSIF(p_codigo = 'PROMHAB2') THEN
-      select fp.id_funcionario_planilla
-      into v_id_funcionario_planilla_mes
-      from plani.tfuncionario_planilla fp
-        inner join plani.thoras_trabajadas ht on ht.id_funcionario_planilla = fp.id_funcionario_planilla
-        inner join orga.tfuncionario fun on fun.id_funcionario = fp.id_funcionario
-                                            and fun.id_funcionario = v_planilla.id_funcionario
-        inner join plani.tplanilla p on p.id_planilla=fp.id_planilla
-        inner join param.tperiodo pe on pe.id_periodo=p.id_periodo
-        inner join plani.ttipo_planilla tp on tp.id_tipo_planilla=p.id_tipo_planilla
-                                              and tp.codigo ='PLASUE' and p.estado not in ('registros_horas', 'registro_funcionarios','calculo_columnas','anulado')
-                                              and p.id_gestion=v_planilla.id_gestion and
-                                              pe.periodo != 12
-      group by fp.id_funcionario_planilla,pe.periodo
-      having sum(ht.horas_normales_contrato) = v_cantidad_horas_mes
-      order by  pe.periodo desc
-      limit 1
-      offset 1;
+      --franklin.espinoza calculo segundo aguinaldo sin bono antiguedad 13/12/2018
+      select tpp.codigo, tcon.codigo as tipo_contrato, tuo.fecha_finalizacion, tca.id_escala_salarial, tp.fecha_planilla, tfp.id_funcionario
+      into v_reg_aguinaldo
+      from plani.tfuncionario_planilla tfp
+      inner join plani.tplanilla tp on tp.id_planilla = tfp.id_planilla
+      inner join plani.ttipo_planilla tpp on tpp.id_tipo_planilla = tp.id_tipo_planilla
+      inner join orga.tuo_funcionario tuo on tuo.id_uo_funcionario = tfp.id_uo_funcionario
+      inner join orga.tcargo tca on tca.id_cargo = tuo.id_cargo
+      inner join orga.ttipo_contrato tcon on tcon.id_tipo_contrato = tca.id_tipo_contrato
+      where tfp.id_funcionario_planilla = p_id_funcionario_planilla;
 
-      select sum(ht.sueldo * ht.porcentaje_sueldo/100) into v_resultado
-      from plani.thoras_trabajadas ht
-      where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
+      if v_codigo_pla != 'PLASEGAGUI' then
+        select fp.id_funcionario_planilla
+        into v_id_funcionario_planilla_mes
+        from plani.tfuncionario_planilla fp
+          inner join plani.thoras_trabajadas ht on ht.id_funcionario_planilla = fp.id_funcionario_planilla
+          inner join orga.tfuncionario fun on fun.id_funcionario = fp.id_funcionario
+                                              and fun.id_funcionario = v_planilla.id_funcionario
+          inner join plani.tplanilla p on p.id_planilla=fp.id_planilla
+          inner join param.tperiodo pe on pe.id_periodo=p.id_periodo
+          inner join plani.ttipo_planilla tp on tp.id_tipo_planilla=p.id_tipo_planilla
+                                                and tp.codigo ='PLASUE' and p.estado not in ('registros_horas', 'registro_funcionarios','calculo_columnas','anulado')
+                                                and p.id_gestion=v_planilla.id_gestion and
+                                                pe.periodo != 12
+        group by fp.id_funcionario_planilla,pe.periodo
+        having sum(ht.horas_normales_contrato) = v_cantidad_horas_mes
+        order by  pe.periodo desc
+        limit 1
+        offset 1;
 
+        select sum(ht.sueldo * ht.porcentaje_sueldo/100) into v_resultado
+        from plani.thoras_trabajadas ht
+        where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
+	  else
+      	select fp.id_funcionario_planilla
+        into v_id_funcionario_planilla_mes
+        from plani.tfuncionario_planilla fp
+          inner join plani.thoras_trabajadas ht on ht.id_funcionario_planilla = fp.id_funcionario_planilla
+          inner join orga.tfuncionario fun on fun.id_funcionario = fp.id_funcionario
+                                              and fun.id_funcionario = v_planilla.id_funcionario
+          inner join plani.tplanilla p on p.id_planilla=fp.id_planilla
+          inner join param.tperiodo pe on pe.id_periodo=p.id_periodo
+          inner join plani.ttipo_planilla tp on tp.id_tipo_planilla=p.id_tipo_planilla
+                                                and tp.codigo ='PLASUE' and p.estado not in ('registros_horas', 'registro_funcionarios','calculo_columnas','anulado')
+                                                and p.id_gestion=v_planilla.id_gestion and
+                                                pe.periodo != 12
+        group by fp.id_funcionario_planilla,pe.periodo
+        having sum(ht.horas_normales_contrato) = v_cantidad_horas_mes
+        order by  pe.periodo desc
+        limit 1
+        offset 1;
+
+        select sum(ht.sueldo * ht.porcentaje_sueldo/100) into v_resultado
+        from plani.thoras_trabajadas ht
+        where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
+
+        if COALESCE(v_reg_aguinaldo.fecha_finalizacion, '31/12/9999'::date) <= '31/08/2018'::DATE AND v_reg_aguinaldo.tipo_contrato = 'PLA' then
+        	v_resultado = orga.f_get_haber_basico_a_fecha(v_reg_aguinaldo.id_escala_salarial, v_reg_aguinaldo.fecha_planilla);
+        end if;
+      end if;
 
     ELSIF(p_codigo = 'PROMHAB3') THEN
-      select fp.id_funcionario_planilla
-      into v_id_funcionario_planilla_mes
-      from plani.tfuncionario_planilla fp
-        inner join plani.thoras_trabajadas ht on ht.id_funcionario_planilla = fp.id_funcionario_planilla
-        inner join orga.tfuncionario fun on fun.id_funcionario = fp.id_funcionario
-                                            and fun.id_funcionario = v_planilla.id_funcionario
-        inner join plani.tplanilla p on p.id_planilla=fp.id_planilla
-        inner join param.tperiodo pe on pe.id_periodo=p.id_periodo
-        inner join plani.ttipo_planilla tp on tp.id_tipo_planilla=p.id_tipo_planilla
-                                              and tp.codigo ='PLASUE' and p.estado not in ('registros_horas', 'registro_funcionarios','calculo_columnas','anulado')
-                                              and p.id_gestion=v_planilla.id_gestion and
-                                              pe.periodo != 12
-      group by fp.id_funcionario_planilla,pe.periodo
-      having sum(ht.horas_normales_contrato) = v_cantidad_horas_mes
-      order by  pe.periodo desc
-      limit 1
-      offset 2;
+      --franklin.espinoza calculo segundo aguinaldo sin bono antiguedad 13/12/2018
+      select tpp.codigo, tcon.codigo as tipo_contrato, tuo.fecha_finalizacion, tca.id_escala_salarial, tp.fecha_planilla, tfp.id_funcionario
+      into v_reg_aguinaldo
+      from plani.tfuncionario_planilla tfp
+      inner join plani.tplanilla tp on tp.id_planilla = tfp.id_planilla
+      inner join plani.ttipo_planilla tpp on tpp.id_tipo_planilla = tp.id_tipo_planilla
+      inner join orga.tuo_funcionario tuo on tuo.id_uo_funcionario = tfp.id_uo_funcionario
+      inner join orga.tcargo tca on tca.id_cargo = tuo.id_cargo
+      inner join orga.ttipo_contrato tcon on tcon.id_tipo_contrato = tca.id_tipo_contrato
+      where tfp.id_funcionario_planilla = p_id_funcionario_planilla;
 
-      select sum(ht.sueldo * ht.porcentaje_sueldo/100) into v_resultado
-      from plani.thoras_trabajadas ht
-      where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
+      if v_codigo_pla != 'PLASEGAGUI' then
+        select fp.id_funcionario_planilla
+        into v_id_funcionario_planilla_mes
+        from plani.tfuncionario_planilla fp
+          inner join plani.thoras_trabajadas ht on ht.id_funcionario_planilla = fp.id_funcionario_planilla
+          inner join orga.tfuncionario fun on fun.id_funcionario = fp.id_funcionario
+                                              and fun.id_funcionario = v_planilla.id_funcionario
+          inner join plani.tplanilla p on p.id_planilla=fp.id_planilla
+          inner join param.tperiodo pe on pe.id_periodo=p.id_periodo
+          inner join plani.ttipo_planilla tp on tp.id_tipo_planilla=p.id_tipo_planilla
+                                                and tp.codigo ='PLASUE' and p.estado not in ('registros_horas', 'registro_funcionarios','calculo_columnas','anulado')
+                                                and p.id_gestion=v_planilla.id_gestion and
+                                                pe.periodo != 12
+        group by fp.id_funcionario_planilla,pe.periodo
+        having sum(ht.horas_normales_contrato) = v_cantidad_horas_mes
+        order by  pe.periodo desc
+        limit 1
+        offset 2;
 
-      if (v_resultado = 0 or v_resultado is null) then
-        select cv.valor into v_resultado
-        from plani.tcolumna_valor cv
-        where cv.id_funcionario_planilla = p_id_funcionario_planilla and
-              cv.estado_reg = 'activo' and cv.codigo_columna = 'PROMHAB2';
+        select sum(ht.sueldo * ht.porcentaje_sueldo/100) into v_resultado
+        from plani.thoras_trabajadas ht
+        where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
+
+        if (v_resultado = 0 or v_resultado is null) then
+          select cv.valor into v_resultado
+          from plani.tcolumna_valor cv
+          where cv.id_funcionario_planilla = p_id_funcionario_planilla and
+                cv.estado_reg = 'activo' and cv.codigo_columna = 'PROMHAB2';
+
+        end if;
+
+      else
+      	select fp.id_funcionario_planilla
+        into v_id_funcionario_planilla_mes
+        from plani.tfuncionario_planilla fp
+          inner join plani.thoras_trabajadas ht on ht.id_funcionario_planilla = fp.id_funcionario_planilla
+          inner join orga.tfuncionario fun on fun.id_funcionario = fp.id_funcionario
+                                              and fun.id_funcionario = v_planilla.id_funcionario
+          inner join plani.tplanilla p on p.id_planilla=fp.id_planilla
+          inner join param.tperiodo pe on pe.id_periodo=p.id_periodo
+          inner join plani.ttipo_planilla tp on tp.id_tipo_planilla=p.id_tipo_planilla
+                                                and tp.codigo ='PLASUE' and p.estado not in ('registros_horas', 'registro_funcionarios','calculo_columnas','anulado')
+                                                and p.id_gestion=v_planilla.id_gestion and
+                                                pe.periodo != 12
+        group by fp.id_funcionario_planilla,pe.periodo
+        having sum(ht.horas_normales_contrato) = v_cantidad_horas_mes
+        order by  pe.periodo desc
+        limit 1
+        offset 2;
+
+        select sum(ht.sueldo * ht.porcentaje_sueldo/100) into v_resultado
+        from plani.thoras_trabajadas ht
+        where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
+
+        if (v_resultado = 0 or v_resultado is null) then
+          select cv.valor into v_resultado
+          from plani.tcolumna_valor cv
+          where cv.id_funcionario_planilla = p_id_funcionario_planilla and
+                cv.estado_reg = 'activo' and cv.codigo_columna = 'PROMHAB2';
+
+        end if;
+
+        if v_reg_aguinaldo.fecha_finalizacion <= '31/08/2018'::DATE AND v_reg_aguinaldo.tipo_contrato = 'PLA' then
+        	v_resultado = orga.f_get_haber_basico_a_fecha(v_reg_aguinaldo.id_escala_salarial, v_reg_aguinaldo.fecha_planilla);
+        end if;
 
       end if;
 
@@ -1502,7 +1683,7 @@ $body$
                                               and tp.codigo ='PLASUE' and p.estado not in ('registros_horas', 'registro_funcionarios','calculo_columnas','anulado')
                                               and p.id_gestion=v_planilla.id_gestion and ht.estado_reg = 'activo' and
                                               fp.id_funcionario = v_planilla.id_funcionario;
-      /*v_fecha_fin_planilla = ('31/12/' || v_planilla.gestion)::date;
+      v_fecha_fin_planilla = ('31/12/' || v_planilla.gestion)::date;
 
       if (v_planilla.fecha_finalizacion is null or v_planilla.fecha_finalizacion > v_fecha_fin_planilla) then
         v_fecha_fin =   v_fecha_fin_planilla;
@@ -1511,8 +1692,8 @@ $body$
       end if;
       v_resultado = 	(plani.f_get_dias_aguinaldo(v_planilla.id_funcionario, v_planilla.fecha_asignacion,
                                                  v_fecha_fin) * 8) - v_resultado;
-      v_resultado = v_resultado / 8; */
-      v_resultado = plani.f_get_dias_aguinaldo_v2(v_planilla.id_funcionario, v_planilla.id_gestion);
+      v_resultado = v_resultado / 8;
+      --v_resultado = plani.f_get_dias_aguinaldo_v2(v_planilla.id_funcionario, v_planilla.id_gestion);
       --v_resultado = v_resultado / 8;
     ELSIF(p_codigo = 'TIENEPRE') THEN
       v_resultado = 0;

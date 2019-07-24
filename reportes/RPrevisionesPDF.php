@@ -12,7 +12,7 @@ class RPrevisionesPDF extends  ReportePDF {
 		$this->Image(dirname(__FILE__).'/../../lib'.$_SESSION['_DIR_LOGO'], 245, 8, 30, 12);
 		$this->SetFont('','B',12);
 		
-		$this->Cell(0,5,'REPORTE DE PREVISIONES AL :  '.$this->objParam->getParametro('fecha'),0,1,'C');
+		$this->Cell(0,5,'PLANILLA DE PREVISIÓN PARA INDEMNIZACIÓN AL :  '.$this->objParam->getParametro('fecha'),0,1,'C');
 						
 		$this->SetFont('','B',10);
 		$this->Cell(0,5,'Gerencia : ' . $this->objParam->getParametro('uo'),0,1,'L');
