@@ -338,7 +338,7 @@ class MODReporte extends MODbase{
         $this->captura('departamento','varchar');
         $this->captura('categoria_programatica','varchar');
         $this->captura('fecha_finalizacion','varchar');
-        //$this->captura('nivel','integer');
+        $this->captura('tiempo_empresa','interval');
         //$this->captura('centro_costo','varchar');
         //$this->captura('categoria_codigo','varchar');
 
@@ -362,6 +362,7 @@ class MODReporte extends MODbase{
 
         $this->setCount(false);
         $this->setParametro('oficina','oficina','varchar');
+
 
         //Definicion de la lista del resultado del query
         $this->captura('gerencia','varchar');
@@ -460,6 +461,60 @@ class MODReporte extends MODbase{
         //Devuelve la respuesta
         return $this->respuesta;
     }
+
+    //subir archivo con codigo RC-IVA
+	function uploadCsvCodigosRCIVA(){
+		//Definicion de variables para ejecucion del procedimientp
+		$this->procedimiento='plani.ft_reporte_ime';
+		$this->transaccion='PLA_REP_RCIVA_IME';
+		$this->tipo_procedimiento='IME';//tipo de transaccion
+		//var_dump($this->aParam->getParametro('registros'));exit;
+		$this->setParametro('registros','registros','jsonb');
+		//Ejecuta la instruccion
+		$this->armarConsulta();//var_dump($this->consulta);exit;
+		$this->ejecutarConsulta();
+
+		//Devuelve la respuesta
+		return $this->respuesta;
+	}
+
+	//Reporte RC-IVA (franklin espinoza)
+	function reporteRCIVA(){
+		//Definicion de variables para ejecucion del procedimientp
+		$this->procedimiento='plani.ft_reporte_sel';
+		$this->transaccion='PLA_REP_RCIVA_SEL';
+		$this->tipo_procedimiento='SEL';//tipo de transaccion
+
+		$this->setCount(false);
+		$this->setParametro('id_gestion','id_gestion','integer');
+		$this->setParametro('id_periodo','id_periodo','integer');
+		//Definicion de la lista del resultado del query
+		$this->captura('gestion','integer');
+		$this->captura('periodo','integer');
+		$this->captura('codigo_rc_iva','varchar');
+		$this->captura('nombre','varchar');
+		$this->captura('apellido_paterno','varchar');
+		$this->captura('apellido_materno','varchar');
+		$this->captura('numero_documento','varchar');
+		$this->captura('tipo_documento','varchar');
+		$this->captura('ingreso_neto','numeric');
+		$this->captura('dos_salario_minimo','numeric');
+		$this->captura('base_imponible','numeric');
+		$this->captura('impuesto_rc_iva','numeric');
+		$this->captura('trece_dos_salario_minimo','numeric');
+		$this->captura('trece_facturas','numeric');
+		$this->captura('saldo_per_anterior','numeric');
+		$this->captura('mantenimiento_valor','numeric');
+		$this->captura('novedades','char');
+
+		//Ejecuta la instruccion
+		$this->armarConsulta();
+		//echo($this->consulta);exit;
+		$this->ejecutarConsulta();
+
+		//Devuelve la respuesta
+		return $this->respuesta;
+	}
 			
 }
 ?>

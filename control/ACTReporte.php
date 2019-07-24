@@ -6,6 +6,7 @@
  *@date 17-01-2014 22:07:28
  *@description Clase que recibe los parametros enviados por la vista para mandar a la capa de Modelo
  */
+//header('Content-Type: text/html; charset=UTF-8');
 require_once(dirname(__FILE__).'/../reportes/RPlanillaGenerica.php');
 require_once(dirname(__FILE__).'/../reportes/RPlanillaGenericaXls.php');
 require_once(dirname(__FILE__).'/../reportes/RPrevisionesPDF.php');
@@ -15,6 +16,7 @@ require_once(dirname(__FILE__).'/../reportes/RPlanillaActualizadaItemXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RGeneralPlanillaXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RPresupuestoRetroactivoXls.php');
 require_once(dirname(__FILE__).'/../reportes/RAguinaldoXLSv2.php');
+require_once(dirname(__FILE__).'/../reportes/RPlanillaRCIVAXLS.php');
 
 class ACTReporte extends ACTbase{
 
@@ -332,6 +334,9 @@ class ACTReporte extends ACTbase{
         }else if($this->objParam->getParametro('configuracion_reporte') == 'aguinaldo'){
             $this->res=$this->objFunc->reporteAguinaldo($this->objParam);
             $titulo_archivo = 'Planilla Aguinaldo';
+        }else if($this->objParam->getParametro('configuracion_reporte') == 'rc_iva'){
+            $this->res=$this->objFunc->reporteRCIVA($this->objParam);
+            $titulo_archivo = 'Planilla RC-IVA';
         }
 
 
@@ -348,6 +353,8 @@ class ACTReporte extends ACTbase{
             $this->objReporte = new RPresupuestoRetroactivoXls($this->objParam);
         }else if($this->objParam->getParametro('configuracion_reporte') == 'aguinaldo'){
             $this->objReporte = new RAguinaldoXLSv2($this->objParam);
+        }else if($this->objParam->getParametro('configuracion_reporte') == 'rc_iva'){
+            $this->objReporte = new RPlanillaRCIVAXLS($this->objParam);
         }
 
         $this->objReporte->generarReporte();
@@ -359,6 +366,88 @@ class ACTReporte extends ACTbase{
         $this->res = $mensajeExito;
         $this->res->imprimirRespuesta($this->res->generarJson());
     }
+
+    function uploadCsvCodigosRCIVA(){
+        //validar extnsion del archivo
+        $arregloFiles = $this->objParam->getArregloFiles();
+        $ext = pathinfo($arregloFiles['archivo']['name']);
+        $extension = $ext['extension'];
+        $error = 'no';
+        $mensaje_completo = '';
+        if(isset($arregloFiles['archivo']) && is_uploaded_file($arregloFiles['archivo']['tmp_name'])){
+            if ($extension != 'csv' && $extension != 'CSV') {
+                $mensaje_completo = "La extensión del archivo debe ser CSV";
+                $error = 'error_fatal';
+            }
+            //upload directory
+            $upload_dir = "/var/www/html/kerp_franky/sis_organigrama/archivos_rc_iva/";//"/home/archivos/";
+            //create file name
+            $file_path = $upload_dir . $arregloFiles['archivo']['name'];
+
+            //move uploaded file to upload dir
+            if (!move_uploaded_file($arregloFiles['archivo']['tmp_name'], $file_path)) {
+                //error moving upload file
+                $mensaje_completo = "Error al guardar el archivo csv en disco";
+                $error = 'error_fatal';
+            }
+
+        } else {
+            $mensaje_completo = "No se subio el archivo";
+            $error = 'error_fatal';
+        }
+
+        exec('iconv -f ISO-8859-1 -t UTF-8 /var/www/html/kerp_franky/sis_organigrama/archivos_rc_iva/'.$ext['filename'].'.csv > /var/www/html/kerp_franky/sis_organigrama/archivos_rc_iva/'.$ext['filename'].'_utf8.csv');
+
+        $registros = array();
+
+        if (($fichero = fopen("/var/www/html/kerp_franky/sis_organigrama/archivos_rc_iva/".$ext['filename']."_utf8.csv", "r")) !== FALSE) {
+
+            // Lee los registros
+            while (($datos = fgetcsv($fichero, 0, ";", "\"", "\"")) !== FALSE) {
+                // Crea un array asociativo con los nombres y valores de los campos
+
+                $reg = new stdClass();
+                $reg->codigo  = $datos[0];
+                $reg->nombre  = (string)$datos[1];
+                $reg->primer_apellido = (string)$datos[2];
+                $reg->segundo_apellido  = (string)$datos[3];
+                $reg->numero_doc  = (string)$datos[4];
+                $reg->tipo_doc  = (string)$datos[5];
+                // Añade el registro leido al array de registros
+                $registros[] = $reg;
+                /*json_decode(json_encode(array(
+                                        "codigo" => $datos[0],
+                                        "nombre" => $datos[1],
+                                        "primer_apellido" => $datos[2],
+                                        "segundo_apellido" => $datos[3],
+                                        "numero_doc" => $datos[4],
+                                        "tipo_doc" => $datos[5]
+                                );*/
+            }
+
+            fclose($fichero);
+        }
+
+        $records = str_replace('\\','',json_encode($registros));
+
+        $this->objParam->addParametro('registros', $records);
+        $this->objFunc=$this->create('MODReporte');
+        $this->res=$this->objFunc->uploadCsvCodigosRCIVA($this->objParam);
+
+        //armar respuesta en caso de exito o error en algunas tuplas
+        if ($error == 'error') {
+            $this->mensajeRes=new Mensaje();
+            $this->mensajeRes->setMensaje('ERROR','ACTReporte.php','Ocurrieron los siguientes errores : ' . $mensaje_completo,
+                $mensaje_completo,'control');
+        } else if ($error == 'no') {
+            $this->mensajeRes=new Mensaje();
+            $this->mensajeRes->setMensaje('EXITO','ACTReporte.php','El archivo fue ejecutado con éxito',
+                'El archivo fue ejecutado con éxito','control');
+        }
+        //devolver respuesta
+        $this->mensajeRes->imprimirRespuesta($this->mensajeRes->generarJson());
+    }
+
 }
 
 ?>
