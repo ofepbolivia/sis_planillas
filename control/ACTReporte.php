@@ -380,7 +380,7 @@ class ACTReporte extends ACTbase{
                 $error = 'error_fatal';
             }
             //upload directory
-            $upload_dir = "/var/www/html/kerp_franky/sis_organigrama/archivos_rc_iva/";//"/home/archivos/";
+            $upload_dir = "/var/www/html/kerp/sis_organigrama/archivos_rc_iva/";//"/home/archivos/";
             //create file name
             $file_path = $upload_dir . $arregloFiles['archivo']['name'];
 
@@ -396,11 +396,11 @@ class ACTReporte extends ACTbase{
             $error = 'error_fatal';
         }
 
-        exec('iconv -f ISO-8859-1 -t UTF-8 /var/www/html/kerp_franky/sis_organigrama/archivos_rc_iva/'.$ext['filename'].'.csv > /var/www/html/kerp_franky/sis_organigrama/archivos_rc_iva/'.$ext['filename'].'_utf8.csv');
+        exec('iconv -f ISO-8859-1 -t UTF-8 /var/www/html/kerp/sis_organigrama/archivos_rc_iva/'.$ext['filename'].'.csv > /var/www/html/kerp/sis_organigrama/archivos_rc_iva/'.$ext['filename'].'_utf8.csv');
 
         $registros = array();
 
-        if (($fichero = fopen("/var/www/html/kerp_franky/sis_organigrama/archivos_rc_iva/".$ext['filename']."_utf8.csv", "r")) !== FALSE) {
+        if (($fichero = fopen("/var/www/html/kerp/sis_organigrama/archivos_rc_iva/".$ext['filename']."_utf8.csv", "r")) !== FALSE) {
 
             // Lee los registros
             while (($datos = fgetcsv($fichero, 0, ";", "\"", "\"")) !== FALSE) {
