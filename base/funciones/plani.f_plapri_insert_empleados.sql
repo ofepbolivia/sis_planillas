@@ -71,13 +71,16 @@ BEGIN
                           p.id_gestion = ' || v_planilla.id_gestion || ')
           order by uofun.id_funcionario, uofun.fecha_asignacion desc')loop
     	v_entra = 'si';
+    	v_dias = plani.f_get_dias_aguinaldo(v_registros.id_funcionario, v_registros.fecha_ini, v_registros.fecha_fin);
         if (exists (select 1 from orga.tuo_funcionario uofun
         			where uofun.id_funcionario = v_registros.id_funcionario and  uofun.estado_reg = 'activo' and uofun.id_funcionario = v_registros.id_funcionario and
                     uofun.fecha_finalizacion BETWEEN ('01/04/' || v_planilla.gestion)::date and ('31/12/' || v_planilla.gestion)::date and
                     uofun.observaciones_finalizacion = 'retiro' )) then
-        	v_entra = 'no';
+          if v_dias <= 90 then
+        	  v_entra = 'no';
+        	end if;
     	end if;
-        v_dias = plani.f_get_dias_aguinaldo(v_registros.id_funcionario, v_registros.fecha_ini, v_registros.fecha_fin);
+
 
         select count(tfp.id_funcionario_planilla)
         into v_bandera

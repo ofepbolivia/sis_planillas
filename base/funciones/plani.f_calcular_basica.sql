@@ -57,7 +57,7 @@ $body$
     v_dias_total			integer = 0;
     v_dias_asignacion		integer = 0;
     v_aux_2					integer = 0;
-	v_factor_anti			numeric = 0;
+	  v_factor_anti			numeric = 0;
     v_hor_norm				numeric = 0;
     --FACTOR ANTIGUEDAD
     v_fecha_ini_actual		date;
@@ -65,7 +65,17 @@ $body$
 
     --f.e.a datos segundo aguinaldo
     v_codigo_pla			varchar;
-	v_reg_aguinaldo			record;
+	  v_reg_aguinaldo			record;
+
+	  --f.e.a --> tipo contrato
+    v_tipo_contrato			varchar;
+    v_codigo				varchar;
+
+    --retroactivo para planilla prima
+    v_retroactivo			numeric = 0;
+
+    --record parametros varios planilla
+    v_param_planilla		record;
 
   BEGIN
     v_nombre_funcion = 'plani.f_calcular_basica';
@@ -965,6 +975,7 @@ $body$
         from plani.thoras_trabajadas tht
         where tht.id_funcionario_planilla = v_registros.id_funcionario_planilla;
 
+
         if v_registros.periodo = v_periodo_aux and v_horas_normales = 240 then
         	v_periodo_total =  v_periodo_total + 1;
             v_periodo_aux = v_periodo_aux - 1;
@@ -978,11 +989,14 @@ $body$
               v_periodo_array[v_periodo_total] = ARRAY[v_registros.periodo, v_contador];
               v_periodo_aux = v_registros.periodo - 1;
             end if;
+            v_periodo_aux = v_registros.periodo - 1;
+            --v_periodo_aux = v_periodo_aux - 1;
         end if;
 
       end loop;
 
-      v_periodo_array_aux = v_periodo_array[1]::integer[];
+      v_periodo_array_aux = v_periodo_array[3]::integer[];
+
 
       select fp.id_funcionario_planilla, ht.id_uo_funcionario
       into v_id_funcionario_planilla_mes, v_id_uo_funcionario
@@ -1001,12 +1015,45 @@ $body$
       order by  pe.periodo desc
       limit 1;
 
+
+
+	  --tipo_contrato
+      select ht.tipo_contrato into v_tipo_contrato
+      from plani.thoras_trabajadas ht
+      where ht.id_funcionario_planilla = v_id_funcionario_planilla_mes;
+      --super
+      select tcs.codigo
+      into v_codigo
+      from orga.tuo_funcionario tuo
+      inner join orga.tcargo tc on tc.id_cargo = tuo.id_cargo
+      inner join orga.tescala_salarial tes on tes.id_escala_salarial = tc.id_escala_salarial
+      inner join orga.tcategoria_salarial tcs on tcs.id_categoria_salarial = tes.id_categoria_salarial
+      where tuo.id_uo_funcionario = v_id_uo_funcionario;
+
+      --retroactivo
+      select tcv.valor into v_retroactivo
+      from plani.tplanilla tp
+      inner join plani.ttipo_planilla tpl on tpl.id_tipo_planilla = tp.id_tipo_planilla
+      inner join plani.tfuncionario_planilla tfp on tfp.id_planilla = tp.id_planilla
+      inner join plani.tcolumna_valor tcv on tcv.id_funcionario_planilla = tfp.id_funcionario_planilla
+      inner join param.tperiodo tper on tper.id_periodo = tp.id_periodo
+      where tpl.codigo = 'PLAREISU' and tcv.codigo_columna = 'REISUELDOBA'
+      and tfp.id_funcionario = v_planilla.id_funcionario and tper.periodo = v_periodo_array_aux[1] and tp.id_gestion = v_planilla.id_gestion;
+
+      --parametros planilla
+      select tpp.fecha_incremento, tpp.porcentaje_calculo, tpp.valor_promedio, tpp.porcentaje_menor_promedio,
+      tpp.porcentaje_mayor_promedio, tpp.porcentaje_antiguedad
+      into v_param_planilla
+      from plani.tparam_planilla tpp
+      where tpp.id_tipo_planilla = v_planilla.id_tipo_planilla;
+
+
       select tuo.fecha_finalizacion
       into v_fecha_fin
       from orga.tuo_funcionario tuo
       where tuo.id_uo_funcionario = v_id_uo_funcionario;
 
-      if  v_periodo_array_aux[1] >= 8 and (v_fecha_fin > '31/07/2017'::date or v_fecha_fin is null) then
+      if  v_periodo_array_aux[1] >= 8 and (v_fecha_fin > '31/07/2018'::date or v_fecha_fin is null) then
 
         SELECT sum(COALESCE(cv.valor,0)) into v_aux
         from plani.tcolumna_valor cv
@@ -1042,9 +1089,14 @@ $body$
         from plani.tcolumna_valor cv
         where id_funcionario_planilla = v_id_funcionario_planilla_mes and cv.codigo_columna = 'BONFRONTERA' and cv.estado_reg = 'activo';
 
+        --Bono Antiguedad
         v_aux_2 = (2000*v_factor_anti/100*3)*(v_hor_norm/240);
+        if v_tipo_contrato = 'PLA' then
+        	v_aux = v_aux + (v_aux_2+(v_aux_2*v_param_planilla.porcentaje_antiguedad));
+        else
+        	v_aux = v_aux + v_aux_2;
+        end if;
 
-        v_aux = v_aux + v_aux_2;
 
         if v_periodo_array_aux[2] > 1 then
           select sum(coalesce(ht.sueldo, 0))/v_periodo_array_aux[2] into v_resultado
@@ -1056,9 +1108,17 @@ $body$
           where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
         end if;
 
-        v_resultado = (v_resultado*0.05)+v_resultado;
-
-        v_resultado =  round((v_resultado + v_aux),0);
+        --Haber Basico + porcentaje
+        if v_resultado > v_param_planilla.valor_promedio then
+        	if v_tipo_contrato = 'PLA' and v_codigo != 'SUPER' then
+        		v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_mayor_promedio)+v_resultado;
+            end if;
+        else
+        	if v_tipo_contrato = 'PLA' then
+        		v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_menor_promedio)+v_resultado;
+            end if;
+        end if;
+        v_resultado =  v_resultado + v_aux + coalesce(v_retroactivo,0);
 
       end if;
 
@@ -1094,12 +1154,11 @@ $body$
               v_periodo_array[v_periodo_total] = ARRAY[v_registros.periodo, v_contador];
               v_periodo_aux = v_registros.periodo - 1;
             end if;
+            v_periodo_aux = v_registros.periodo - 1;
         end if;
 
       end loop;
-
       v_periodo_array_aux = v_periodo_array[2]::integer[];
-
 
       select fp.id_funcionario_planilla, ht.id_uo_funcionario
       into v_id_funcionario_planilla_mes, v_id_uo_funcionario
@@ -1118,6 +1177,36 @@ $body$
       order by  pe.periodo desc
       limit 1;
 
+      --tipo_contrato
+      select ht.tipo_contrato into v_tipo_contrato
+      from plani.thoras_trabajadas ht
+      where ht.id_funcionario_planilla = v_id_funcionario_planilla_mes;
+
+      --super
+      select tcs.codigo
+      into v_codigo
+      from orga.tuo_funcionario tuo
+      inner join orga.tcargo tc on tc.id_cargo = tuo.id_cargo
+      inner join orga.tescala_salarial tes on tes.id_escala_salarial = tc.id_escala_salarial
+      inner join orga.tcategoria_salarial tcs on tcs.id_categoria_salarial = tes.id_categoria_salarial
+      where tuo.id_uo_funcionario = v_id_uo_funcionario;
+
+      --retroactivo
+      select tcv.valor into v_retroactivo
+      from plani.tplanilla tp
+      inner join plani.ttipo_planilla tpl on tpl.id_tipo_planilla = tp.id_tipo_planilla
+      inner join plani.tfuncionario_planilla tfp on tfp.id_planilla = tp.id_planilla
+      inner join plani.tcolumna_valor tcv on tcv.id_funcionario_planilla = tfp.id_funcionario_planilla
+      inner join param.tperiodo tper on tper.id_periodo = tp.id_periodo
+      where tpl.codigo = 'PLAREISU' and tcv.codigo_columna = 'REISUELDOBA'
+      and tfp.id_funcionario = v_planilla.id_funcionario and tper.periodo = v_periodo_array_aux[1] and tp.id_gestion = v_planilla.id_gestion;
+
+	  --parametros planilla
+      select tpp.fecha_incremento, tpp.porcentaje_calculo, tpp.valor_promedio, tpp.porcentaje_menor_promedio,
+      tpp.porcentaje_mayor_promedio, tpp.porcentaje_antiguedad
+      into v_param_planilla
+      from plani.tparam_planilla tpp
+      where tpp.id_tipo_planilla = v_planilla.id_tipo_planilla;
 
       select tuo.fecha_finalizacion
       into v_fecha_fin
@@ -1126,7 +1215,7 @@ $body$
 
 
 
-      if  v_periodo_array_aux[1] >= 8 and (v_fecha_fin > '31/07/2017'::date or v_fecha_fin is null) then
+      if  v_periodo_array_aux[1] >= 8 and (v_fecha_fin > '31/07/2018'::date or v_fecha_fin is null) then
 
         SELECT sum(COALESCE(cv.valor,0)) into v_aux
         from plani.tcolumna_valor cv
@@ -1160,9 +1249,13 @@ $body$
         from plani.tcolumna_valor cv
         where id_funcionario_planilla = v_id_funcionario_planilla_mes and cv.codigo_columna = 'BONFRONTERA' and cv.estado_reg = 'activo';
 
+        --Bono Antiguedad
         v_aux_2 = (2000*v_factor_anti/100*3)*(v_hor_norm/240);
-
-        v_aux = v_aux + v_aux_2;
+		if v_tipo_contrato = 'PLA' then
+        	v_aux = v_aux + (v_aux_2+(v_aux_2*v_param_planilla.porcentaje_antiguedad));
+        else
+        	v_aux = v_aux + v_aux_2;
+        end if;
 
         if v_periodo_array_aux[2] > 1 then
           select sum(coalesce(ht.sueldo, 0))/v_periodo_array_aux[2] into v_resultado
@@ -1174,9 +1267,17 @@ $body$
           where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
         end if;
 
-         v_resultado = (v_resultado*0.05)+v_resultado;
-
-         v_resultado =  round((v_resultado + v_aux),0);
+        --Haber Basico + porcentaje
+        if v_resultado > v_param_planilla.valor_promedio then
+        	if v_tipo_contrato = 'PLA' and v_codigo != 'SUPER' then
+        		v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_mayor_promedio)+v_resultado;
+            end if;
+        else
+        	if v_tipo_contrato = 'PLA' then
+        		v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_menor_promedio)+v_resultado;
+            end if;
+        end if;
+		    v_resultado = v_resultado + v_aux + coalesce(v_retroactivo,0);
 
       end if;
     ELSIF(p_codigo = 'PROMPRI3') THEN
@@ -1210,10 +1311,11 @@ $body$
               v_periodo_array[v_periodo_total] = ARRAY[v_registros.periodo, v_contador];
               v_periodo_aux = v_registros.periodo - 1;
             end if;
+            v_periodo_aux = v_registros.periodo - 1;
         end if;
       end loop;
 
-      v_periodo_array_aux = v_periodo_array[3]::integer[];
+      v_periodo_array_aux = v_periodo_array[1]::integer[];
 
       select fp.id_funcionario_planilla, ht.id_uo_funcionario
       into v_id_funcionario_planilla_mes, v_id_uo_funcionario
@@ -1231,6 +1333,37 @@ $body$
       order by  pe.periodo desc
       limit 1;
 
+      --tipo_contrato
+      select ht.tipo_contrato into v_tipo_contrato
+      from plani.thoras_trabajadas ht
+      where ht.id_funcionario_planilla = v_id_funcionario_planilla_mes;
+
+      --super
+      select tcs.codigo
+      into v_codigo
+      from orga.tuo_funcionario tuo
+      inner join orga.tcargo tc on tc.id_cargo = tuo.id_cargo
+      inner join orga.tescala_salarial tes on tes.id_escala_salarial = tc.id_escala_salarial
+      inner join orga.tcategoria_salarial tcs on tcs.id_categoria_salarial = tes.id_categoria_salarial
+      where tuo.id_uo_funcionario = v_id_uo_funcionario;
+
+      --retroactivo
+      select tcv.valor into v_retroactivo
+      from plani.tplanilla tp
+      inner join plani.ttipo_planilla tpl on tpl.id_tipo_planilla = tp.id_tipo_planilla
+      inner join plani.tfuncionario_planilla tfp on tfp.id_planilla = tp.id_planilla
+      inner join plani.tcolumna_valor tcv on tcv.id_funcionario_planilla = tfp.id_funcionario_planilla
+      inner join param.tperiodo tper on tper.id_periodo = tp.id_periodo
+      where tpl.codigo = 'PLAREISU' and tcv.codigo_columna = 'REISUELDOBA'
+      and tfp.id_funcionario = v_planilla.id_funcionario and tper.periodo = v_periodo_array_aux[1] and tp.id_gestion = v_planilla.id_gestion;
+
+      --parametros planilla
+      select tpp.fecha_incremento, tpp.porcentaje_calculo, tpp.valor_promedio, tpp.porcentaje_menor_promedio,
+      tpp.porcentaje_mayor_promedio, tpp.porcentaje_antiguedad
+      into v_param_planilla
+      from plani.tparam_planilla tpp
+      where tpp.id_tipo_planilla = v_planilla.id_tipo_planilla;
+
       if (v_id_funcionario_planilla_mes is null) then
         select cv.valor into v_resultado
         from plani.tcolumna_valor cv
@@ -1243,7 +1376,7 @@ $body$
         from orga.tuo_funcionario tuo
         where tuo.id_uo_funcionario = v_id_uo_funcionario;
 
-      	if  v_periodo_array_aux[1] >= 8 and (v_fecha_fin > '31/07/2017'::date or v_fecha_fin is null) then
+      	if  v_periodo_array_aux[1] >= 8 and (v_fecha_fin > '31/07/2018'::date or v_fecha_fin is null) then
           SELECT sum(COALESCE(cv.valor,0)) into v_aux
           from plani.tcolumna_valor cv
           where id_funcionario_planilla = v_id_funcionario_planilla_mes and
@@ -1276,9 +1409,13 @@ $body$
           from plani.tcolumna_valor cv
           where id_funcionario_planilla = v_id_funcionario_planilla_mes and cv.codigo_columna = 'BONFRONTERA' and cv.estado_reg = 'activo';
 
+          --Bono Antiguedad
           v_aux_2 = (2000*v_factor_anti/100*3)*(v_hor_norm/240);
-
-          v_aux = v_aux + v_aux_2;
+		  if v_tipo_contrato = 'PLA' then
+        	v_aux = v_aux + (v_aux_2+(v_aux_2*v_param_planilla.porcentaje_antiguedad));
+          else
+        	v_aux = v_aux + v_aux_2;
+          end if;
 
           if v_periodo_array_aux[2] > 1 then
             select sum(coalesce(ht.sueldo, 0))/v_periodo_array_aux[2] into v_resultado
@@ -1290,11 +1427,21 @@ $body$
             where id_funcionario_planilla = v_id_funcionario_planilla_mes and ht.estado_reg = 'activo';
           end if;
 
-           v_resultado = (v_resultado*0.05)+v_resultado;
-           v_resultado =  round((v_resultado + v_aux),0);
+           --Haber Basico + porcentaje
+           	if v_resultado > v_param_planilla.valor_promedio then
+            	if v_tipo_contrato = 'PLA' and v_codigo != 'SUPER' then
+           			v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_mayor_promedio)+v_resultado;
+                end if;
+        	else
+            	if v_tipo_contrato = 'PLA' then
+	        		v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_menor_promedio)+v_resultado;
+                end if;
+        	end if;
+           	v_resultado = v_resultado + v_aux + coalesce(v_retroactivo,0);
 
       	end if;
       end if;
+
     ELSIF(p_codigo = 'PROMHAB1') THEN
       --franklin.espinoza calculo segundo aguinaldo sin bono antiguedad 13/12/2018
       select tpp.codigo, tcon.codigo as tipo_contrato, tuo.fecha_finalizacion, tca.id_escala_salarial, tp.fecha_planilla, tfp.id_funcionario

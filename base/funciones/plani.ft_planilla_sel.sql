@@ -70,7 +70,8 @@ $body$
     v_total						varchar='';
     v_retroactivo				varchar='';
 
-
+    v_id_seg_cordes				integer;
+    v_id_seg_umss				integer;
   BEGIN
 
     v_nombre_funcion = 'plani.ft_planilla_sel';
@@ -985,7 +986,17 @@ $body$
             INTO v_unidad_ejecutora
             FROM pre.tunidad_ejecutora tue;
             ---
+      --consulta para obtener entidad tranferencia caja
 
+            select tet.id_entidad_transferencia
+            into v_id_seg_cordes
+            from pre.tentidad_transferencia tet
+            where tet.codigo = '424' and tet.id_gestion = v_id_gestion;
+
+            select tet.id_entidad_transferencia
+            into v_id_seg_umss
+            from pre.tentidad_transferencia tet
+            where tet.codigo = '425'and tet.id_gestion = v_id_gestion;
 			--Sentencia de la consulta de conteo de registros
 			v_consulta:='
             SELECT
@@ -1059,7 +1070,7 @@ $body$
 		INNER JOIN pre.tpartida tpar ON tpar.id_partida = trc.id_partida and tpar.id_gestion = '||v_id_gestion||'
 
         left join pre.tpresupuesto_partida_entidad tppe on tppe.id_partida = trc.id_partida and tppe.id_presupuesto = tp.id_presupuesto and tppe.id_gestion = '||v_id_gestion||'
-        and case when tcv.codigo_columna = ''CAJSAL'' THEN (case when vf.ci = ''630048'' then tppe.id_entidad_transferencia = 22 else tppe.id_entidad_transferencia = 21 end) else (tppe.id_entidad_transferencia !=21 and tppe.id_entidad_transferencia !=22) end
+        and case when tcv.codigo_columna = ''CAJSAL'' THEN (case when vf.ci = ''630048'' then tppe.id_entidad_transferencia = '||v_id_seg_umss||' else tppe.id_entidad_transferencia = '||v_id_seg_cordes||' end) else (tppe.id_entidad_transferencia not in ('||v_id_seg_cordes||','||v_id_seg_umss||')) end
 
         left join pre.tentidad_transferencia tet on tet.id_entidad_transferencia = tppe.id_entidad_transferencia and tet.id_gestion = '||v_id_gestion||'
 
@@ -1211,7 +1222,17 @@ $body$
             INTO v_unidad_ejecutora
             FROM pre.tunidad_ejecutora tue;
             ---
+      --consulta para obtener entidad tranferencia caja
 
+            select tet.id_entidad_transferencia
+            into v_id_seg_cordes
+            from pre.tentidad_transferencia tet
+            where tet.codigo = '424' and tet.id_gestion = v_id_gestion;
+
+            select tet.id_entidad_transferencia
+            into v_id_seg_umss
+            from pre.tentidad_transferencia tet
+            where tet.codigo = '425'and tet.id_gestion = v_id_gestion;
 			--Sentencia de la consulta de conteo de registros
 			v_consulta:='
             SELECT
@@ -1261,8 +1282,7 @@ $body$
             INNER JOIN pre.tpartida tpar ON tpar.id_partida = trc.id_partida and tpar.id_gestion = '||v_id_gestion||'
 
             left join pre.tpresupuesto_partida_entidad tppe on tppe.id_partida = trc.id_partida and tppe.id_presupuesto = tp.id_presupuesto and tppe.id_gestion = '||v_id_gestion||'
-            and case when tcv.codigo_columna = ''CAJSAL'' THEN (case when vf.ci = ''630048'' then tppe.id_entidad_transferencia = 22 else tppe.id_entidad_transferencia = 21 end)
-            else (tppe.id_entidad_transferencia !=21 and tppe.id_entidad_transferencia !=22) end
+            and case when tcv.codigo_columna = ''CAJSAL'' THEN (case when vf.ci = ''630048'' then tppe.id_entidad_transferencia = '||v_id_seg_umss||' else tppe.id_entidad_transferencia = '||v_id_seg_cordes||' end) else (tppe.id_entidad_transferencia not in ('||v_id_seg_cordes||','||v_id_seg_umss||')) end
 
             left join pre.tentidad_transferencia tet on tet.id_entidad_transferencia = tppe.id_entidad_transferencia and tet.id_gestion = '||v_id_gestion||'
 
@@ -1701,6 +1721,17 @@ $body$
 
 
         --v_mes = {'Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre', 'Diciembre'};
+        --consulta para obtener entidad tranferencia caja
+
+            select tet.id_entidad_transferencia
+            into v_id_seg_cordes
+            from pre.tentidad_transferencia tet
+            where tet.codigo = '424' and tet.id_gestion = v_id_gestion;
+
+            select tet.id_entidad_transferencia
+            into v_id_seg_umss
+            from pre.tentidad_transferencia tet
+            where tet.codigo = '425'and tet.id_gestion = v_id_gestion;
 
         v_consulta = 'SELECT
                       (case
@@ -1771,7 +1802,7 @@ $body$
                       INNER JOIN pre.tpartida tpar ON tpar.id_partida = trc.id_partida and tpar.id_gestion = '||v_id_gestion||'
 
                       left join pre.tpresupuesto_partida_entidad tppe on tppe.id_partida = trc.id_partida and tppe.id_presupuesto = tp.id_presupuesto and tppe.id_gestion = '||v_id_gestion||'
-                      and case when tcv.codigo_columna = ''CAJSAL'' THEN (case when vf.ci = ''630048'' then tppe.id_entidad_transferencia = 22 else tppe.id_entidad_transferencia = 21 end) else (tppe.id_entidad_transferencia !=21 and tppe.id_entidad_transferencia !=22) end
+                      and case when tcv.codigo_columna = ''CAJSAL'' THEN (case when vf.ci = ''630048'' then tppe.id_entidad_transferencia = '||v_id_seg_umss||' else tppe.id_entidad_transferencia = '||v_id_seg_cordes||' end) else (tppe.id_entidad_transferencia not in ('||v_id_seg_cordes||','||v_id_seg_umss||')) end
 
                       left join pre.tentidad_transferencia tet on tet.id_entidad_transferencia = tppe.id_entidad_transferencia and tet.id_gestion = '||v_id_gestion||'
 
