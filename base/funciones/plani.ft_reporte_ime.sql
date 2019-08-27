@@ -203,7 +203,7 @@ BEGIN
 			for v_record in select tf.ci, tf.id_persona
             			    from orga.vfuncionario tf
                             inner join orga.tuo_funcionario tuo on tuo.id_funcionario = tf.id_funcionario
-                            where (tuo.fecha_finalizacion >= current_date or tuo.fecha_finalizacion is null) and tf.codigo_rc_iva is null loop
+                            where (tuo.fecha_finalizacion >= current_date or tuo.fecha_finalizacion is null) and (tf.codigo_rc_iva is null or tf.codigo_rc_iva = '') loop
             	select tf.codigo
                 into v_codigo_rc_iva
                 from registros_rc_iva tf
