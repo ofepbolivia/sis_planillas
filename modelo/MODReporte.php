@@ -265,6 +265,7 @@ class MODReporte extends MODbase{
 		$this->captura('valor_columna','numeric');			
 		$this->captura('nombre','varchar');
 		$this->captura('categoria_prog','varchar');
+		$this->captura('motivo_retiro','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();//echo $this->consulta; exit;

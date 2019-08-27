@@ -55,37 +55,128 @@ class RPlanillaGenericaXls
 		
 		$config = $this->objParam->getParametro('config');
 		$columnas = 0;
-		
+
+        $this->styleVacio = array(
+            'font'  => array(
+                'bold'  => true,
+                'size'  => 8,
+                'name'  => 'Arial'
+            ),
+            'alignment' => array(
+                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+                'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
+            ),
+            'fill' => array(
+                'type' => PHPExcel_Style_Fill::FILL_SOLID,
+                'color' => array(
+                    'rgb' => 'FA8072'
+                )
+            ),
+            'borders' => array(
+            'allborders' => array(
+                'style' => PHPExcel_Style_Border::BORDER_THIN
+            )
+        )
+        );
+
+        $this->styleTitulos = array(
+            'font'  => array(
+                'bold'  => true,
+                'size'  => 8,
+                'name'  => 'Arial'
+            ),
+            'alignment' => array(
+                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+                'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
+            ),
+            'fill' => array(
+                'type' => PHPExcel_Style_Fill::FILL_SOLID,
+                'color' => array(
+                    'rgb' => 'c5d9f1'
+                )
+            ),
+            'borders' => array(
+                'allborders' => array(
+                    'style' => PHPExcel_Style_Border::BORDER_THIN
+                )
+            ));
+
+        $this->styledetalle = array(
+            'font'  => array(
+                'bold'  => true,
+                'size'  => 8,
+                'name'  => 'Arial'
+            ),
+            'alignment' => array(
+                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+                'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
+            ),
+            'fill' => array(
+                'type' => PHPExcel_Style_Fill::FILL_SOLID,
+                'color' => array(
+                    'rgb' => '72fa80'
+                )
+            ),
+            'borders' => array(
+                'allborders' => array(
+                    'style' => PHPExcel_Style_Border::BORDER_THIN
+                )
+            ));
+
 		//*************************************Cabecera*****************************************
+
+        //$this->docexcel->getActiveSheet()->freezePaneByColumnAndRow(0,3);
+        $this->docexcel->getActiveSheet()->getStyle("A1:O2")->applyFromArray($this->styleTitulos);
+
 		$this->docexcel->getActiveSheet()->getColumnDimension($this->equivalencias[$columnas])->setWidth(20);
+        //$this->docexcel->getActiveSheet()->mergeCells('A1:A2');
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,1,'Gerencia');
 		$columnas++;
+
+        $this->docexcel->getActiveSheet()->getColumnDimension($this->equivalencias[$columnas])->setWidth(20);
+        //$this->docexcel->getActiveSheet()->mergeCells('B1:B2');
+        $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,1,'Motivo Retiro');
+        $columnas++;
+
 		if ($config['numerar'] == 'si') {
 			$this->docexcel->getActiveSheet()->getColumnDimension($this->equivalencias[$columnas])->setWidth(8);
+            //$this->docexcel->getActiveSheet()->mergeCells('C1:C2');
 			$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,1,'No');
 			$columnas++;
 		}
 		if ($config['mostrar_nombre'] == 'si'){
 			$this->docexcel->getActiveSheet()->getColumnDimension($this->equivalencias[$columnas])->setWidth(33);
+            //$this->docexcel->getActiveSheet()->mergeCells('D1:D2');
 			$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,1,'Nombre Completo');
 			$columnas++;			
 		}
 		if ($config['mostrar_codigo_empleado'] == 'si') {
 			$this->docexcel->getActiveSheet()->getColumnDimension($this->equivalencias[$columnas])->setWidth(10);
+            //$this->docexcel->getActiveSheet()->mergeCells('E1:E2');
 			$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,1,'Cod.');
 			$columnas++;			
 		}
 		if ($config['mostrar_doc_id'] == 'si') {
 			$this->docexcel->getActiveSheet()->getColumnDimension($this->equivalencias[$columnas])->setWidth(10);
+            //$this->docexcel->getActiveSheet()->mergeCells('F1:F2');
 			$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,1,'CI.');
 			$columnas++;
 		}
 		if ($config['mostrar_codigo_cargo'] == 'si') {
 			$this->docexcel->getActiveSheet()->getColumnDimension($this->equivalencias[$columnas])->setWidth(10);
+            //$this->docexcel->getActiveSheet()->mergeCells('G1:G2');
 			$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,1,'Item');
 			$columnas++;
 		}
-		
+        /*$this->docexcel->getActiveSheet()->mergeCells('H1:H2');
+        $this->docexcel->getActiveSheet()->mergeCells('I1:I2');
+        $this->docexcel->getActiveSheet()->mergeCells('J1:J2');
+        $this->docexcel->getActiveSheet()->mergeCells('K1:K2');
+        $this->docexcel->getActiveSheet()->mergeCells('L1:L2');
+        $this->docexcel->getActiveSheet()->mergeCells('M1:M2');
+        $this->docexcel->getActiveSheet()->mergeCells('N1:N2');
+        $this->docexcel->getActiveSheet()->mergeCells('O1:O2');*/
+
 		$columnas_basicas = $columnas;
 		foreach($datos as $value) {
 			$this->docexcel->getActiveSheet()->getColumnDimension($this->equivalencias[$columnas])->setWidth(10);
@@ -96,6 +187,7 @@ class RPlanillaGenericaXls
 			}
 		}		
 		$columnas = 0;
+		$columnas++;
 		$columnas++;
 		//Titulos de columnas inferiores e iniciacion de los arreglos para la tabla
 		if ($config['numerar'] == 'si') {			
@@ -146,7 +238,18 @@ class RPlanillaGenericaXls
 	function imprimeDatosBasicos($config,$detalle, $fila) {
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(0,$fila,$detalle['gerencia']);	
 		$columnas = 1;
-			
+
+        if ($detalle['motivo_retiro'] == 'retiro'){
+            $this->docexcel->getActiveSheet()->getStyle("A$fila:O$fila")->applyFromArray($this->styleVacio);
+            $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(1,$fila,$detalle['motivo_retiro']);
+            $columnas = 2;
+        }else{
+
+            $this->docexcel->getActiveSheet()->getStyle("A$fila:O$fila")->applyFromArray($this->styledetalle);
+            $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(1,$fila,$detalle['motivo_retiro']);
+            $columnas = 2;
+        }
+
 		if ($config['numerar'] == 'si') {
 			$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,$fila,$fila);
 			$columnas++;

@@ -36,9 +36,30 @@ Phx.vista.TipoPlanilla=Ext.extend(Phx.gridInterfaz,{
                 tooltip: 'Diseño de Reportes para la Planilla'
             }
         );
+        this.addButton('param_varios', {
+            text: 'Parametros Varios',
+            iconCls: 'bfolder',
+            disabled: true,
+            handler: this.onParametroPlanilla,
+            tooltip: 'Parametros Varios Planilla por Gestión'
+        });
 		this.load({params:{start:0, limit:this.tam_pag}})
 	},
-			
+
+    onParametroPlanilla: function(){
+        var rec = {maestro: this.getSelectedData()};
+
+        Phx.CP.loadWindows('../../../sis_planillas/vista/param_planilla/ParamPlanilla.php',
+            'Parametros Varios Planilla x Gestión',
+            {
+                width:700,
+                height:450
+            },
+            rec,
+            this.idContenedor,
+            'ParamPlanilla');
+    },
+
 	Atributos:[
 		{
 			//configuracion del componente
@@ -385,12 +406,14 @@ Phx.vista.TipoPlanilla=Ext.extend(Phx.gridInterfaz,{
     {	
         this.getBoton('btnObligaciones').enable();  
         this.getBoton('btnReportes').enable();      
+        this.getBoton('param_varios').enable();
         Phx.vista.TipoPlanilla.superclass.preparaMenu.call(this);
     },
     liberaMenu:function()
     {	
         this.getBoton('btnObligaciones').disable(); 
         this.getBoton('btnReportes').disable();       
+        this.getBoton('param_varios').disable();
         Phx.vista.TipoPlanilla.superclass.liberaMenu.call(this);
     },
     onBtnObligaciones: function(){
