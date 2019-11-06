@@ -57,6 +57,9 @@ $body$
     v_record				record;
     v_desc_planilla			record;
     v_gestion				integer;
+
+    v_cont_pla				integer;
+    v_modalidad       varchar = '';
   BEGIN
 
     v_nombre_funcion = 'plani.ft_reporte_sel';
@@ -195,15 +198,15 @@ $body$
         v_where = '';
         if (v_parametros.id_tipo_contrato <> -1) then
           v_where = v_where || ' and tc.id_tipo_contrato = ' || v_parametros.id_tipo_contrato;
-        else
-          v_where = v_where || ' and tc.id_tipo_contrato IN (1,4)';
+        /*else
+          v_where = v_where || ' and tc.id_tipo_contrato IN (1,4)';*/
         end if;
 
         if (v_parametros.id_uo <> -1) then
           v_where = v_where || ' and ger.id_uo = ' || v_parametros.id_uo;
         end if;
 
-        select tg.id_gestion, tg.gestion
+        /*select tg.id_gestion, tg.gestion
         into v_id_gestion, v_gestion
         from param.tgestion tg
         where tg.gestion = date_part('year', v_parametros.fecha);
@@ -211,11 +214,76 @@ $body$
         select tp.id_periodo
         into v_id_periodo
         from param.tperiodo tp
-        where tp.periodo = date_part('month', v_parametros.fecha) and tp.id_gestion = v_id_gestion;
+        where tp.periodo = date_part('month', v_parametros.fecha) and tp.id_gestion = v_id_gestion;*/
+
+        v_consulta:='with detalle as(
+
+              select
+                              ger.nombre_unidad as Gerencia,
+                              car.nombre as NombreCargo,
+                              datos.desc_funcionario2 as NombreCompleto,
+
+                              (case when uofun.id_funcionario = 10 then
+                                  ''27/12/2013''::date
+                              else
+                                  plani.f_get_fecha_primer_contrato_empleado(uofun.id_uo_funcionario,uofun.id_funcionario,uofun.fecha_asignacion)
+                              END)  as FechaIncorp,
+
+                              (case when uofun.id_funcionario = 10 then
+                                   (''' || v_parametros.fecha ||'''::date - ''27/12/2013''::date) + 1
+                              else
+                                 (''' || v_parametros.fecha ||'''::date - plani.f_get_fecha_primer_contrato_empleado(uofun.id_uo_funcionario,uofun.id_funcionario,uofun.fecha_asignacion)) + 1 - plani.f_get_dias_licencia_funcionario(datos.id_funcionario,''' || v_parametros.fecha ||'''::Date)
+                              END)::integer  as diastrabajados,
+
+                          (case when ' || v_parametros.id_uo ||' <>-1 then
+                              ger.nombre_unidad
+                          ELSE
+                              ''Boliviana de Aviacion''::varchar
+                          END)  as NombreDepartamento,
+                          (case when ' || v_parametros.id_tipo_contrato ||'<>-1 then
+                              tc.nombre
+                          ELSE
+                              ''TODOS''::varchar
+                          END)  as NombreContrato,
+                          ''' || v_parametros.fecha ||'''::Date as FechaPrev ,
+                          orga.f_get_haber_basico_a_fecha(escala.id_escala_salarial,''' || (case when v_parametros.fecha > now()::date then now()::date else v_parametros.fecha end) ||'''::date) as haberbasico,
+                          fun.antiguedad_anterior,
+                          plani.f_get_fecha_primer_contrato_empleado(uofun.id_uo_funcionario,uofun.id_funcionario,uofun.fecha_asignacion) as fechaAntiguedad,
+                          (case when ofi.frontera =''si'' then
+                          	0.2
+                          else
+                          	0
+                          end) as frontera,
+                          pre.descripcion as presupuesto,
+                          uofun.tipo
+                          from orga.tuo_funcionario uofun
+                          INNER JOIN orga.vfuncionario datos ON datos.id_funcionario=uofun.id_funcionario
+                          inner join orga.tcargo car ON car.id_cargo = uofun.id_cargo
+                          left join orga.tcargo_presupuesto cp on cp.id_cargo = car.id_cargo and
+                          	cp.fecha_ini <= ''' || v_parametros.fecha ||'''::date and cp.id_gestion = (select po_id_gestion from param.f_get_periodo_gestion(''' || v_parametros.fecha ||'''::date))
+                          left join pre.vpresupuesto_cc pre on pre.id_centro_costo = cp.id_centro_costo
+                          inner join orga.toficina ofi ON ofi.id_oficina = car.id_oficina
+                          inner join orga.ttipo_contrato tc on tc.id_tipo_contrato = car.id_tipo_contrato
+                          inner join orga.tescala_salarial escala ON escala.id_escala_salarial=car.id_escala_salarial
+                          inner join orga.tfuncionario fun on fun.id_funcionario = datos.id_funcionario
+                          inner join orga.tuo ger on ger.id_uo = orga.f_get_uo_gerencia(uofun.id_uo,NULL,''' || v_parametros.fecha ||'''::date)
+                          where uofun.estado_reg != ''inactivo'' and uofun.fecha_asignacion <= ''' || v_parametros.fecha ||'''::date and
+                          (uofun.fecha_finalizacion >= ''' || v_parametros.fecha ||'''::date or uofun.fecha_finalizacion is null) ' || v_where ||'
+                          order by ger.prioridad::INTEGER,datos.desc_funcionario2)
+
+                          select Gerencia::varchar,NombreCargo::varchar,NombreCompleto::text,
+                          round(haberBasico*frontera + haberBasico + plani.f_evaluar_antiguedad (fechaAntiguedad,''' || v_parametros.fecha ||'''::date,antiguedad_anterior),2) as HaberBasico,
+                          to_char(FechaIncorp::date,''DD/MM/YYYY'')::varchar,
+                          diastrabajados::integer,
+                          round((haberBasico*frontera + haberBasico + plani.f_evaluar_antiguedad (fechaAntiguedad,''' || v_parametros.fecha ||'''::date,antiguedad_anterior))/365,8) as indemdia,
+                          round((haberBasico*frontera + haberBasico + plani.f_evaluar_antiguedad (fechaAntiguedad,''' || v_parametros.fecha ||'''::date,antiguedad_anterior))/365,8)*diastrabajados as Indem,
+                          presupuesto
+                          from detalle
+                          where diastrabajados >= 90 and tipo=''oficial'' ';
 
         raise notice '%',v_where;
         --Sentencia de la consulta
-        v_consulta:='with detalle as(
+        /*v_consulta:='with detalle as(
 
               select
                               ger.nombre_unidad as Gerencia,
@@ -291,7 +359,7 @@ $body$
                           round((haberBasico*frontera + haberBasico + /*plani.f_evaluar_antiguedad (fechaAntiguedad,''' || v_parametros.fecha ||'''::date,antiguedad_anterior)*/bono_antiguedad)/365,8)*diastrabajados as Indem,
                           presupuesto
                           from detalle
-                          where diastrabajados >= 90';
+                          where diastrabajados >= 90';*/
 
         raise notice '%',v_consulta;
         --Devuelve la respuesta
@@ -454,6 +522,75 @@ $body$
                             fun.id_funcionario,
                             substring(fun.desc_funcionario2 from 1 for 38),
                             cat.descripcion::varchar,
+                            car.codigo,
+                            fun.ci,
+                            uo.id_uo,
+
+                            (uo.nombre_unidad||'' - ''||(case
+                            when lower(uo.nombre_unidad) like ''%cobija%'' then
+                            	''CIJ''
+                            when car.codigo = ''0'' then
+                            	''EVE''
+                            when ca.codigo = ''SUPER'' and (fun.id_funcionario != 10 or fun.id_funcionario is null)  then
+                            	''ESP''
+                            when (cat.desc_programa ilike ''%ADM%'' or (ca.codigo = ''SUPER'' and fun.id_funcionario = 10)) then
+                            	''ADM''
+                            when cat.desc_programa ilike ''%OPE%'' then
+                            	''OPE''
+                            when cat.desc_programa ilike ''%COM%'' then
+                            	''COM''
+                            else
+                            	''SINCAT''
+                            end
+                            )::varchar)::varchar,
+
+                            repcol.sumar_total,
+                            repcol.ancho_columna,
+                            repcol.titulo_reporte_superior,
+                            repcol.titulo_reporte_inferior,
+                            colval.codigo_columna,
+                            colval.valor,
+                            tcon.nombre,
+                            (case
+                            when lower(uo.nombre_unidad) like ''%cobija%'' then
+                            	''5.CIJ''
+                            when car.codigo = ''0'' then
+                            	''6.EVE''
+                            when ca.codigo = ''SUPER'' and (fun.id_funcionario != 10 or fun.id_funcionario is null)  then
+                            	''3.ESP''
+                            when (cat.desc_programa ilike ''%ADM%'' or (ca.codigo = ''SUPER'' and fun.id_funcionario = 10)) then
+                            	''1.ADM''
+                            when cat.desc_programa ilike ''%OPE%'' then
+                            	''2.OPE''
+                            when cat.desc_programa ilike ''%COM%'' then
+                            	''4.COM''
+                            else
+                            	''SINCAT''
+                            end
+                            )::varchar as categoria_prog,
+                            uofun.observaciones_finalizacion as motivo_retiro
+
+						from plani.tfuncionario_planilla fp
+            inner join plani.tplanilla plani on plani.id_planilla = fp.id_planilla
+						inner join plani.treporte repo on repo.id_tipo_planilla = plani.id_tipo_planilla
+            inner join plani.tcolumna_valor colval on  colval.id_funcionario_planilla = fp.id_funcionario_planilla
+            inner join plani.treporte_columna repcol  on repcol.id_reporte = repo.id_reporte and repcol.codigo_columna = colval.codigo_columna
+            inner join orga.tuo_funcionario uofun on uofun.id_uo_funcionario = fp.id_uo_funcionario
+            inner join orga.tcargo car on car.id_cargo = uofun.id_cargo
+            inner JOIN orga.tescala_salarial es ON es.id_escala_salarial = car.id_escala_salarial
+            inner JOIN orga.tcategoria_salarial ca ON ca.id_categoria_salarial = es.id_categoria_salarial
+            inner join orga.ttipo_contrato tcon on tcon.id_tipo_contrato = car.id_tipo_contrato
+            left join orga.tcargo_presupuesto cp on cp.id_cargo = car.id_cargo and cp.id_gestion = plani.id_gestion and cp.estado_reg = ''activo''
+            left join pre.vpresupuesto_cc pre on pre.id_centro_costo = cp.id_centro_costo
+            left join pre.vcategoria_programatica cat on cat.id_categoria_programatica = pre.id_categoria_prog
+            inner join orga.vfuncionario fun on fun.id_funcionario = uofun.id_funcionario
+            inner join orga.tuo uo on uo.id_uo = orga.f_get_uo_gerencia(uofun.id_uo, NULL,NULL)
+				    where ';
+
+        /*v_consulta:='select
+                            fun.id_funcionario,
+                            substring(fun.desc_funcionario2 from 1 for 38),
+                            cat.descripcion::varchar,
 
                             car.codigo,
                             fun.ci,
@@ -498,35 +635,37 @@ $body$
                             else
                             	''SINCAT''
                             end
-                            )::varchar as categoria_prog
+                            )::varchar as categoria_prog,
+                            uofun.observaciones_finalizacion as motivo_retiro
 
 						from plani.tfuncionario_planilla fp
-                        inner join plani.tplanilla plani on plani.id_planilla = fp.id_planilla
+            inner join plani.tplanilla plani on plani.id_planilla = fp.id_planilla
 						inner join plani.treporte repo on repo.id_tipo_planilla = plani.id_tipo_planilla
-                        inner join plani.tcolumna_valor colval on  colval.id_funcionario_planilla = fp.id_funcionario_planilla
-                        inner join plani.treporte_columna repcol  on repcol.id_reporte = repo.id_reporte and
-                        											repcol.codigo_columna = colval.codigo_columna
-                        inner join orga.tuo_funcionario uofun on uofun.id_uo_funcionario = fp.id_uo_funcionario
-                        inner join orga.tcargo car on car.id_cargo = uofun.id_cargo
+            inner join plani.tcolumna_valor colval on  colval.id_funcionario_planilla = fp.id_funcionario_planilla
+            inner join plani.treporte_columna repcol  on repcol.id_reporte = repo.id_reporte and
+                                  repcol.codigo_columna = colval.codigo_columna
+            inner join orga.tuo_funcionario uofun on uofun.id_uo_funcionario = fp.id_uo_funcionario
+            inner join orga.tcargo car on car.id_cargo = uofun.id_cargo
 
-                        inner JOIN orga.tescala_salarial es ON es.id_escala_salarial = car.id_escala_salarial
-                        inner JOIN orga.tcategoria_salarial ca ON ca.id_categoria_salarial = es.id_categoria_salarial
+            inner JOIN orga.tescala_salarial es ON es.id_escala_salarial = car.id_escala_salarial
+            inner JOIN orga.tcategoria_salarial ca ON ca.id_categoria_salarial = es.id_categoria_salarial
 
-                        /*inner join param.tperiodo tper on tper.periodo = extract(''month'' from plani.fecha_planilla) and tper.id_gestion = plani.id_gestion
-                        inner join orga.tcargo_presupuesto cp on cp.id_cargo = uofun.id_cargo and cp.id_gestion = plani.id_gestion  and
-                        ((tper.fecha_ini between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||date_part(''year'',plani.fecha_planilla))::date)) or
-                        (tper.fecha_fin between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||date_part(''year'',plani.fecha_planilla))::date)))*/
+            /*inner join param.tperiodo tper on tper.periodo = extract(''month'' from plani.fecha_planilla) and tper.id_gestion = plani.id_gestion
+            inner join orga.tcargo_presupuesto cp on cp.id_cargo = uofun.id_cargo and cp.id_gestion = plani.id_gestion  and
+            ((tper.fecha_ini between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||date_part(''year'',plani.fecha_planilla))::date)) or
+            (tper.fecha_fin between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||date_part(''year'',plani.fecha_planilla))::date)))*/
 
-                        left join orga.tcargo_presupuesto cp on car.id_cargo = cp.id_cargo and cp.id_gestion = plani.id_gestion and cp.estado_reg = ''activo'' and
-						(cp.fecha_fin >= current_date or cp.fecha_fin is NULL)
+            left join orga.tcargo_presupuesto cp on car.id_cargo = cp.id_cargo and cp.id_gestion = plani.id_gestion and cp.estado_reg = ''activo'' and
+            ((cp.fecha_fin > ANY(plani.f_periodos_pago_prima (fp.id_funcionario,plani.id_gestion))  AND  cp.fecha_ini  <  ANY(plani.f_periodos_pago_prima (fp.id_funcionario,plani.id_gestion))) or uofun.fecha_finalizacion between  cp.fecha_ini and cp.fecha_fin)
+            --(cp.fecha_fin >= current_date or cp.fecha_fin is NULL)
 
 
-                        left join pre.vpresupuesto_cc pre on pre.id_centro_costo = cp.id_centro_costo
-                        left join pre.vcategoria_programatica cat on cat.id_categoria_programatica = pre.id_categoria_prog
-                        inner join orga.vfuncionario fun on fun.id_funcionario = uofun.id_funcionario
-                        inner join orga.tuo uo on uo.id_uo = orga.f_get_uo_gerencia(uofun.id_uo, NULL,NULL)
-                        inner join orga.ttipo_contrato tcon on tcon.id_tipo_contrato = car.id_tipo_contrato
-				        where '||v_tipo_contrato;
+            left join pre.vpresupuesto_cc pre on pre.id_centro_costo = cp.id_centro_costo
+            left join pre.vcategoria_programatica cat on cat.id_categoria_programatica = pre.id_categoria_prog
+            inner join orga.vfuncionario fun on fun.id_funcionario = uofun.id_funcionario
+            inner join orga.tuo uo on uo.id_uo = orga.f_get_uo_gerencia(uofun.id_uo, NULL,NULL)
+            inner join orga.ttipo_contrato tcon on tcon.id_tipo_contrato = car.id_tipo_contrato
+            where '||v_tipo_contrato;*/
 
         /*select tpl.codigo, tp.id_gestion
         into v_desc_planilla
@@ -691,7 +830,13 @@ $body$
         from param.tperiodo tp
         where tp.periodo = date_part('month',v_parametros.fecha) and tp.id_gestion = v_id_gestion;
 
-        if (select 1 from plani.tplanilla tpl where tpl.id_gestion = v_id_gestion and tpl.id_periodo = v_id_periodo and tpl.nro_planilla like '%PLASUE%') then
+        select count(tpl.id_planilla)
+        into v_cont_pla
+        from plani.tplanilla tpl
+        where tpl.id_gestion = v_id_gestion and tpl.id_periodo = v_id_periodo and tpl.nro_planilla like '%PLASUE%';
+
+        --if (select 1 from plani.tplanilla tpl where tpl.id_gestion = v_id_gestion and tpl.id_periodo = v_id_periodo and tpl.nro_planilla like '%PLASUE%') then
+        if  v_cont_pla = 1 then
           --Sentencia de la consulta
           v_consulta:='SELECT es.nombre AS escala,
                           i.nombre AS cargo,
@@ -889,7 +1034,7 @@ $body$
                               JOIN orga.tuo ger ON ger.id_uo = orga.f_get_uo_gerencia(uo.out_id_uo, NULL::integer, NULL::date)
                               JOIN orga.tuo dep ON dep.id_uo = orga.f_get_uo_departamento(uo.out_id_uo, NULL::integer, NULL::date)
                               WHERE (i.estado_reg::text = ''activo''::text or i.id_cargo = 15757) AND (i.id_tipo_contrato = 1 OR
-                                  (i.id_tipo_contrato = 4 and e.id_funcionario is not null)) AND  ';
+                                  (i.id_tipo_contrato = 4 and e.id_funcionario is not null)) AND ha.tipo = ''oficial'' AND ';
 
         end if;
 
@@ -1063,7 +1208,8 @@ $body$
              (tpe.telefono1 || coalesce('' - ''||tpe.telefono2, ''''))::varchar as telefonos,
              (tpe.celular1 || coalesce('' - ''||tpe.celular2, ''''))::varchar as celulares,
              (tpe.ci ||'' ''||tpe.expedicion)::varchar as documento,
-             tl.nombre as lugar_trabajo
+             tl.nombre as lugar_trabajo,
+             tof.nombre as nombre_oficina
              from orga.vfuncionario_persona tf
              inner JOIN orga.tuo_funcionario uof ON uof.id_funcionario = tf.id_funcionario
              AND current_date < coalesce (uof.fecha_finalizacion, ''31/12/9999''::date) and uof.estado_reg = ''activo'' /*AND
@@ -1071,7 +1217,8 @@ $body$
                                                         from tt_repo_filtro where id_funcionario = tf.id_funcionario)*/
              inner JOIN orga.tuo tuo on tuo.id_uo = orga.f_get_uo_gerencia(uof.id_uo,uof.id_funcionario,current_date)
              inner JOIN orga.tcargo tc ON tc.id_cargo = uof.id_cargo
-             inner join param.tlugar tl on tl.id_lugar = tc.id_lugar
+             inner join orga.toficina tof on tof.id_oficina = tc.id_oficina
+             inner join param.tlugar tl on tl.id_lugar = tof.id_lugar
              inner join orga.ttipo_contrato ttc on ttc.id_tipo_contrato = tc.id_tipo_contrato
              INNER JOIN segu.tpersona tpe ON tpe.id_persona = tf.id_persona
              where tc.estado_reg = ''activo'' and ttc.codigo in (''PLA'',''EVE'',''PEXT'', ''PEXTE'') and uof.tipo IN (''oficial'') '||v_filtro||'
@@ -1298,6 +1445,12 @@ $body$
 	elsif(p_transaccion='PLA_REP_RCIVA_SEL')then
 
     	begin
+
+    	if pxp.f_existe_parametro(p_tabla, 'id_gestion') and pxp.f_existe_parametro(p_tabla, 'id_periodo') then
+        v_where = 'plani.id_gestion = '||v_parametros.id_gestion||' and plani.id_periodo = '||v_parametros.id_periodo;
+      else
+        v_where = v_parametros.filtro;
+      end if;
     		--Sentencia de la consulta
 			v_consulta:='select
                         tg.gestion,
@@ -1308,7 +1461,8 @@ $body$
                         tpe.apellido_materno,
                         tpe.ci as numero_documento,
                         tdoc.nombre as tipo_documento,
-                        tes.haber_basico as ingreso_neto,
+                        --tes.haber_basico as ingreso_neto,
+                        tcv_8.valor as ingreso_neto,
                         tpv.valor*2 as dos_salario_minimo,
                         case when tes.haber_basico > tpv.valor*2 then tes.haber_basico-(tpv.valor*2) else 0 end as base_imponible,
                         case when tes.haber_basico > tpv.valor*2 then (tes.haber_basico-(tpv.valor*2))*0.13 else 0 end as impuesto_rc_iva,
@@ -1317,27 +1471,289 @@ $body$
                         tcv_2.valor as saldo_per_anterior,
                         tcv_3.valor as mantenimiento_valor,
                         (case when tuo.fecha_asignacion between tper.fecha_ini and tper.fecha_fin then ''I''
-                          when tuo.fecha_finalizacion between tper.fecha_ini and tper.fecha_fin then ''D'' else ''V'' end)::char as novedades
-                        from plani.tplanilla tp
-                        inner join plani.tfuncionario_planilla tfp on tfp.id_planilla = tp.id_planilla
+                          when tuo.fecha_finalizacion between tper.fecha_ini and tper.fecha_fin then ''D'' else ''V'' end)::char as novedades,
+
+                        coalesce(tcv_4.valor,0) as cotizable,
+                        coalesce(tcv_5.valor,0) as refrigerio,
+                        coalesce(tcv_6.valor,0) as viatico,
+                        coalesce(tcv_7.valor,0) as prima
+                        from plani.tplanilla plani
+                        inner join plani.tfuncionario_planilla tfp on tfp.id_planilla = plani.id_planilla
                         inner join plani.tcolumna_valor tcv_1 on tcv_1.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_1.codigo_columna = ''IMPOFAC''
                         inner join plani.tcolumna_valor tcv_2 on tcv_2.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_2.codigo_columna = ''SALDOPERIANTDEP''
                         inner join plani.tcolumna_valor tcv_3 on tcv_3.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_3.codigo_columna = ''MANTVAL''
+
+                        inner join plani.tcolumna_valor tcv_4 on tcv_4.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_4.codigo_columna = ''COTIZABLE''
+                        left join plani.tcolumna_valor tcv_5 on tcv_5.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_5.codigo_columna = ''REFRI''
+                        left join plani.tcolumna_valor tcv_6 on tcv_6.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_6.codigo_columna = ''VIATICO''
+                        left join plani.tcolumna_valor tcv_7 on tcv_7.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_7.codigo_columna = ''PRIMA''
+
+                        inner join plani.tcolumna_valor tcv_8 on tcv_8.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_8.codigo_columna = ''SUELNETO''
                         inner join orga.tuo_funcionario tuo on tuo.id_uo_funcionario = tfp.id_uo_funcionario
                         inner join orga.tcargo tcar on tcar.id_cargo =  tuo.id_cargo and tcar.estado_reg = ''activo''
                         inner join orga.tescala_salarial tes on tes.id_escala_salarial = tcar.id_escala_salarial and tes.estado_reg = ''activo''
                         inner join orga.tfuncionario tf on tf.id_funcionario = tfp.id_funcionario
                         inner join segu.tpersona tpe on tpe.id_persona = tf.id_persona
                         inner join segu.ttipo_documento tdoc on tdoc.id_tipo_documento = tpe.id_tipo_doc_identificacion
-                        inner join param.tgestion tg on tg.id_gestion = tp.id_gestion
-                        inner join param.tperiodo tper on tper.id_periodo = tp.id_periodo
+                        inner join param.tgestion tg on tg.id_gestion = plani.id_gestion
+                        inner join param.tperiodo tper on tper.id_periodo = plani.id_periodo
                         inner join plani.tparametro_valor tpv on  tpv.codigo = ''SALMIN'' and tpv.fecha_fin is null
-                        where tp.id_gestion = '||v_parametros.id_gestion||' and tp.id_periodo = '||v_parametros.id_periodo;
+                        where '||v_where;
 
             RAISE NOTICE 'v_consulta: %', v_consulta;
 			--Devuelve la respuesta
 			return v_consulta;
 
+		end;
+	/*********************************
+ 	#TRANSACCION:  'PLA_R_OTROS_ING_SEL'
+ 	#DESCRIPCION:	reporte Otros Ingresos
+ 	#AUTOR:		franklin.espinoza
+ 	#FECHA:		19-09-2019 17:29:14
+	***********************************/
+	elsif(p_transaccion='PLA_R_OTROS_ING_SEL')then
+
+    	begin
+    		--Sentencia de la consulta
+			v_consulta:='select
+                        tf.desc_funcionario2::varchar as nombre_empleado,
+                        tpe.ci ,
+                        tcv_1.valor as monto,
+                            (uo.nombre_unidad||'' - ''||(case
+                            when lower(uo.nombre_unidad) like ''%cobija%'' then
+                            	''CIJ''
+                            when tcar.codigo = ''0'' then
+                            	''EVE''
+                            when ca.codigo = ''SUPER'' and (tf.id_funcionario != 10 or tf.id_funcionario is null)  then
+                            	''ESP''
+                            when (cat.desc_programa ilike ''%ADM%'' or (ca.codigo = ''SUPER'' and tf.id_funcionario = 10)) then
+                            	''ADM''
+                            when cat.desc_programa ilike ''%OPE%'' then
+                            	''OPE''
+                            when cat.desc_programa ilike ''%COM%'' then
+                            	''COM''
+                            else
+                            	''SINCAT''
+                            end
+                            )::varchar)::varchar as gerencia,
+                        (case
+                            when lower(uo.nombre_unidad) like ''%cobija%'' then
+                            	''5.CIJ''
+                            when tcar.codigo = ''0'' then
+                            	''6.EVE''
+                            when ca.codigo = ''SUPER'' and (tf.id_funcionario != 10 or tf.id_funcionario is null)  then
+                            	''3.ESP''
+                            when (cat.desc_programa ilike ''%ADM%'' or (ca.codigo = ''SUPER'' and tf.id_funcionario = 10)) then
+                            	''1.ADM''
+                            when cat.desc_programa ilike ''%OPE%'' then
+                            	''2.OPE''
+                            when cat.desc_programa ilike ''%COM%'' then
+                            	''4.COM''
+                            else
+                            	''SINCAT''
+                            end
+                            )::varchar as categoria_prog,
+                        tcv_2.valor as monto2,
+                        tcv_3.valor as monto3,
+                        tcv_4.valor as monto4,
+                        tcv_5.valor	as monto5
+
+                        from plani.tplanilla tp
+                        inner join plani.tfuncionario_planilla tfp on tfp.id_planilla = tp.id_planilla
+                        inner join plani.tcolumna_valor tcv_1 on tcv_1.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_1.codigo_columna = ''OTROSING_RCIVA''
+
+                        inner join plani.tcolumna_valor tcv_2 on tcv_2.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_2.codigo_columna = ''REFRI''
+                        inner join plani.tcolumna_valor tcv_3 on tcv_3.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_3.codigo_columna = ''VIATICO''
+                        inner join plani.tcolumna_valor tcv_4 on tcv_4.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_4.codigo_columna = ''PRIMA''
+                        inner join plani.tcolumna_valor tcv_5 on tcv_5.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv_5.codigo_columna = ''PAGOVAR''
+
+                        inner join orga.tuo_funcionario tuo on tuo.id_uo_funcionario = tfp.id_uo_funcionario
+                        inner join orga.tcargo tcar on tcar.id_cargo =  tuo.id_cargo and tcar.estado_reg = ''activo''
+                        inner join orga.tescala_salarial es on es.id_escala_salarial = tcar.id_escala_salarial and es.estado_reg = ''activo''
+
+                        inner JOIN orga.tcategoria_salarial ca ON ca.id_categoria_salarial = es.id_categoria_salarial
+                        left join orga.tcargo_presupuesto cp on cp.id_cargo = tcar.id_cargo and cp.id_gestion = tp.id_gestion
+                        left join pre.vpresupuesto_cc pre on pre.id_centro_costo = cp.id_centro_costo
+                        left join pre.vcategoria_programatica cat on cat.id_categoria_programatica = pre.id_categoria_prog
+                        inner join orga.tuo uo on uo.id_uo = orga.f_get_uo_gerencia(tuo.id_uo, NULL,NULL)
+
+                        inner join orga.vfuncionario tf on tf.id_funcionario = tfp.id_funcionario
+                        inner join segu.tpersona tpe on tpe.id_persona = tf.id_persona
+
+                        where tuo.tipo = ''oficial'' and tuo.estado_reg = ''activo'' and '||v_parametros.filtro;
+			v_consulta = v_consulta||' order by categoria_prog asc, gerencia asc, tf.desc_funcionario2 asc';
+            RAISE NOTICE 'v_consulta: %', v_consulta;
+			--Devuelve la respuesta
+			return v_consulta;
+
+		end;
+  /*********************************
+ 	#TRANSACCION:  'PLA_R_OTING_FORM_SEL'
+ 	#DESCRIPCION:	reporte Otros Ingresos Formulario
+ 	#AUTOR:		franklin.espinoza
+ 	#FECHA:		19-09-2019 17:29:14
+	***********************************/
+	elsif(p_transaccion='PLA_R_OTING_FORM_SEL')then
+
+    	begin
+
+    	if pxp.f_existe_parametro(p_tabla , 'modalidad') then
+        	if v_parametros.modalidad = 'administrativo' then
+        	  v_modalidad  = 'and (ca.codigo != ''SUPER'' or tf.id_funcionario = 10)';
+        	else
+        	  v_modalidad  = 'and (ca.codigo = ''SUPER'' and tf.id_funcionario != 10)';
+        	end if;
+      end if;
+    		--Sentencia de la consulta
+			v_consulta = 'with funcionarios as (select
+                        tf.desc_funcionario2::varchar as nombre_empleado,
+                        tpe.ci ,
+                        (uo.nombre_unidad||'' - ''||(case
+                        when lower(uo.nombre_unidad) like ''%cobija%'' then
+                            ''CIJ''
+                        when tcar.codigo = ''0'' then
+                            ''EVE''
+                        when ca.codigo = ''SUPER'' and (tf.id_funcionario != 10 or tf.id_funcionario is null)  then
+                            ''ESP''
+                        when (cat.desc_programa ilike ''%ADM%'' or (ca.codigo = ''SUPER'' and tf.id_funcionario = 10)) then
+                            ''ADM''
+                        when cat.desc_programa ilike ''%OPE%'' then
+                            ''OPE''
+                        when cat.desc_programa ilike ''%COM%'' then
+                            ''COM''
+                        else
+                            ''SINCAT''
+                        end
+                        )::varchar)::varchar as gerencia,
+
+                        (case
+                        when tuo.fecha_finalizacion between date_trunc(''month'',tper.fecha_ini - interval ''1 day'') and
+                        (tper.fecha_ini - interval ''1 day'')::date and tuo.id_funcionario not in (select tu.id_funcionario
+                                                                                                  from orga.tuo_funcionario tu
+                                                                                                  where tu.fecha_asignacion >= tper.fecha_ini and
+                                                                                                  tu.id_funcionario = tuo.id_funcionario)  then
+                        	''7.FINCONTRATO''
+                        when lower(uo.nombre_unidad) like ''%cobija%'' then
+                            ''5.CIJ''
+                        when tcar.codigo = ''0'' then
+                            ''6.EVE''
+                        when ca.codigo = ''SUPER'' and (tf.id_funcionario != 10 or tf.id_funcionario is null)  then
+                            ''3.ESP''
+                        when (cat.desc_programa ilike ''%ADM%'' or (ca.codigo = ''SUPER'' and tf.id_funcionario = 10)) then
+                            ''1.ADM''
+                        when cat.desc_programa ilike ''%OPE%'' then
+                            ''2.OPE''
+                        when cat.desc_programa ilike ''%COM%'' then
+                            ''4.COM''
+                        else
+                            ''SINCAT''
+                        end
+                        )::varchar as categoria_prog,
+                        plani.f_get_otros_ingresos_consolidado(tuo.id_funcionario,'||v_parametros.id_periodo||','||v_parametros.id_gestion||') as otros_ingresos
+
+                        from orga.tuo_funcionario tuo
+                        inner join orga.tcargo tcar on tcar.id_cargo =  tuo.id_cargo and tcar.estado_reg = ''activo''
+                        inner join orga.tescala_salarial es on es.id_escala_salarial = tcar.id_escala_salarial and es.estado_reg = ''activo''
+                        inner JOIN orga.tcategoria_salarial ca ON ca.id_categoria_salarial = es.id_categoria_salarial
+                        left join orga.tcargo_presupuesto cp on cp.id_cargo = tcar.id_cargo and cp.id_gestion = '||v_parametros.id_gestion||'
+                        left join pre.vpresupuesto_cc pre on pre.id_centro_costo = cp.id_centro_costo
+                        left join pre.vcategoria_programatica cat on cat.id_categoria_programatica = pre.id_categoria_prog
+                        inner join orga.tuo uo on uo.id_uo = orga.f_get_uo_gerencia(tuo.id_uo, NULL,NULL)
+
+                        inner join orga.vfuncionario tf on tf.id_funcionario = tuo.id_funcionario
+                        inner join segu.tpersona tpe on tpe.id_persona = tf.id_persona
+                        inner join orga.ttipo_contrato ttc on ttc.id_tipo_contrato = tcar.id_tipo_contrato
+
+                        inner join param.tperiodo tper on tper.id_periodo = '||v_parametros.id_periodo||'
+
+                        where tuo.estado_reg = ''activo'' and tuo.tipo = ''oficial''
+                        and (tuo.fecha_finalizacion between date_trunc(''month'',tper.fecha_ini - interval ''1 day'') and (tper.fecha_ini - interval ''1 day'')::date)
+                        and tuo.id_funcionario not in (select tu.id_funcionario
+                                                      from orga.tuo_funcionario tu
+                                                      where tu.fecha_asignacion >= tper.fecha_ini and tu.id_funcionario = tuo.id_funcionario)
+                        and tcar.nombre != ''cadet Pilot'' and ttc.codigo in (''PLA'', ''EVE'') '||v_modalidad||'
+
+                        union
+
+                        select
+                        tf.desc_funcionario2::varchar as nombre_empleado,
+                        tpe.ci ,
+                        (uo.nombre_unidad||'' - ''||(case
+                        when lower(uo.nombre_unidad) like ''%cobija%'' then
+                            ''CIJ''
+                        when tcar.codigo = ''0'' then
+                            ''EVE''
+                        when ca.codigo = ''SUPER'' and (tf.id_funcionario != 10 or tf.id_funcionario is null)  then
+                            ''ESP''
+                        when (cat.desc_programa ilike ''%ADM%'' or (ca.codigo = ''SUPER'' and tf.id_funcionario = 10)) then
+                            ''ADM''
+                        when cat.desc_programa ilike ''%OPE%'' then
+                            ''OPE''
+                        when cat.desc_programa ilike ''%COM%'' then
+                            ''COM''
+                        else
+                            ''SINCAT''
+                        end
+                        )::varchar)::varchar as gerencia,
+
+                        (case
+                        when tuo.fecha_finalizacion between date_trunc(''month'',tper.fecha_ini - interval ''1 day'') and
+                        (tper.fecha_ini - interval ''1 day'')::date and tuo.id_funcionario not in (select tu.id_funcionario
+                                                                                                  from orga.tuo_funcionario tu
+                                                                                                  where tu.fecha_asignacion >= tper.fecha_ini and
+                                                                                                  tu.id_funcionario = tuo.id_funcionario)  then
+                        	''7.FINCONTRATO''
+                        when lower(uo.nombre_unidad) like ''%cobija%'' then
+                            ''5.CIJ''
+                        when tcar.codigo = ''0'' then
+                            ''6.EVE''
+                        when ca.codigo = ''SUPER'' and (tf.id_funcionario != 10 or tf.id_funcionario is null)  then
+                            ''3.ESP''
+                        when (cat.desc_programa ilike ''%ADM%'' or (ca.codigo = ''SUPER'' and tf.id_funcionario = 10)) then
+                            ''1.ADM''
+                        when cat.desc_programa ilike ''%OPE%'' then
+                            ''2.OPE''
+                        when cat.desc_programa ilike ''%COM%'' then
+                            ''4.COM''
+                        else
+                            ''SINCAT''
+                        end
+                        )::varchar as categoria_prog,
+                        plani.f_get_otros_ingresos_consolidado(tuo.id_funcionario,'||v_parametros.id_periodo||','||v_parametros.id_gestion||') as otros_ingresos
+
+                        from orga.tuo_funcionario tuo
+                        inner join orga.tcargo tcar on tcar.id_cargo =  tuo.id_cargo and tcar.estado_reg = ''activo''
+                        inner join orga.tescala_salarial es on es.id_escala_salarial = tcar.id_escala_salarial and es.estado_reg = ''activo''
+                        inner JOIN orga.tcategoria_salarial ca ON ca.id_categoria_salarial = es.id_categoria_salarial
+                        left join orga.tcargo_presupuesto cp on cp.id_cargo = tcar.id_cargo and cp.id_gestion = '||v_parametros.id_gestion||'
+                        left join pre.vpresupuesto_cc pre on pre.id_centro_costo = cp.id_centro_costo
+                        left join pre.vcategoria_programatica cat on cat.id_categoria_programatica = pre.id_categoria_prog
+                        inner join orga.tuo uo on uo.id_uo = orga.f_get_uo_gerencia(tuo.id_uo, NULL,NULL)
+
+                        inner join orga.vfuncionario tf on tf.id_funcionario = tuo.id_funcionario
+                        inner join segu.tpersona tpe on tpe.id_persona = tf.id_persona
+                        inner join orga.ttipo_contrato ttc on ttc.id_tipo_contrato = tcar.id_tipo_contrato
+
+                        inner join param.tperiodo tper on tper.id_periodo = '||v_parametros.id_periodo||'
+
+                        where tuo.estado_reg = ''activo''
+                        and tuo.tipo = ''oficial''
+                        and ((tuo.fecha_finalizacion between tper.fecha_ini and tper.fecha_fin) or current_date <= coalesce(tuo.fecha_finalizacion,''31/12/9999''::date))
+                        and tcar.nombre != ''cadet Pilot'' and ttc.codigo in (''PLA'', ''EVE'') '||v_modalidad||'
+                        )
+
+                        select  funcio.nombre_empleado,
+                        		funcio.ci,
+                                funcio.gerencia,
+                                funcio.categoria_prog,
+                                funcio.otros_ingresos
+                        from funcionarios funcio
+                        order by funcio.categoria_prog asc, funcio.gerencia asc, funcio.nombre_empleado asc
+                        ';
+			--v_consulta = v_consulta||' order by categoria_prog asc, gerencia asc, tf.desc_funcionario2 asc';
+            RAISE NOTICE 'v_consulta: %', v_consulta;
+			--Devuelve la respuesta
+			return v_consulta;
 		end;
 
     else

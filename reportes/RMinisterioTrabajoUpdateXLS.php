@@ -378,7 +378,7 @@ class RMinisterioTrabajoUpdateXLS
 
             if ($value['codigo_columna'] == 'SUELDOBA' || $value['codigo_columna'] == 'BONANT' || $value['codigo_columna'] == 'BONFRONTERA' ||
                 $value['codigo_columna'] == 'AFP_LAB' || $value['codigo_columna'] == 'CAJSAL' || $value['codigo_columna'] == 'IMPURET' ||
-                $value['codigo_columna'] == 'OTRO_DESC' || $value['codigo_columna'] == 'REINBANT') {
+                $value['codigo_columna'] == 'OTRO_DESC' || $value['codigo_columna'] == 'REINBANT' || $value['codigo_columna'] == 'PAGOVAR') {
 
                 if($value['codigo_columna'] == 'SUELDOBA' || $value['codigo_columna'] == 'BONANT' || $value['codigo_columna'] == 'BONFRONTERA') {
 
@@ -393,7 +393,7 @@ class RMinisterioTrabajoUpdateXLS
                     $columna++;
                 }else{
 
-                    if ($value['codigo_columna'] == 'REINBANT'){
+                    if ($value['codigo_columna'] == 'PAGOVAR'){
                         $this->orden[0] = $value['valor'];
                     }
                     else if($value['codigo_columna'] == 'AFP_LAB') {

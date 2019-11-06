@@ -137,11 +137,13 @@ class RPrevisionesXLS
                     PHPExcel_Style_NumberFormat::FORMAT_GENERAL
                 );
 			$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(7,$fila,$value['indem_dia']);
-			$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(8,$fila,$value['indem']);
+			//$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(8,$fila,$value['indem']);
+            $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(8,$fila,'=ROUND(G'.$fila.'*H'.$fila.',2)');
 			$fila++;
 		}
-		
-		
+        $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(7,$fila,'TOTAL');
+        $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(8,$fila,'=SUM(I5:I'.($fila-1).')');
+
 	}
 
 	

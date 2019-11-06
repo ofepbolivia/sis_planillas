@@ -77,6 +77,18 @@ $body$
     --record parametros varios planilla
     v_param_planilla		record;
 
+    --(F.E.A)dias aguinaldo
+    v_dias_aguinaldo		integer;
+    v_dias_licencia			record;
+    v_desde					date;
+    v_hasta					date;
+    v_total_dias_lic		integer = 0;
+    v_cant_dias_desde_mes	integer = 0;
+    v_cant_dias_hasta_mes	integer = 0;
+    v_cant_meses			integer = 0;
+
+    --calculos otros ingresos
+    v_id_periodo			integer;
   BEGIN
     v_nombre_funcion = 'plani.f_calcular_basica';
     v_resultado = 0;
@@ -1042,7 +1054,7 @@ $body$
 
       --parametros planilla
       select tpp.fecha_incremento, tpp.porcentaje_calculo, tpp.valor_promedio, tpp.porcentaje_menor_promedio,
-      tpp.porcentaje_mayor_promedio, tpp.porcentaje_antiguedad
+      tpp.porcentaje_mayor_promedio, tpp.porcentaje_antiguedad, tpp.haber_basico_inc
       into v_param_planilla
       from plani.tparam_planilla tpp
       where tpp.id_tipo_planilla = v_planilla.id_tipo_planilla;
@@ -1092,7 +1104,7 @@ $body$
         --Bono Antiguedad
         v_aux_2 = (2000*v_factor_anti/100*3)*(v_hor_norm/240);
         if v_tipo_contrato = 'PLA' then
-        	v_aux = v_aux + (v_aux_2+(v_aux_2*v_param_planilla.porcentaje_antiguedad));
+        	v_aux = v_aux + (v_aux_2+(v_aux_2*(v_param_planilla.porcentaje_antiguedad/100)));
         else
         	v_aux = v_aux + v_aux_2;
         end if;
@@ -1111,14 +1123,20 @@ $body$
         --Haber Basico + porcentaje
         if v_resultado > v_param_planilla.valor_promedio then
         	if v_tipo_contrato = 'PLA' and v_codigo != 'SUPER' then
-        		v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_mayor_promedio)+v_resultado;
+        	  if v_resultado::integer = ANY((string_to_array(v_param_planilla.haber_basico_inc, ','))::integer[]) then
+        		  v_resultado = trunc(v_resultado*(v_param_planilla.porcentaje_menor_promedio/100))+v_resultado;
+            else
+              v_resultado = trunc(v_resultado*(v_param_planilla.porcentaje_mayor_promedio/100))+v_resultado;
             end if;
+          else
+            	v_resultado = v_resultado + coalesce(v_retroactivo,0);
+          end if;
         else
         	if v_tipo_contrato = 'PLA' then
-        		v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_menor_promedio)+v_resultado;
-            end if;
+        		v_resultado = trunc(v_resultado*(v_param_planilla.porcentaje_menor_promedio/100))+v_resultado;
+          end if;
         end if;
-        v_resultado =  v_resultado + v_aux + coalesce(v_retroactivo,0);
+        v_resultado =  v_resultado + v_aux;
 
       end if;
 
@@ -1203,7 +1221,7 @@ $body$
 
 	  --parametros planilla
       select tpp.fecha_incremento, tpp.porcentaje_calculo, tpp.valor_promedio, tpp.porcentaje_menor_promedio,
-      tpp.porcentaje_mayor_promedio, tpp.porcentaje_antiguedad
+      tpp.porcentaje_mayor_promedio, tpp.porcentaje_antiguedad, tpp.haber_basico_inc
       into v_param_planilla
       from plani.tparam_planilla tpp
       where tpp.id_tipo_planilla = v_planilla.id_tipo_planilla;
@@ -1252,7 +1270,7 @@ $body$
         --Bono Antiguedad
         v_aux_2 = (2000*v_factor_anti/100*3)*(v_hor_norm/240);
 		if v_tipo_contrato = 'PLA' then
-        	v_aux = v_aux + (v_aux_2+(v_aux_2*v_param_planilla.porcentaje_antiguedad));
+        	v_aux = v_aux + (v_aux_2+(v_aux_2*(v_param_planilla.porcentaje_antiguedad/100)));
         else
         	v_aux = v_aux + v_aux_2;
         end if;
@@ -1270,14 +1288,20 @@ $body$
         --Haber Basico + porcentaje
         if v_resultado > v_param_planilla.valor_promedio then
         	if v_tipo_contrato = 'PLA' and v_codigo != 'SUPER' then
-        		v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_mayor_promedio)+v_resultado;
+        		if v_resultado::integer = ANY((string_to_array(v_param_planilla.haber_basico_inc, ','))::integer[]) then
+        			v_resultado = trunc(v_resultado*(v_param_planilla.porcentaje_menor_promedio/100))+v_resultado;
+            else
+              v_resultado = trunc(v_resultado*(v_param_planilla.porcentaje_mayor_promedio/100))+v_resultado;
             end if;
+          else
+            	v_resultado = v_resultado + coalesce(v_retroactivo,0);
+          end if;
         else
         	if v_tipo_contrato = 'PLA' then
-        		v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_menor_promedio)+v_resultado;
-            end if;
+        	  v_resultado = trunc(v_resultado*(v_param_planilla.porcentaje_menor_promedio/100))+v_resultado;
+          end if;
         end if;
-		    v_resultado = v_resultado + v_aux + coalesce(v_retroactivo,0);
+		    v_resultado = v_resultado + v_aux;
 
       end if;
     ELSIF(p_codigo = 'PROMPRI3') THEN
@@ -1359,7 +1383,7 @@ $body$
 
       --parametros planilla
       select tpp.fecha_incremento, tpp.porcentaje_calculo, tpp.valor_promedio, tpp.porcentaje_menor_promedio,
-      tpp.porcentaje_mayor_promedio, tpp.porcentaje_antiguedad
+      tpp.porcentaje_mayor_promedio, tpp.porcentaje_antiguedad, tpp.haber_basico_inc
       into v_param_planilla
       from plani.tparam_planilla tpp
       where tpp.id_tipo_planilla = v_planilla.id_tipo_planilla;
@@ -1412,7 +1436,7 @@ $body$
           --Bono Antiguedad
           v_aux_2 = (2000*v_factor_anti/100*3)*(v_hor_norm/240);
 		  if v_tipo_contrato = 'PLA' then
-        	v_aux = v_aux + (v_aux_2+(v_aux_2*v_param_planilla.porcentaje_antiguedad));
+        	v_aux = v_aux + (v_aux_2+(v_aux_2*(v_param_planilla.porcentaje_antiguedad/100)));
           else
         	v_aux = v_aux + v_aux_2;
           end if;
@@ -1430,14 +1454,20 @@ $body$
            --Haber Basico + porcentaje
            	if v_resultado > v_param_planilla.valor_promedio then
             	if v_tipo_contrato = 'PLA' and v_codigo != 'SUPER' then
-           			v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_mayor_promedio)+v_resultado;
+           			if v_resultado::integer = ANY((string_to_array(v_param_planilla.haber_basico_inc, ','))::integer[]) then
+        			    v_resultado = trunc(v_resultado*(v_param_planilla.porcentaje_menor_promedio/100))+v_resultado;
+                else
+                	v_resultado = trunc(v_resultado*(v_param_planilla.porcentaje_mayor_promedio/100))+v_resultado;
                 end if;
+              else
+            		v_resultado = v_resultado + coalesce(v_retroactivo,0);
+              end if;
         	else
             	if v_tipo_contrato = 'PLA' then
-	        		v_resultado = trunc(v_resultado*v_param_planilla.porcentaje_menor_promedio)+v_resultado;
+	        		v_resultado = trunc(v_resultado*(v_param_planilla.porcentaje_menor_promedio/100))+v_resultado;
                 end if;
         	end if;
-           	v_resultado = v_resultado + v_aux + coalesce(v_retroactivo,0);
+           	v_resultado = v_resultado + v_aux;
 
       	end if;
       end if;
@@ -1830,6 +1860,7 @@ $body$
                                               and tp.codigo ='PLASUE' and p.estado not in ('registros_horas', 'registro_funcionarios','calculo_columnas','anulado')
                                               and p.id_gestion=v_planilla.id_gestion and ht.estado_reg = 'activo' and
                                               fp.id_funcionario = v_planilla.id_funcionario;
+
       v_fecha_fin_planilla = ('31/12/' || v_planilla.gestion)::date;
 
       if (v_planilla.fecha_finalizacion is null or v_planilla.fecha_finalizacion > v_fecha_fin_planilla) then
@@ -1837,11 +1868,55 @@ $body$
       else
         v_fecha_fin =   v_planilla.fecha_finalizacion;
       end if;
-      v_resultado = 	(plani.f_get_dias_aguinaldo(v_planilla.id_funcionario, v_planilla.fecha_asignacion,
-                                                 v_fecha_fin) * 8) - v_resultado;
+
+      --(F.E.A)dias licencia si tuviera
+      select tli.hasta, tli.desde
+		  into v_dias_licencia
+    	from plani.tlicencia tli
+    	where tli.id_funcionario = v_planilla.id_funcionario and date_part('year', tli.desde) = date_part('year', v_fecha_fin)
+      limit 1;
+
+      if v_dias_licencia is not null then
+        v_cant_dias_desde_mes =  plani.f_get_detalle_fecha(v_dias_licencia.desde::date,'days')::integer;
+        v_cant_dias_hasta_mes = plani.f_get_detalle_fecha(v_dias_licencia.hasta::date,'days')::integer;
+        v_cant_meses = date_part('month',age(v_dias_licencia.hasta, v_dias_licencia.desde));
+
+          if v_cant_meses = 0 then
+            if  v_cant_dias_desde_mes = 30 then
+              v_total_dias_lic =  date_part('day',age(v_dias_licencia.hasta,(v_dias_licencia.desde - interval '1 day')::date));
+            else
+              v_total_dias_lic =  date_part('day',age(v_dias_licencia.hasta, v_dias_licencia.desde));
+            end if;
+          else
+            if v_dias_licencia.hasta > v_fecha_fin or v_dias_licencia.hasta = v_fecha_fin then
+              v_hasta = (v_fecha_fin - 1)::date;
+            elsif v_dias_licencia.hasta < v_fecha_fin then
+              if v_cant_dias_hasta_mes = 31  then
+                v_hasta = (v_dias_licencia.hasta - 1)::date;
+              else
+                v_hasta = v_dias_licencia.hasta;
+              end if;
+            end if;
+
+            v_total_dias_lic = 	extract(day from age(v_hasta, (v_dias_licencia.desde - 1)::date)) + extract(month from age(v_hasta, v_dias_licencia.desde))*30;
+          end if;
+      end if;
+
+		  v_dias_aguinaldo = plani.f_get_dias_aguinaldo(v_planilla.id_funcionario, v_planilla.fecha_asignacion, v_fecha_fin);
+
+      if v_dias_aguinaldo = 360  and v_total_dias_lic > 0 then
+        v_resultado = ((v_dias_aguinaldo - v_total_dias_lic) * 8);
+      else
+        if v_planilla.id_funcionario = 1202 OR v_planilla.id_funcionario = 746 OR v_planilla.id_funcionario = 2467 then
+          v_resultado = v_dias_aguinaldo * 8;
+        else
+          v_resultado = (v_dias_aguinaldo * 8) - v_resultado;
+        end if;
+      end if;
+
+      --v_resultado = 	(plani.f_get_dias_aguinaldo(v_planilla.id_funcionario, v_planilla.fecha_asignacion,v_fecha_fin) * 8) - v_resultado;
       v_resultado = v_resultado / 8;
-      --v_resultado = plani.f_get_dias_aguinaldo_v2(v_planilla.id_funcionario, v_planilla.id_gestion);
-      --v_resultado = v_resultado / 8;
+
     ELSIF(p_codigo = 'TIENEPRE') THEN
       v_resultado = 0;
       if (exists(
@@ -1866,7 +1941,65 @@ $body$
                  db.fecha_fin > v_planilla.fecha_ini_periodo))) then
         v_resultado = 1;
       end if;
+    ELSIF(p_codigo = 'REFRI') THEN
 
+      v_resultado = 0;
+      select max(tper.periodo)
+      into v_id_periodo
+      from plani.tplanilla tp
+      inner join plani.ttipo_planilla ttp on ttp.id_tipo_planilla = tp.id_tipo_planilla
+      inner join param.tperiodo tper on tper.id_periodo = tp.id_periodo
+      where tp.id_gestion = v_planilla.id_gestion and ttp.codigo = 'PLASUE';
+      --order by tp.fecha_planilla desc;
+
+      select sum(toi.monto)
+      into v_resultado
+      from plani.totros_ingresos toi
+      where toi.periodo = v_id_periodo and toi.sistema_fuente = 'Refrigerios' and toi.id_funcionario = v_planilla.id_funcionario;
+
+    ELSIF(p_codigo = 'VIATICO') THEN
+
+      v_resultado = 0;
+
+      select max(tper.periodo)
+      into v_id_periodo
+      from plani.tplanilla tp
+      inner join plani.ttipo_planilla ttp on ttp.id_tipo_planilla = tp.id_tipo_planilla
+      inner join param.tperiodo tper on tper.id_periodo = tp.id_periodo
+      where tp.id_gestion = v_planilla.id_gestion and ttp.codigo = 'PLASUE';
+
+      select sum(toi.monto)
+      into v_resultado
+      from plani.totros_ingresos toi
+      where toi.periodo = v_id_periodo and toi.sistema_fuente like 'Viatico%' and toi.id_funcionario = v_planilla.id_funcionario;
+
+    ELSIF(p_codigo = 'PRIMA') THEN
+
+      v_resultado = 0;
+
+      /*select tcv.valor
+      into v_resultado
+      from plani.tplanilla tp
+      inner join plani.tfuncionario_planilla tfp on tfp.id_planilla = tp.id_planilla
+      inner join plani.ttipo_planilla ttp on ttp.id_tipo_planilla = tp.id_tipo_planilla
+      inner join plani.tcolumna_valor tcv on tcv.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv.codigo_columna = 'LIQPAG'
+      where tp.id_gestion = v_planilla.id_gestion - 1 and ttp.codigo = 'PLAPRI' and tfp.id_funcionario = v_planilla.id_funcionario;*/
+
+    ELSIF(p_codigo = 'PAGOVAR') THEN
+      v_resultado = 0;
+
+      select max(tper.periodo)
+      into v_id_periodo
+      from plani.tplanilla tp
+      inner join plani.ttipo_planilla ttp on ttp.id_tipo_planilla = tp.id_tipo_planilla
+      inner join param.tperiodo tper on tper.id_periodo = tp.id_periodo
+      where tp.id_gestion = v_planilla.id_gestion and ttp.codigo = 'PLASUE';
+
+      select coalesce(sum(thp.pago_variable),0)
+      into v_resultado
+      from oip.thoras_piloto thp
+      inner join param.tperiodo tp on tp.id_periodo = thp.mes
+      where thp.id_funcionario = v_planilla.id_funcionario and tp.periodo = v_id_periodo;
 
     ELSE
       raise exception 'No hay una definición para la columna básica %',p_codigo;

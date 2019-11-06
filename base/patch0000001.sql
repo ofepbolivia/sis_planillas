@@ -669,3 +669,95 @@ ALTER TABLE plani.tplanilla
   ADD COLUMN codigo_poa VARCHAR(25),
   ADD COLUMN obs_poa TEXT;
 /***********************************F-SCP-FEA-PLANI-0-07/11/2018****************************************/
+
+/***********************************I-SCP-FEA-PLANI-0-27/08/2019****************************************/
+CREATE TABLE plani.tparam_planilla (
+  id_param_planilla SERIAL,
+  id_tipo_planilla INTEGER,
+  porcentaje_calculo NUMERIC,
+  valor_promedio NUMERIC,
+  porcentaje_menor_promedio NUMERIC,
+  porcentaje_mayor_promedio NUMERIC,
+  fecha_incremento DATE,
+  porcentaje_antiguedad NUMERIC,
+  CONSTRAINT tparam_planilla_pkey PRIMARY KEY(id_param_planilla)
+) INHERITS (pxp.tbase)
+WITH (oids = false);
+/***********************************F-SCP-FEA-PLANI-0-27/08/2019****************************************/
+
+/***********************************I-SCP-FEA-PLANI-0-29/08/2019****************************************/
+ALTER TABLE plani.tparam_planilla
+  ADD COLUMN haber_basico_inc VARCHAR(256);
+/***********************************F-SCP-FEA-PLANI-0-29/08/2019****************************************/
+
+/***********************************I-SCP-FEA-PLANI-0-26/09/2019****************************************/
+CREATE TABLE plani.totros_ingresos (
+  id_otros_ingresos SERIAL,
+  id_funcionario INTEGER NOT NULL,
+  ci VARCHAR(20) NOT NULL,
+  monto NUMERIC(18,2) NOT NULL,
+  fecha_pago TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+  id_int_comprobante INTEGER,
+  nro_comprobante VARCHAR(50),
+  sistema_fuente VARCHAR(256) NOT NULL,
+  nro_cuenta VARCHAR(25),
+  nro_orden VARCHAR(50),
+  tipo_viaje VARCHAR(25),
+  routing VARCHAR(128),
+  motivo_viaje VARCHAR(2000),
+  periodo INTEGER NOT NULL,
+  gestion INTEGER NOT NULL,
+  procesado VARCHAR(2) DEFAULT 'si'::character varying,
+  CONSTRAINT totros_ingresos_pkey PRIMARY KEY(id_otros_ingresos)
+) INHERITS (pxp.tbase)
+WITH (oids = false);
+
+COMMENT ON COLUMN plani.totros_ingresos.id_funcionario
+IS 'identificador funcionario BoA.';
+
+COMMENT ON COLUMN plani.totros_ingresos.id_int_comprobante
+IS 'aplica para viaticos';
+
+COMMENT ON COLUMN plani.totros_ingresos.nro_comprobante
+IS 'aplica para viaticos';
+
+COMMENT ON COLUMN plani.totros_ingresos.sistema_fuente
+IS 'nombre sistema(refrigerio/viatico).';
+
+COMMENT ON COLUMN plani.totros_ingresos.nro_cuenta
+IS 'cuenta bancaria funcionario.';
+
+COMMENT ON COLUMN plani.totros_ingresos.nro_orden
+IS 'aplica de acuerdo al pago (opcional).';
+
+COMMENT ON COLUMN plani.totros_ingresos.tipo_viaje
+IS 'aplica para viaticos.';
+
+COMMENT ON COLUMN plani.totros_ingresos.routing
+IS 'aplica para viaticos.';
+
+COMMENT ON COLUMN plani.totros_ingresos.motivo_viaje
+IS 'aplica para viaticos.';
+
+COMMENT ON COLUMN plani.totros_ingresos.periodo
+IS 'campo obligatorio indica periodo de pago.';
+
+COMMENT ON COLUMN plani.totros_ingresos.gestion
+IS 'campo obligatorio indica gestion de pago.';
+
+COMMENT ON COLUMN plani.totros_ingresos.procesado
+IS 'campo que indica si el pago se realizo';
+/***********************************F-SCP-FEA-PLANI-0-26/09/2019****************************************/
+
+/***********************************I-SCP-FEA-PLANI-0-27/09/2019****************************************/
+ALTER TABLE plani.ttipo_columna
+  ALTER COLUMN orden TYPE NUMERIC;
+/***********************************F-SCP-FEA-PLANI-0-27/09/2019****************************************/
+
+/***********************************I-SCP-FEA-PLANI-1-27/09/2019****************************************/
+ALTER TABLE plani.tplanilla
+  ADD COLUMN modalidad VARCHAR(50);
+
+COMMENT ON COLUMN plani.tplanilla.modalida
+IS 'Campo que indica si es planilla administrativo o pilotos.';
+/***********************************F-SCP-FEA-PLANI-1-27/09/2019****************************************/

@@ -12,7 +12,7 @@ header("content-type: text/javascript; charset=UTF-8");
 <script>
 Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
     fwidth: '60%',
-    fheight: '60%',
+    fheight: '65%',
 	constructor:function(config){
 		this.maestro=config.maestro;		
     	//llama al constructor de la clase padre
@@ -107,6 +107,13 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
                 tooltip: 'Detalle de Obligaciones'                
             }
         );
+        this.addButton('param_varios', {
+            text: 'Param. Excepcionales',
+            iconCls: 'bfolder',
+            disabled: true,
+            handler: this.onParametroPlanilla,
+            tooltip: 'Parametros Varios Planilla por Gestión'
+        });
         function diagramGantt(){            
             var data=this.sm.getSelected().data.id_proceso_wf;
             Phx.CP.loadingShow();
@@ -120,6 +127,19 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
             });         
         } 
 	},
+    onParametroPlanilla: function(){
+        var rec = {maestro: this.getSelectedData()};
+
+        Phx.CP.loadWindows('../../../sis_planillas/vista/param_planilla/ParamPlanilla.php',
+            'Parametros Varios Planilla x Gestión',
+            {
+                width:700,
+                height:450
+            },
+            rec,
+            this.idContenedor,
+            'ParamPlanilla');
+    },
     Grupos: [
         {
             layout: 'column',
@@ -198,7 +218,8 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 				allowBlank: false,
 				anchor: '80%',
 				gwidth: 150,
-				maxLength:100
+				maxLength:100,
+                renderer:function (value, p, record){return String.format('<div style="color:green;">{0}</div>', record.data['nro_planilla']);}
 			},
 				type:'TextField',
 				filters:{pfiltro:'plani.nro_planilla',type:'string'},
@@ -257,6 +278,33 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 			form: true,
             bottom_filter : true
 		},
+        {
+            config:{
+                name:'modalidad',
+                fieldLabel:'Modalidad',
+                allowBlank:false,
+                emptyText:'Modalidad...',
+                disabled: true,
+                editable: false,
+                hidden: true,
+                typeAhead: true,
+                triggerAction: 'all',
+                lazyRender:true,
+                mode: 'local',
+                store:['administrativo','piloto'],
+                width: 177,
+                renderer:function (value, p, record){return String.format('<div style="color:orangered;">{0}</div>', record.data['modalidad']);}
+
+            },
+            type:'ComboBox',
+            id_grupo:0,
+            filters:{
+                type: 'list',
+                options:['administrativo','piloto']
+            },
+            grid:true,
+            form:true
+        },
 		{
 			config:{
 				name: 'estado',
@@ -591,6 +639,7 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 		{name:'usr_mod', type: 'string'},
 		{name:'periodo_pago', type: 'numeric'},
 		{name:'fecha_sigma', type: 'date',dateFormat:'Y-m-d'},
+        {name:'modalidad', type: 'string'}
 
 	],
 	sortInfo:{
@@ -604,11 +653,28 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 			if (r.data.periodicidad == 'anual') {
 				this.ocultarComponente(this.Cmp.id_periodo);
 				this.Cmp.id_periodo.allowBlank = true;
-				this.Cmp.id_periodo.reset();				
+				this.Cmp.id_periodo.reset();
+                //franklin.espinoza(26/9/2019) agregamos campo modalidad solo PLASUE
+                this.ocultarComponente(this.Cmp.modalidad);
+                this.Cmp.modalidad.allowBlank = true;
+                this.Cmp.modalidad.reset();
+                this.Cmp.modalidad.modificado = true;
 			} else {
 				this.mostrarComponente(this.Cmp.id_periodo);
-				this.Cmp.id_periodo.allowBlank = false;				
-
+				this.Cmp.id_periodo.allowBlank = false;
+                //franklin.espinoza(26/9/2019) agregamos campo modalidad solo PLASUE
+                if(r.data.codigo == 'PLASUE' || r.data.codigo == 'PLASUE_RVP'){
+                    this.mostrarComponente(this.Cmp.modalidad);
+                    this.Cmp.modalidad.allowBlank = false;
+                    this.Cmp.modalidad.reset();
+                    this.Cmp.modalidad.modificado = true;
+                    this.Cmp.modalidad.setDisabled(false);
+                }else{
+                    this.ocultarComponente(this.Cmp.modalidad);
+                    this.Cmp.modalidad.allowBlank = true;
+                    this.Cmp.modalidad.reset();
+                    this.Cmp.modalidad.modificado = true;
+                }
 			}
 		},this);
 		
@@ -635,6 +701,19 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 	onButtonEdit : function () {
 
         var rec = this.getSelectedData();
+
+        //franklin.espinoza(26/9/2019) agregamos campo modalidad solo PLASUE
+        if(rec.nombre_planilla == 'PLASUE' || rec.nombre_planilla == 'PLASUE_RVP'){
+            this.mostrarComponente(this.Cmp.modalidad);
+            this.Cmp.modalidad.setDisabled(false);
+            this.Cmp.modalidad.allowBlank = false;
+        }else{
+            this.ocultarComponente(this.Cmp.modalidad);
+            this.Cmp.modalidad.allowBlank = true;
+            this.Cmp.modalidad.reset();
+            this.Cmp.modalidad.modificado = true;
+        }
+
         this.Cmp.periodo_pago.setDisabled(false);
         this.Cmp.periodo_pago.store.baseParams.id_gestion = rec.id_gestion;
 		this.ocultarComponente(this.Cmp.id_depto);
@@ -733,6 +812,13 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
     	this.mostrarComponente(this.Cmp.id_uo);
     	this.mostrarComponente(this.Cmp.id_periodo);
     	this.mostrarComponente(this.Cmp.id_gestion);
+
+        //franklin.espinoza(26/9/2019) agregamos campo modalidad solo PLASUE
+        this.ocultarComponente(this.Cmp.modalidad);
+        this.Cmp.modalidad.reset();
+        this.Cmp.modalidad.modificado = true;
+        this.Cmp.modalidad.setDisabled(true);
+
     	Phx.vista.Planilla.superclass.onButtonNew.call(this);
     	
     },
@@ -813,13 +899,14 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
     	
     	this.getBoton('btnPresupuestos').enable();           
         this.getBoton('btnObligaciones').enable();         
-        this.getBoton('diagrama_gantt').enable();    	        
-        
+        this.getBoton('diagrama_gantt').enable();
+        this.getBoton('param_varios').enable();
     },
     liberaMenu:function()
     {	
         this.desactivarMenu();        
         Phx.vista.Planilla.superclass.liberaMenu.call(this);
+        this.getBoton('param_varios').disable();
     },
     desactivarMenu:function() {
     	

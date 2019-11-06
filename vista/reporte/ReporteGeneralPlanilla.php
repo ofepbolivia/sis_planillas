@@ -30,44 +30,63 @@ header("content-type: text/javascript; charset=UTF-8");
         },
 
         iniciarEventos : function(){
-          this.Cmp.configuracion_reporte.on('select', function (cmb, rec, index) { console.log('tipo', rec.data.tipo);
-            if(rec.data.tipo == 'contacto'){
-                this.Cmp.oficina.setVisible(true);
+            this.Cmp.configuracion_reporte.on('select', function (cmb, rec, index) { console.log('tipo', rec.data.tipo);
+                if(rec.data.tipo == 'contacto'){
+                    this.Cmp.oficina.setVisible(true);
 
-                this.Cmp.id_periodo.setVisible(false);
+                    this.Cmp.id_periodo.setVisible(false);
+                    this.Cmp.id_periodo.reset();
+                    this.Cmp.id_periodo.modificado = true;
+
+                    this.Cmp.modalidad.reset();
+                    this.Cmp.modalidad.setVisible(false);
+
+                    this.Cmp.id_gestion.setVisible(false);
+                    this.Cmp.id_gestion.reset();
+                    this.Cmp.id_gestion.modificado = true;
+                    this.Cmp.id_gestion.allowBlank = true;
+
+                }else if(rec.data.tipo == 'rc_iva'){
+                    this.Cmp.id_gestion.setVisible(true);
+                    this.Cmp.id_periodo.setVisible(true);
+    
+                    this.Cmp.modalidad.reset();
+                    this.Cmp.modalidad.setVisible(false);
+
+                    this.Cmp.oficina.setVisible(false);
+                    this.Cmp.oficina.reset();
+                    this.Cmp.oficina.modificado = true;
+                }else if(rec.data.tipo == 'otros_ing'){
+                    this.Cmp.id_gestion.setVisible(true);
+                    this.Cmp.id_periodo.setVisible(true);
+
+                    this.Cmp.modalidad.setVisible(true);
+
+                    this.Cmp.oficina.setVisible(false);
+                    this.Cmp.oficina.reset();
+                    this.Cmp.oficina.modificado = true;
+                }else{
+                    this.Cmp.oficina.setVisible(false);
+                    this.Cmp.oficina.reset();
+                    this.Cmp.oficina.modificado = true;
+
+                    this.Cmp.modalidad.reset();
+                    this.Cmp.modalidad.setVisible(false);
+
+                    this.Cmp.id_gestion.setVisible(false);
+                    this.Cmp.id_gestion.reset();
+                    this.Cmp.id_gestion.modificado = true;
+
+                    this.Cmp.id_periodo.setVisible(false);
+                    this.Cmp.id_periodo.reset();
+                    this.Cmp.id_periodo.modificado = true;
+                }
+            }, this);
+
+            this.Cmp.id_gestion.on('select',function(c,r,i){
                 this.Cmp.id_periodo.reset();
-                this.Cmp.id_periodo.modificado = true;
-
-                this.Cmp.id_gestion.setVisible(false);
-                this.Cmp.id_gestion.reset();
-                this.Cmp.id_gestion.modificado = true;
-
-            }else if(rec.data.tipo == 'rc_iva'){
-                this.Cmp.id_gestion.setVisible(true);
-                this.Cmp.id_periodo.setVisible(true);
-
-                this.Cmp.oficina.setVisible(false);
-                this.Cmp.oficina.reset();
-                this.Cmp.oficina.modificado = true;
-            }else{
-                this.Cmp.oficina.setVisible(false);
-                this.Cmp.oficina.reset();
-                this.Cmp.oficina.modificado = true;
-
-                this.Cmp.id_gestion.setVisible(false);
-                this.Cmp.id_gestion.reset();
-                this.Cmp.id_gestion.modificado = true;
-
-                this.Cmp.id_periodo.setVisible(false);
-                this.Cmp.id_periodo.reset();
-                this.Cmp.id_periodo.modificado = true;
-            }
-          }, this);
-
-        this.Cmp.id_gestion.on('select',function(c,r,i){
-            this.Cmp.id_periodo.reset();
-            this.Cmp.id_periodo.store.baseParams.id_gestion = r.data.id_gestion;
-        },this);
+                this.Cmp.id_periodo.store.baseParams.id_gestion = r.data.id_gestion;
+            },this);
 
         },
         onFormUpload: function(){
@@ -108,7 +127,8 @@ header("content-type: text/javascript; charset=UTF-8");
                             ['contacto', 'Datos de Contacto'],
                             ['programatica', 'Categoria Programatica'],
                             ['aguinaldo', 'Planilla Aguinaldo'],
-                            ['rc_iva', 'Planilla RC-IVA']
+                            ['rc_iva', 'Planilla RC-IVA'],
+                            ['otros_ing', 'Otros Ingresos RC-IVA']
                         ]
                     }),
                     anchor : '70%',
@@ -119,6 +139,35 @@ header("content-type: text/javascript; charset=UTF-8");
                 id_grupo : 0,
                 form : true
             },
+
+            {
+                config:{
+                    name:'modalidad',
+                    fieldLabel:'Modalidad',
+                    allowBlank:false,
+                    emptyText:'Modalidad...',
+                    disabled: false,
+                    editable: false,
+                    hidden: true,
+                    typeAhead: true,
+                    triggerAction: 'all',
+                    lazyRender:true,
+                    mode: 'local',
+                    store:['administrativo','piloto'],
+                    width: 177,
+                    renderer:function (value, p, record){return String.format('<div style="color:orangered;">{0}</div>', record.data['modalidad']);}
+
+                },
+                type:'ComboBox',
+                id_grupo:0,
+                filters:{
+                    type: 'list',
+                    options:['administrativo','piloto']
+                },
+                grid:true,
+                form:true
+            },
+
             {
                 config:{
                     name : 'id_gestion',

@@ -378,6 +378,7 @@ class MODReporte extends MODbase{
         $this->captura('celulares','varchar');
         $this->captura('documento','varchar');
         $this->captura('lugar_trabajo','varchar');
+		$this->captura('nombre_oficina','varchar');
 
 
         //Ejecuta la instruccion
@@ -507,6 +508,10 @@ class MODReporte extends MODbase{
 		$this->captura('saldo_per_anterior','numeric');
 		$this->captura('mantenimiento_valor','numeric');
 		$this->captura('novedades','char');
+		$this->captura('cotizable','numeric');
+		$this->captura('refrigerio','numeric');
+		$this->captura('viatico','numeric');
+		$this->captura('prima','numeric');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -516,6 +521,62 @@ class MODReporte extends MODbase{
 		//Devuelve la respuesta
 		return $this->respuesta;
 	}
-			
+
+	//franklin.espinoza Otros Ingresos Planilla
+	function reporteOtrosIngresos(){
+		//Definicion de variables para ejecucion del procedimiento
+		$this->procedimiento='plani.ft_reporte_sel';
+		$this->transaccion='PLA_R_OTROS_ING_SEL';
+		$this->tipo_procedimiento='SEL';
+
+		//Define los parametros para la funcion
+		$this->setCount(false);
+		//Definicion de la lista del resultado del query
+		$this->captura('nombre_empleado','varchar');
+		$this->captura('ci','varchar');
+		$this->captura('monto','numeric');
+		$this->captura('gerencia','varchar');
+		$this->captura('categoria_prog','varchar');
+		$this->captura('monto2','numeric');
+		$this->captura('monto3','numeric');
+		$this->captura('monto4','numeric');
+		$this->captura('monto5','numeric');
+
+		//Ejecuta la instruccion
+		$this->armarConsulta();
+		//echo($this->consulta);exit;
+		$this->ejecutarConsulta();
+
+		//Devuelve la respuesta
+		return $this->respuesta;
+	}
+
+	//franklin.espinoza Otros Ingresos Formulario
+	function reporteOtrosIngresosRCIVA(){
+		//Definicion de variables para ejecucion del procedimientp
+		$this->procedimiento='plani.ft_reporte_sel';
+		$this->transaccion='PLA_R_OTING_FORM_SEL';
+		$this->tipo_procedimiento='SEL';//tipo de transaccion
+
+		$this->setCount(false);
+		$this->setParametro('id_gestion','id_gestion','integer');
+		$this->setParametro('id_periodo','id_periodo','integer');
+		$this->setParametro('modalidad','modalidad','varchar');
+		//Definicion de la lista del resultado del query
+		$this->captura('nombre_empleado','varchar');
+		$this->captura('ci','varchar');
+		$this->captura('gerencia','varchar');
+		$this->captura('categoria_prog','varchar');
+		$this->captura('otros_ingresos','varchar');
+
+
+		//Ejecuta la instruccion
+		$this->armarConsulta();
+		//echo($this->consulta);exit;
+		$this->ejecutarConsulta();
+
+		//Devuelve la respuesta
+		return $this->respuesta;
+	}
 }
 ?>

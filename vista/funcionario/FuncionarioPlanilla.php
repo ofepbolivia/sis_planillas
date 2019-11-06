@@ -39,7 +39,32 @@ Phx.vista.FuncionarioPlanilla = {
             handler: this.onBtnBonoDesc,
             tooltip: 'Asignación de Bonos o Descuentos por Empleado'
         });
+
+        this.addButton('btn_oi',
+            {
+                text: 'Otros Ingresos',
+                iconCls: 'bpagar',
+                disabled: true,
+                handler: this.onBtnOtrosIngresos,
+                tooltip: 'Detalle Otros ingresos'
+            });
    },
+
+    onBtnOtrosIngresos: function(){
+        var rec = {maestro: this.getSelectedData()};
+
+        Phx.CP.loadWindows('../../../sis_planillas/vista/funcionario/OtrosIngresos.php',
+            'Otros Ingresos',
+            {
+                width:700,
+                height:450
+            },
+            rec,
+            this.idContenedor,
+            'OtrosIngresos'
+        );
+    },
+
    onBtnAfp: function(){
 			var rec = {maestro: this.sm.getSelected().data};
 						      
@@ -70,12 +95,14 @@ Phx.vista.FuncionarioPlanilla = {
     {	
         this.getBoton('btnAfp').enable();
         this.getBoton('btnBonoDesc').enable();
+        this.getBoton('btn_oi').enable();
         Phx.vista.FuncionarioPlanilla.superclass.preparaMenu.call(this);
     },
     liberaMenu:function()
     {	
         this.getBoton('btnAfp').disable();
-        this.getBoton('btnBonoDesc').disable();       
+        this.getBoton('btnBonoDesc').disable();
+        this.getBoton('btn_oi').disable();
         Phx.vista.FuncionarioPlanilla.superclass.liberaMenu.call(this);
     },
 

@@ -29,7 +29,7 @@ class MODTipoColumna extends MODbase{
 		$this->captura('decimales_redondeo','int4');
 		$this->captura('nombre','varchar');
 		$this->captura('estado_reg','varchar');
-		$this->captura('orden','int4');
+		$this->captura('orden','numeric');
 		$this->captura('descripcion','text');
 		$this->captura('formula','varchar');
 		$this->captura('id_usuario_reg','int4');
@@ -66,7 +66,7 @@ class MODTipoColumna extends MODbase{
 		$this->setParametro('decimales_redondeo','decimales_redondeo','int4');
 		$this->setParametro('nombre','nombre','varchar');
 		$this->setParametro('estado_reg','estado_reg','varchar');
-		$this->setParametro('orden','orden','int4');
+		$this->setParametro('orden','orden','numeric');
 		$this->setParametro('descripcion','descripcion','text');
 		$this->setParametro('formula','formula','varchar');
 		$this->setParametro('finiquito','finiquito','varchar');
@@ -97,7 +97,7 @@ class MODTipoColumna extends MODbase{
 		$this->setParametro('decimales_redondeo','decimales_redondeo','int4');
 		$this->setParametro('nombre','nombre','varchar');
 		$this->setParametro('estado_reg','estado_reg','varchar');
-		$this->setParametro('orden','orden','int4');
+		$this->setParametro('orden','orden','numeric');
 		$this->setParametro('descripcion','descripcion','text');
 		$this->setParametro('formula','formula','varchar');
 		$this->setParametro('finiquito','finiquito','varchar');

@@ -17,6 +17,8 @@ require_once(dirname(__FILE__).'/../reportes/RGeneralPlanillaXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RPresupuestoRetroactivoXls.php');
 require_once(dirname(__FILE__).'/../reportes/RAguinaldoXLSv2.php');
 require_once(dirname(__FILE__).'/../reportes/RPlanillaRCIVAXLS.php');
+require_once(dirname(__FILE__).'/../reportes/RPlanillaPrimaXLS.php');
+require_once(dirname(__FILE__).'/../reportes/RDetalleOtrosIngresosXLS.php');
 
 class ACTReporte extends ACTbase{
 
@@ -60,79 +62,96 @@ class ACTReporte extends ACTbase{
             $this->objParam->addFiltro("plani.id_proceso_wf = ". $this->objParam->getParametro('id_proceso_wf'));
         }
 
-        $this->objParam->addFiltro("repo.id_reporte = ". $id_reporte);
+        if($id_reporte != 3 && ($tipo_reporte == 'pdf' || $tipo_reporte == 'excel')) {
 
-        $this->objFunc=$this->create('MODReporte');
+            $this->objParam->addFiltro("repo.id_reporte = ". $id_reporte);
 
-        $this->res=$this->objFunc->listarReporteMaestro($this->objParam);
+            $this->objFunc = $this->create('MODReporte');
+            $this->res = $this->objFunc->listarReporteMaestro($this->objParam);
 
-
-        $this->objFunc=$this->create('MODReporte');
-        $this->res2=$this->objFunc->listarReporteDetalle($this->objParam);
-        //obtener titulo del reporte
-        $titulo = $this->res->datos[0]['titulo_reporte'];
-        //Genera el nombre del archivo (aleatorio + titulo)
-        $nombreArchivo=uniqid(md5(session_id()).$titulo);
-
-
-        //obtener tamaño y orientacion
-        if ($this->res->datos[0]['hoja_posicion'] == 'carta_vertical') {
-            $tamano = 'LETTER';
-            $orientacion = 'P';
-        } else if ($this->res->datos[0]['hoja_posicion'] == 'carta_horizontal') {
-            $tamano = 'LETTER';
-            $orientacion = 'L';
-        } else if ($this->res->datos[0]['hoja_posicion'] == 'oficio_vertical') {
-            $tamano = 'LEGAL';
-            $orientacion = 'P';
-        } else {
-            $tamano = 'LEGAL';
-            $orientacion = 'L';
-        }
-
-        $this->objParam->addParametro('orientacion',$orientacion);
-        $this->objParam->addParametro('tamano',$tamano);
-        $this->objParam->addParametro('titulo_archivo',$titulo);
+            $this->objFunc = $this->create('MODReporte');
+            $this->res2 = $this->objFunc->listarReporteDetalle($this->objParam);
+            //obtener titulo del reporte
+            $titulo = $this->res->datos[0]['titulo_reporte'];
+            //Genera el nombre del archivo (aleatorio + titulo)
+            $nombreArchivo = uniqid(md5(session_id()) . $titulo);
 
 
-        if ($tipo_reporte == 'pdf') {
-            $nombreArchivo.='.pdf';
-            $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
-            //Instancia la clase de pdf
-            $this->objReporteFormato=new RPlanillaGenerica($this->objParam);
-            $this->objReporteFormato->datosHeader($this->res->datos[0], $this->res2->datos);
-            //$this->objReporteFormato->renderDatos($this->res2->datos);
-            $this->objReporteFormato->gerencia = $this->res2->datos[0]['gerencia'];
-            $this->objReporteFormato->generarReporte();
-            $this->objReporteFormato->output($this->objReporteFormato->url_archivo,'F');
-        } else {
-
-            $nombreArchivo.='.xls';
-            $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
-            $this->objParam->addParametro('config',$this->res->datos[0]);
-            $this->objParam->addParametro('datos',$this->res2->datos);
-            if($id_reporte == 7 || $id_reporte == 8){
-                //Instancia la clase de excel para aguinaldo v2018
-                $this->objReporteFormato = new RAguinaldoXLSv2($this->objParam);
-                $this->objReporteFormato->generarReporte();
-            }else {
-                //Instancia la clase de excel
-                $this->objReporteFormato = new RPlanillaGenericaXls($this->objParam);
-                $this->objReporteFormato->imprimeDatos();
-                $this->objReporteFormato->generarReporte();
+            //obtener tamaño y orientacion
+            if ($this->res->datos[0]['hoja_posicion'] == 'carta_vertical') {
+                $tamano = 'LETTER';
+                $orientacion = 'P';
+            } else if ($this->res->datos[0]['hoja_posicion'] == 'carta_horizontal') {
+                $tamano = 'LETTER';
+                $orientacion = 'L';
+            } else if ($this->res->datos[0]['hoja_posicion'] == 'oficio_vertical') {
+                $tamano = 'LEGAL';
+                $orientacion = 'P';
+            } else {
+                $tamano = 'LEGAL';
+                $orientacion = 'L';
             }
+
+            $this->objParam->addParametro('orientacion', $orientacion);
+            $this->objParam->addParametro('tamano', $tamano);
+            $this->objParam->addParametro('titulo_archivo', $titulo);
+
+
+            if ($tipo_reporte == 'pdf') {
+                $nombreArchivo .= '.pdf';
+                $this->objParam->addParametro('nombre_archivo', $nombreArchivo);
+                //Instancia la clase de pdf
+                $this->objReporteFormato = new RPlanillaGenerica($this->objParam);
+                $this->objReporteFormato->datosHeader($this->res->datos[0], $this->res2->datos);
+                //$this->objReporteFormato->renderDatos($this->res2->datos);
+                $this->objReporteFormato->gerencia = $this->res2->datos[0]['gerencia'];
+                $this->objReporteFormato->generarReporte();
+                $this->objReporteFormato->output($this->objReporteFormato->url_archivo, 'F');
+            } else {
+
+                $nombreArchivo .= '.xls';
+                $this->objParam->addParametro('nombre_archivo', $nombreArchivo);
+                $this->objParam->addParametro('config', $this->res->datos[0]);
+                $this->objParam->addParametro('datos', $this->res2->datos);
+                if ($id_reporte == 7 || $id_reporte == 8) {
+                    //Instancia la clase de excel para aguinaldo v2018
+                    $this->objReporteFormato = new RAguinaldoXLSv2($this->objParam);
+                    $this->objReporteFormato->generarReporte();
+                } else {
+                    //Instancia la clase de excel
+                    //$this->objReporteFormato = new RPlanillaGenericaXls($this->objParam);
+                    if($id_reporte == 10){
+                        $this->objReporteFormato = new RPlanillaPrimaXLS($this->objParam);
+                        $this->objReporteFormato->imprimeDatos();
+                        $this->objReporteFormato->generarReporte();
+                    }else{
+                        $this->objReporteFormato = new RPlanillaGenericaXls($this->objParam);
+                        $this->objReporteFormato->imprimeDatos();
+                        $this->objReporteFormato->generarReporte();
+                    }
+                }
+            }
+        }else{
+            $this->objFunc = $this->create('MODReporte');
+            $this->res=$this->objFunc->reporteRCIVA($this->objParam);
+            $titulo_archivo = 'Planilla Impositiva';
+            $this->datos=$this->res->getDatos();
+
+            $nombreArchivo = uniqid(md5(session_id()).$titulo_archivo).'.xls';
+            $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
+            $this->objParam->addParametro('titulo_archivo',$titulo_archivo);
+            $this->objParam->addParametro('datos',$this->datos);
+            $this->objParam->addParametro('tipo','planilla');
+
+            $this->objReporte = new RPlanillaRCIVAXLS($this->objParam);
+            $this->objReporte->generarReporte();
         }
-
-
-
-
 
         $this->mensajeExito=new Mensaje();
         $this->mensajeExito->setMensaje('EXITO','Reporte.php','Reporte generado',
             'Se generó con éxito el reporte: '.$nombreArchivo,'control');
         $this->mensajeExito->setArchivoGenerado($nombreArchivo);
         $this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
-
     }
 
     function reporteBoleta()	{
@@ -337,6 +356,9 @@ class ACTReporte extends ACTbase{
         }else if($this->objParam->getParametro('configuracion_reporte') == 'rc_iva'){
             $this->res=$this->objFunc->reporteRCIVA($this->objParam);
             $titulo_archivo = 'Planilla RC-IVA';
+        }else if($this->objParam->getParametro('configuracion_reporte') == 'otros_ing'){
+            $this->res=$this->objFunc->reporteOtrosIngresosRCIVA($this->objParam);
+            $titulo_archivo = 'Planilla Otros Ingresos RC-IVA';
         }
 
 
@@ -355,6 +377,9 @@ class ACTReporte extends ACTbase{
             $this->objReporte = new RAguinaldoXLSv2($this->objParam);
         }else if($this->objParam->getParametro('configuracion_reporte') == 'rc_iva'){
             $this->objReporte = new RPlanillaRCIVAXLS($this->objParam);
+        }else if($this->objParam->getParametro('configuracion_reporte') == 'otros_ing'){
+            $this->objParam->addParametro('tipo','formulario');
+            $this->objReporte = new RDetalleOtrosIngresosXLS($this->objParam);
         }
 
         $this->objReporte->generarReporte();
@@ -446,6 +471,33 @@ class ACTReporte extends ACTbase{
         }
         //devolver respuesta
         $this->mensajeRes->imprimirRespuesta($this->mensajeRes->generarJson());
+    }
+
+    //franklin.espinoza 23/9/2019
+    function reporteOtrosIngresos(){
+
+        if ($this->objParam->getParametro('id_proceso_wf') != '') {
+            $this->objParam->addFiltro("tp.id_proceso_wf = ". $this->objParam->getParametro('id_proceso_wf'));
+        }
+
+        $this->objFunc = $this->create('MODReporte');
+        $this->res=$this->objFunc->reporteOtrosIngresos($this->objParam);
+        $titulo_archivo = 'Planilla Global Otros ingresos';
+        $this->datos=$this->res->getDatos();
+
+        $nombreArchivo = uniqid(md5(session_id()).$titulo_archivo).'.xls';
+        $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
+        $this->objParam->addParametro('titulo_archivo',$titulo_archivo);
+        $this->objParam->addParametro('datos',$this->datos);
+
+        $this->objReporte = new RDetalleOtrosIngresosXLS($this->objParam);
+        $this->objReporte->generarReporte();
+
+        $this->mensajeExito=new Mensaje();
+        $this->mensajeExito->setMensaje('EXITO','Reporte.php','Reporte generado','Se generó con éxito el reporte: '.$nombreArchivo,'control');
+        $this->mensajeExito->setArchivoGenerado($nombreArchivo);
+        $this->res = $this->mensajeExito;
+        $this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
     }
 
 }

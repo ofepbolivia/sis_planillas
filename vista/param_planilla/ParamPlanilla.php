@@ -13,7 +13,7 @@ header("content-type: text/javascript; charset=UTF-8");
 Phx.vista.ParamPlanilla=Ext.extend(Phx.gridInterfaz,{
 
     fwidth: '28%',
-    fheight: '70%',
+    fheight: '75%',
 	constructor:function(config){
 		this.maestro = config.maestro;
 		console.log('maestro',this.maestro);
@@ -182,6 +182,22 @@ Phx.vista.ParamPlanilla=Ext.extend(Phx.gridInterfaz,{
 
         {
             config:{
+                name: 'haber_basico_inc',
+                fieldLabel: 'Haber Basico con Incremento',
+                allowBlank: true,
+                anchor: '80%',
+                gwidth: 200,
+                maxLength:100
+            },
+            type:'TextField',
+            filters:{pfiltro:'parampla.haber_basico_inc',type:'string'},
+            id_grupo:1,
+            grid:true,
+            form:true
+        },
+
+        {
+            config:{
                 name: 'estado_reg',
                 fieldLabel: 'Estado Reg.',
                 allowBlank: true,
@@ -313,7 +329,7 @@ Phx.vista.ParamPlanilla=Ext.extend(Phx.gridInterfaz,{
 		{name:'usr_reg', type: 'string'},
 		{name:'usr_mod', type: 'string'},
 		{name:'porcentaje_antiguedad', type: 'numeric'},
-
+        {name:'haber_basico_inc', type: 'string'},
 	],
 	sortInfo:{
 		field: 'id_param_planilla',

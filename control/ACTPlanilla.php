@@ -273,6 +273,27 @@ class ACTPlanilla extends ACTbase{
         $this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
     }
 
+    //(f.e.a)13/3/2017 listar Otros Ingresos Funcionario
+    function listarOtrosIngresos(){
+
+        $this->objParam->defecto('ordenacion','toi.nombre_sys_ingreso');
+        $this->objParam->defecto('dir_ordenacion','asc');
+
+        if($this->objParam->getParametro('tipoReporte')=='excel_grid' || $this->objParam->getParametro('tipoReporte')=='pdf_grid'){
+            $this->objReporte = new Reporte($this->objParam,$this);
+            $this->res = $this->objReporte->generarReporteListado('MODPlanilla','listarOtrosIngresos');
+        } else{
+            $this->objFunc=$this->create('MODPlanilla');
+
+            $this->res=$this->objFunc->listarOtrosIngresos($this->objParam);
+        }
+        $this->res->imprimirRespuesta($this->res->generarJson());
+
+        /*$this->objFunc=$this->create('MODPlanilla');
+        $this->res=$this->objFunc->listarOtrosIngresos($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());*/
+    }
+
 }
 
 ?>

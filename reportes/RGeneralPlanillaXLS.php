@@ -44,104 +44,11 @@ class RGeneralPlanillaXLS
     }
 
     public function addHoja($name,$index){
-        //$index = $this->docexcel->getSheetCount();
-        //echo($index);
         $this->docexcel->createSheet($index)->setTitle($name);
         $this->docexcel->setActiveSheetIndex($index);
         return $this->docexcel;
     }
 
-    function imprimeCabecera() {
-        /*$this->docexcel->createSheet(0);
-        $this->docexcel->setActiveSheetIndex(0);
-        $this->docexcel->getActiveSheet()->setTitle('Detalle');*/
-
-        /*$this->docexcel->createSheet(1);
-        $this->docexcel->setActiveSheetIndex(1);
-        $this->docexcel->getActiveSheet()->setTitle('Totales');
-
-        $this->docexcel->setActiveSheetIndex(0);*/
-
-
-
-
-        /*$styleTitulos1 = array(
-            'font'  => array(
-                'bold'  => true,
-                'size'  => 12,
-                'name'  => 'Arial'
-            ),
-            'alignment' => array(
-                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
-                'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
-            ),
-        );
-
-
-        $styleTitulos2 = array(
-            'font'  => array(
-                'bold'  => true,
-                'size'  => 9,
-                'name'  => 'Arial',
-                'color' => array(
-                    'rgb' => 'FFFFFF'
-                )
-
-            ),
-            'alignment' => array(
-                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
-                'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
-            ),
-            'fill' => array(
-                'type' => PHPExcel_Style_Fill::FILL_SOLID,
-                'color' => array(
-                    'rgb' => '0066CC'
-                )
-            ),
-            'borders' => array(
-                'allborders' => array(
-                    'style' => PHPExcel_Style_Border::BORDER_THIN
-                )
-            ));
-        $styleTitulos3 = array(
-            'font'  => array(
-                'bold'  => true,
-                'size'  => 11,
-                'name'  => 'Arial'
-            ),
-            'alignment' => array(
-                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
-                'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
-            ),
-
-        );*/
-
-        //titulos
-
-        /*$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0,2,'BOLIVIANA DE AVIACIÓN - BOA' );
-        $this->docexcel->getActiveSheet()->getStyle('A2:H2')->applyFromArray($styleTitulos1);
-        $this->docexcel->getActiveSheet()->mergeCells('A2:H2');
-        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0,3,'Bienes de Consumo' );
-        $this->docexcel->getActiveSheet()->getStyle('A3:H3')->applyFromArray($styleTitulos1);
-        $this->docexcel->getActiveSheet()->mergeCells('A3:H3');
-        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0,4,'AL: '. $this->obtenerFechaEnLetra($this->objParam->getParametro('fecha_hasta')));
-        $this->docexcel->getActiveSheet()->getStyle('A4:H4')->applyFromArray($styleTitulos3);
-        $this->docexcel->getActiveSheet()->mergeCells('A4:H4');
-        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0,5,'(Expresado en Bolivianos)' );
-        $this->docexcel->getActiveSheet()->getStyle('A5:H5')->applyFromArray($styleTitulos1);
-        $this->docexcel->getActiveSheet()->mergeCells('A5:H5');*/
-
-        /*$this->docexcel->getActiveSheet()->getColumnDimension('A')->setWidth(15);
-        $this->docexcel->getActiveSheet()->getColumnDimension('B')->setWidth(40);
-        $this->docexcel->getActiveSheet()->getColumnDimension('C')->setWidth(20);
-        $this->docexcel->getActiveSheet()->getColumnDimension('D')->setWidth(40);
-        $this->docexcel->getActiveSheet()->getColumnDimension('E')->setWidth(20);
-        $this->docexcel->getActiveSheet()->getColumnDimension('F')->setWidth(20);
-        $this->docexcel->getActiveSheet()->getColumnDimension('G')->setWidth(25);*/
-
-
-
-    }
 
     function generarDatos()
     {
@@ -237,13 +144,12 @@ class RGeneralPlanillaXLS
         $estacion = '';
         $contadorCostoGrupo = 0;
         $contadorCostoTotal = 0;
-        $this->imprimeCabecera(0);
 
         $numberFormat = '#,##0.00';
         $cant_datos = count($datos);
         $cont_total = 1;
         $fila_total = 1;
-       // $this->addHoja('Resumen',0);
+
         $index = 0;
         $color_pestana = array('ff0000','1100ff','55ff00','3ba3ff','ff4747','697dff','78edff','ba8cff',
             'ff80bb','ff792b','ffff5e','52ff97','bae3ff','ffaf9c','bfffc6','b370ff','ffa8b4','7583ff','9aff17','ff30c8');
@@ -254,8 +160,8 @@ class RGeneralPlanillaXLS
             if($estacion != $value['codigo']){
                 $this->addHoja($value['codigo'],$index);
                 $this->docexcel->getActiveSheet()->getTabColor()->setRGB($color_pestana[$index]);
-                $this->docexcel->getActiveSheet()->getStyle('A1:J1')->getAlignment()->setWrapText(true);
-                $this->docexcel->getActiveSheet()->getStyle('A1:J1')->applyFromArray($styleTitulos3);
+                $this->docexcel->getActiveSheet()->getStyle('A1:K1')->getAlignment()->setWrapText(true);
+                $this->docexcel->getActiveSheet()->getStyle('A1:K1')->applyFromArray($styleTitulos3);
                 $fila=2;
                 $this->numero=1;
                 $this->docexcel->getActiveSheet()->setTitle($value['codigo']);
@@ -269,6 +175,7 @@ class RGeneralPlanillaXLS
                 $this->docexcel->getActiveSheet()->getColumnDimension('H')->setWidth(30);//correo_personal
                 $this->docexcel->getActiveSheet()->getColumnDimension('I')->setWidth(25);//telefonos
                 $this->docexcel->getActiveSheet()->getColumnDimension('J')->setWidth(25);//celulares
+                $this->docexcel->getActiveSheet()->getColumnDimension('K')->setWidth(30);//celulares
 
                 $this->docexcel->getActiveSheet()->setCellValue('A1','Nro');
                 $this->docexcel->getActiveSheet()->setCellValue('B1','Gerencia');
@@ -276,10 +183,12 @@ class RGeneralPlanillaXLS
                 $this->docexcel->getActiveSheet()->setCellValue('D1','Funcionario');
                 $this->docexcel->getActiveSheet()->setCellValue('E1','Documento');
                 $this->docexcel->getActiveSheet()->setCellValue('F1','Cargo');
-                $this->docexcel->getActiveSheet()->setCellValue('G1','Correo BoA');
-                $this->docexcel->getActiveSheet()->setCellValue('H1','Correo Personal');
-                $this->docexcel->getActiveSheet()->setCellValue('I1','Telefonos');
-                $this->docexcel->getActiveSheet()->setCellValue('J1','Celulares');
+                $this->docexcel->getActiveSheet()->setCellValue('G1','Oficina');
+                $this->docexcel->getActiveSheet()->setCellValue('H1','Correo BoA');
+                $this->docexcel->getActiveSheet()->setCellValue('I1','Correo Personal');
+                $this->docexcel->getActiveSheet()->setCellValue('J1','Telefonos');
+                $this->docexcel->getActiveSheet()->setCellValue('K1','Celulares');
+
 
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0, $fila, $this->numero);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(1, $fila, $value['gerencia']);
@@ -287,10 +196,11 @@ class RGeneralPlanillaXLS
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['desc_funcionario']);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['documento']);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['cargo']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, $value['email_empresa']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['correo']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['telefonos']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['celulares']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, $value['nombre_oficina']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['email_empresa']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['correo']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['telefonos']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['celulares']);
                 $fila++;
                 $this->numero++;
                 $index++;
@@ -303,10 +213,11 @@ class RGeneralPlanillaXLS
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['desc_funcionario']);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['documento']);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['cargo']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, $value['email_empresa']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['correo']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['telefonos']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['celulares']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, $value['nombre_oficina']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['email_empresa']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['correo']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['telefonos']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['celulares']);
                 $fila++;
                 $this->numero++;
             }
@@ -319,8 +230,8 @@ class RGeneralPlanillaXLS
         $this->addHoja('Resumen',$index);
 
         $this->docexcel->getActiveSheet()->getTabColor()->setRGB($color_pestana[$index]);
-        $this->docexcel->getActiveSheet()->getStyle('A1:K1')->getAlignment()->setWrapText(true);
-        $this->docexcel->getActiveSheet()->getStyle('A1:K1')->applyFromArray($styleTitulos3);
+        $this->docexcel->getActiveSheet()->getStyle('A1:L1')->getAlignment()->setWrapText(true);
+        $this->docexcel->getActiveSheet()->getStyle('A1:L1')->applyFromArray($styleTitulos3);
         $fila=2;
         $this->numero=1;
         $this->docexcel->getActiveSheet()->setTitle('Resumen');
@@ -335,6 +246,7 @@ class RGeneralPlanillaXLS
         $this->docexcel->getActiveSheet()->getColumnDimension('I')->setWidth(25);//telefonos
         $this->docexcel->getActiveSheet()->getColumnDimension('J')->setWidth(25);//celulares
         $this->docexcel->getActiveSheet()->getColumnDimension('K')->setWidth(25);//celulares
+        $this->docexcel->getActiveSheet()->getColumnDimension('L')->setWidth(25);//celulares
 
         $this->docexcel->getActiveSheet()->setCellValue('A1','Nro');
         $this->docexcel->getActiveSheet()->setCellValue('B1','Gerencia');
@@ -342,11 +254,12 @@ class RGeneralPlanillaXLS
         $this->docexcel->getActiveSheet()->setCellValue('D1','Funcionario');
         $this->docexcel->getActiveSheet()->setCellValue('E1','Documento');
         $this->docexcel->getActiveSheet()->setCellValue('F1','Cargo');
-        $this->docexcel->getActiveSheet()->setCellValue('G1','Correo BoA');
-        $this->docexcel->getActiveSheet()->setCellValue('H1','Correo Personal');
-        $this->docexcel->getActiveSheet()->setCellValue('I1','Telefonos');
-        $this->docexcel->getActiveSheet()->setCellValue('J1','Celulares');
-        $this->docexcel->getActiveSheet()->setCellValue('K1','Lugar Trabajo');
+        $this->docexcel->getActiveSheet()->setCellValue('G1','Oficina');
+        $this->docexcel->getActiveSheet()->setCellValue('H1','Correo BoA');
+        $this->docexcel->getActiveSheet()->setCellValue('I1','Correo Personal');
+        $this->docexcel->getActiveSheet()->setCellValue('J1','Telefonos');
+        $this->docexcel->getActiveSheet()->setCellValue('K1','Celulares');
+        $this->docexcel->getActiveSheet()->setCellValue('L1','Lugar Trabajo');
 
         foreach ($datos as $value)
         {
@@ -356,11 +269,12 @@ class RGeneralPlanillaXLS
             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['desc_funcionario']);
             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['documento']);
             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['cargo']);
-            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, $value['email_empresa']);
-            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['correo']);
-            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['telefonos']);
-            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['celulares']);
-            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['lugar_trabajo']);
+            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, $value['nombre_oficina']);
+            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['email_empresa']);
+            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['correo']);
+            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['telefonos']);
+            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['celulares']);
+            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(11, $fila, $value['lugar_trabajo']);
             $fila++;
             $this->numero++;
         }
@@ -371,7 +285,7 @@ class RGeneralPlanillaXLS
         setlocale(LC_ALL,"es_ES@euro","es_ES","esp");
         $dia= date("d", strtotime($fecha));
         $anno = date("Y", strtotime($fecha));
-        // var_dump()
+
         $mes = array('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre');
         $mes = $mes[(date('m', strtotime($fecha))*1)-1];
         return $dia.' de '.$mes.' del '.$anno;
@@ -381,8 +295,6 @@ class RGeneralPlanillaXLS
         $this->docexcel->setActiveSheetIndex(0);
         $this->objWriter = PHPExcel_IOFactory::createWriter($this->docexcel, 'Excel5');
         $this->objWriter->save($this->url_archivo);
-        //$this->imprimeCabecera(0);
-
     }
 
 }

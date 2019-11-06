@@ -72,6 +72,8 @@ $body$
 
     v_id_seg_cordes				integer;
     v_id_seg_umss				integer;
+
+    v_periodo					integer;
   BEGIN
 
     v_nombre_funcion = 'plani.ft_planilla_sel';
@@ -130,10 +132,11 @@ $body$
 						pxp.f_get_variable_global(''plani_tiene_presupuestos''),
 						pxp.f_get_variable_global(''plani_tiene_costos''),
 						plani.fecha_planilla,
-                        plani.codigo_poa,
-                        plani.obs_poa,
-                        perp.periodo as periodo_pago,
-                        plani.fecha_sigma
+            plani.codigo_poa,
+            plani.obs_poa,
+            perp.periodo as periodo_pago,
+            plani.fecha_sigma,
+            plani.modalidad
 						from plani.tplanilla plani
 						inner join segu.tusuario usu1 on usu1.id_usuario = plani.id_usuario_reg
 						left join segu.tusuario usu2 on usu2.id_usuario = plani.id_usuario_mod
@@ -676,7 +679,7 @@ $body$
                 inner join plani.tcolumna_valor cv on cv.id_funcionario_planilla = emp.id_funcionario_planilla
                 inner join plani.ttipo_columna tc on tc.id_tipo_columna = cv.id_tipo_columna
                 inner join orga.ttipo_contrato tcont on tcont.id_tipo_contrato = emp.id_tipo_contrato
-                where cv.codigo_columna in (''HORNORM'',''SUELDOBA'',''BONANT'',''BONFRONTERA'',''REINBANT'',''COTIZABLE'',''AFP_LAB'',''IMPURET'',''OTRO_DESC'',''TOT_DESC'',''LIQPAG'',''CAJSAL'')
+                where cv.codigo_columna in (''HORNORM'',''SUELDOBA'',''BONANT'',''BONFRONTERA'',''REINBANT'',''COTIZABLE'',''AFP_LAB'',''IMPURET'',''OTRO_DESC'',''TOT_DESC'',''LIQPAG'',''CAJSAL'',''PAGOVAR'')
                 order by emp.fila,tc.orden';
 		raise notice 'v_consulta: %', v_consulta;
         --Devuelve la respuesta
@@ -1829,7 +1832,94 @@ $body$
         --Devuelve la respuesta
         return v_consulta;
       end;
+    /*********************************
+        #TRANSACCION:  'PLA_OTROS_ING_SEL'
+        #DESCRIPCION:	Listado de Otros Ingresos Funcionario
+        #AUTOR:		f.e.a
+        #FECHA:		24-09-2019 16:11:04
+        ***********************************/
+    elsif(p_transaccion='PLA_OTROS_ING_SEL')then
 
+      begin
+
+		    select tp.periodo
+        into v_periodo
+        from param.tperiodo tp
+        where tp.id_periodo = v_parametros.id_periodo;
+
+        select tg.gestion
+        into v_gestion
+        from param.tgestion tg
+        where tg.id_gestion = v_parametros.id_gestion;
+
+        v_consulta = '
+        	SELECT
+            funcio.id_funcionario,
+            funcio.id_persona,
+            person.nombre_completo2 AS desc_person,
+            funcio.id_usuario_reg,
+            funcio.id_usuario_mod,
+            usu1.cuenta as usr_reg,
+            usu2.cuenta as usr_mod,
+            funcio.estado_reg,
+            funcio.fecha_reg,
+            funcio.fecha_mod,
+            tar.nombre_archivo,
+        	tar.extension,
+            toi.sistema_fuente,
+            toi.monto,
+            toi.fecha_pago::date,
+            toi.id_otros_ingresos
+            FROM orga.tfuncionario funcio
+            inner join orga.tuo_funcionario tuo on tuo.id_funcionario = funcio.id_funcionario and current_date <=coalesce(tuo.fecha_finalizacion,''31/12/9999''::date)
+            inner join plani.totros_ingresos toi on toi.id_funcionario = funcio.id_funcionario
+            INNER JOIN segu.vpersona person ON person.id_persona=funcio.id_persona
+            inner join segu.tusuario usu1 on usu1.id_usuario = funcio.id_usuario_reg
+            left join segu.tusuario usu2 on usu2.id_usuario = funcio.id_usuario_mod
+            left join param.tarchivo tar on tar.id_tabla = funcio.id_funcionario and tar.id_tipo_archivo = 10
+            WHERE tuo.estado_reg = ''activo'' and toi.gestion='||v_gestion||' and toi.periodo = '||v_periodo||' and toi.id_funcionario = '||v_parametros.id_funcionario;
+		    raise notice 'v_consulta: %',v_consulta;
+        v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' OFFSET ' || v_parametros.puntero;
+        --Devuelve la respuesta
+        return v_consulta;
+      end;
+    /*********************************
+        #TRANSACCION:  'PLA_OTROS_ING_CONT'
+        #DESCRIPCION:	contador del listado de Otros Ingresos Funcionario
+        #AUTOR:		f.e.a
+        #FECHA:		24-09-2019 16:11:04
+        ***********************************/
+    elsif(p_transaccion='PLA_OTROS_ING_CONT')then
+
+      begin
+
+		    select tp.periodo
+        into v_periodo
+        from param.tperiodo tp
+        where tp.id_periodo = v_parametros.id_periodo;
+
+        select tg.gestion
+        into v_gestion
+        from param.tgestion tg
+        where tg.id_gestion = v_parametros.id_gestion;
+
+        v_consulta = '
+        	SELECT
+            count(funcio.id_funcionario)
+            FROM orga.tfuncionario funcio
+            inner join orga.tuo_funcionario tuo on tuo.id_funcionario = funcio.id_funcionario and current_date <=coalesce(tuo.fecha_finalizacion,''31/12/9999''::date)
+            inner join plani.totros_ingresos toi on toi.id_funcionario = funcio.id_funcionario
+            INNER JOIN segu.vpersona person ON person.id_persona=funcio.id_persona
+            inner join segu.tusuario usu1 on usu1.id_usuario = funcio.id_usuario_reg
+            left join segu.tusuario usu2 on usu2.id_usuario = funcio.id_usuario_mod
+            left join param.tarchivo tar on tar.id_tabla = funcio.id_funcionario and tar.id_tipo_archivo = 10
+            WHERE tuo.estado_reg = ''activo'' and toi.gestion='||v_gestion||'
+            and toi.periodo = '||v_periodo||' and toi.id_funcionario = '||v_parametros.id_funcionario;
+		--v_consulta = v_consulta||v_parametros.filtro;
+        --Devuelve la respuesta
+        raise notice 'v_consulta: %', v_consulta;
+        return v_consulta;
+      end;
     else
 
       raise exception 'Transaccion inexistente';

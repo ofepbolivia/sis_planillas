@@ -35,6 +35,10 @@ DECLARE
     v_resultado_detalle	numeric;
     v_detalle			record;
 
+    --franklin.espinoza 23/9/2019
+    v_codigo_pla		varchar;
+    v_fecha_fin			date;
+    v_id_funcionario		integer;
 BEGIN
 	v_nombre_funcion = 'plani.f_calcular_formula';
     -- iniciamos llave while
@@ -160,7 +164,32 @@ BEGIN
         IF v_cantidad_variables > 0 and (v_tipo_columna.recalcular = 'no' or (v_tipo_columna.recalcular = 'si' and p_recalcular = 'si')) THEN
 
             FOR v_registros in EXECUTE('SELECT ('|| v_formula||') as res') LOOP
-                v_resultado = coalesce(v_registros.res,0);
+                --franklin.espinoza 23/9/2019
+                if v_tipo_columna.codigo = 'IMPDET' then
+
+                	  select ttp.codigo, tfp.id_funcionario
+                    into v_codigo_pla, v_id_funcionario
+                    from  plani.tcolumna_valor tcv
+                    inner join plani.tfuncionario_planilla tfp on tfp.id_funcionario_planilla = tcv.id_funcionario_planilla
+                    inner join plani.tplanilla tp on tp.id_planilla = tfp.id_planilla
+                    inner join plani.ttipo_planilla ttp on ttp.id_tipo_planilla = tp.id_tipo_planilla
+                    where tcv.id_columna_valor = p_id_columna_valor;
+
+                    select coalesce(tuo.fecha_finalizacion,'31/12/9999'::date)
+                    into v_fecha_fin
+                    from orga.tuo_funcionario tuo
+                    where tuo.id_uo_funcionario = orga.f_get_ultima_asignacion(v_id_funcionario);
+
+                    if v_codigo_pla = 'PLAPRI' and  v_fecha_fin > '13/09/2019'::date then
+                    	v_resultado = 0;
+                    else
+                    	v_resultado = coalesce(v_registros.res,0);
+                    end if;
+
+                else
+                	v_resultado = coalesce(v_registros.res,0);
+                end if;
+                --v_resultado = coalesce(v_registros.res,0);
             END LOOP;
         ELSIF (v_tipo_columna.recalcular = 'si' and p_recalcular = 'no') then
         	v_resultado = 0;

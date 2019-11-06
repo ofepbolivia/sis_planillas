@@ -54,6 +54,7 @@ class MODPlanilla extends MODbase{
 		$this->captura('obs_poa','text');
 		$this->captura('periodo_pago','integer');
 		$this->captura('fecha_sigma','date');
+        $this->captura('modalidad','varchar');
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();
@@ -350,6 +351,7 @@ class MODPlanilla extends MODbase{
 		$this->setParametro('fecha_planilla','fecha_planilla','date');
 		$this->setParametro('periodo_pago','periodo_pago','integer');
 		$this->setParametro('fecha_sigma','fecha_sigma','date');
+		$this->setParametro('modalidad','modalidad','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -381,6 +383,7 @@ class MODPlanilla extends MODbase{
 		$this->setParametro('fecha_planilla','fecha_planilla','date');
         $this->setParametro('periodo_pago','periodo_pago','integer');
         $this->setParametro('fecha_sigma','fecha_sigma','date');
+        $this->setParametro('modalidad','modalidad','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -789,6 +792,47 @@ class MODPlanilla extends MODbase{
         $this->ejecutarConsulta();
 
         //Devuelve la respuesta
+        return $this->respuesta;
+    }
+
+    function listarOtrosIngresos(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='plani.ft_planilla_sel';// nombre procedimiento almacenado
+        $this->transaccion='PLA_OTROS_ING_SEL';//nombre de la transaccion
+        $this->tipo_procedimiento='SEL';//tipo de transaccion
+        $this->setCount(true);
+
+        $this->setParametro('id_gestion','id_gestion','int4');
+        $this->setParametro('id_periodo','id_periodo','int4');
+        $this->setParametro('id_funcionario','id_funcionario','int4');
+
+        //defino varialbes que se capturan como retorno de la funcion
+
+        $this->captura('id_funcionario','integer');
+        $this->captura('id_persona','integer');
+        $this->captura('desc_person','text');
+
+        $this->captura('id_usuario_reg','integer');
+        $this->captura('id_usuario_mod','integer');
+        $this->captura('usr_reg','varchar');
+        $this->captura('usr_mod','varchar');
+        $this->captura('estado_reg','varchar');
+        $this->captura('fecha_reg','timestamp');
+        $this->captura('fecha_mod','timestamp');
+
+        $this->captura('nombre_archivo','varchar');
+        $this->captura('extension','varchar');
+
+        $this->captura('sistema_fuente','varchar');
+        $this->captura('monto','numeric');
+        $this->captura('fecha_pago','date');
+        $this->captura('id_otros_ingresos','integer');
+
+
+        //Ejecuta la funcion
+        $this->armarConsulta();
+        //echo $this->getConsulta(); exit;
+        $this->ejecutarConsulta();
         return $this->respuesta;
     }
 			

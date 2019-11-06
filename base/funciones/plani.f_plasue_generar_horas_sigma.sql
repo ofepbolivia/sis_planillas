@@ -105,7 +105,7 @@ BEGIN
             coalesce((select sum((l.hasta - l.desde)* 8 + (1*8))
             from plani.tlicencia l
             where id_funcionario = v_asignacion.id_funcionario and
-            l.estado_reg = 'activo' and l.desde >= v_asignacion.fecha_ini_mes AND
+            l.estado_reg in ('activo','Aprobado') and l.desde >= v_asignacion.fecha_ini_mes AND
             l.hasta <= v_asignacion.fecha_fin_mes and l.estado = 'finalizado'),0);
 
             --las que estan inicio
@@ -113,7 +113,7 @@ BEGIN
             COALESCE((select sum((l.hasta - v_asignacion.fecha_ini_mes)* 8 + (1*8))
             from plani.tlicencia l
             where id_funcionario = v_asignacion.id_funcionario and
-            l.estado_reg = 'activo' and l.desde < v_asignacion.fecha_ini_mes AND
+            l.estado_reg in ('activo','Aprobado') and l.desde < v_asignacion.fecha_ini_mes AND
             (l.hasta <= v_asignacion.fecha_fin_mes and l.hasta >= v_asignacion.fecha_ini_mes) and l.estado = 'finalizado'),0);
 
             --las que estan al final
@@ -121,7 +121,7 @@ BEGIN
             COALESCE((select sum((v_asignacion.fecha_fin_mes - l.desde)* 8 + (1*8)) + v_horas_licencia_para_30
             from plani.tlicencia l
             where id_funcionario = v_asignacion.id_funcionario and
-            l.estado_reg = 'activo' and (l.desde >= v_asignacion.fecha_ini_mes AND l.desde <= v_asignacion.fecha_fin_mes) AND
+            l.estado_reg in ('activo','Aprobado') and (l.desde >= v_asignacion.fecha_ini_mes AND l.desde <= v_asignacion.fecha_fin_mes) AND
             l.hasta > v_asignacion.fecha_fin_mes and l.estado = 'finalizado'),0);
 
             --las que van de lado a lado
@@ -129,7 +129,7 @@ BEGIN
             COALESCE((select sum((v_asignacion.fecha_fin_mes - v_asignacion.fecha_ini_mes)* 8 + (1*8)) + v_horas_licencia_para_30
             from plani.tlicencia l
             where id_funcionario = v_asignacion.id_funcionario and
-            l.estado_reg = 'activo' and l.desde < v_asignacion.fecha_ini_mes AND
+            l.estado_reg in ('activo','Aprobado') and l.desde < v_asignacion.fecha_ini_mes AND
             l.hasta > v_asignacion.fecha_fin_mes and l.estado = 'finalizado'),0);
 
             --Si la fecha fin es 31 se resta 8 horas

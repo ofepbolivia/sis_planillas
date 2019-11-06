@@ -91,7 +91,7 @@ Phx.vista.FuncionarioAfp=Ext.extend(Phx.gridInterfaz,{
 			config:{
 				name: 'nro_afp',
 				fieldLabel: 'No AFP',
-				allowBlank: true,
+				allowBlank: false,
 				anchor: '80%',
 				gwidth: 100,
 				maxLength:100

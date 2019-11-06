@@ -202,8 +202,9 @@ BEGIN
 			estado,
 			id_depto,
 			fecha_planilla,
-            id_periodo_pago,
-            fecha_sigma
+      id_periodo_pago,
+      fecha_sigma,
+      modalidad
           	) values(
 			v_parametros.id_periodo,
 			v_parametros.id_gestion,
@@ -222,8 +223,9 @@ BEGIN
 			v_codigo_estado,
 			v_parametros.id_depto,
 			v_parametros.fecha_planilla,
-            v_parametros.periodo_pago,
-            v_parametros.fecha_sigma
+      v_parametros.periodo_pago,
+      v_parametros.fecha_sigma,
+      v_parametros.modalidad
 			)RETURNING id_planilla into v_id_planilla;
 
             execute 'select ' || v_tipo_planilla.funcion_obtener_empleados || '(' || v_id_planilla || ')'
@@ -253,9 +255,10 @@ BEGIN
 			observaciones = v_parametros.observaciones,
 			id_usuario_mod = p_id_usuario,
 			fecha_planilla = v_parametros.fecha_planilla,
-            id_periodo_pago = v_parametros.periodo_pago,
-            fecha_sigma = v_parametros.fecha_sigma,
-			fecha_mod = now()
+      id_periodo_pago = v_parametros.periodo_pago,
+      fecha_sigma = v_parametros.fecha_sigma,
+			fecha_mod = now(),
+      modalidad = v_parametros.modalidad
 			where id_planilla=v_parametros.id_planilla;
 
 			--Definicion de la respuesta

@@ -37,6 +37,7 @@ class MODParamPlanilla extends MODbase{
 		$this->captura('usr_mod','varchar');
 		$this->captura('fecha_incremento','date');
 		$this->captura('porcentaje_antiguedad','numeric');
+        $this->captura('haber_basico_inc','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -61,6 +62,7 @@ class MODParamPlanilla extends MODbase{
 		$this->setParametro('porcentaje_mayor_promedio','porcentaje_mayor_promedio','numeric');
 		$this->setParametro('porcentaje_antiguedad','porcentaje_antiguedad','numeric');
 		$this->setParametro('fecha_incremento','fecha_incremento','date');
+        $this->setParametro('haber_basico_inc','haber_basico_inc','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -86,6 +88,7 @@ class MODParamPlanilla extends MODbase{
 		$this->setParametro('porcentaje_mayor_promedio','porcentaje_mayor_promedio','numeric');
 		$this->setParametro('porcentaje_antiguedad','porcentaje_antiguedad','numeric');
         $this->setParametro('fecha_incremento','fecha_incremento','date');
+        $this->setParametro('haber_basico_inc','haber_basico_inc','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
