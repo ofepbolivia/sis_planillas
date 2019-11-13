@@ -2,7 +2,7 @@ CREATE OR REPLACE FUNCTION plani.f_get_bono_antiguedad_pla (
   p_id_funcionario integer,
   p_fecha date
 )
-RETURNS integer AS
+RETURNS numeric AS
 $body$
 /**************************************************************************
  SISTEMA:		Sistema Planillas
@@ -23,11 +23,11 @@ DECLARE
 
 	v_resp		            varchar='';
 	v_nombre_funcion        text;
-	v_bono_antiguedad		integer;
+	v_bono_antiguedad		numeric;
     v_id_gestion			integer;
 	v_id_periodo			integer;
     v_fecha					date;
-    v_anteguedad			integer=0;
+    v_anteguedad			numeric=0;
 BEGIN
 	v_nombre_funcion = 'plani.f_get_bono_antiguedad_pla';
 
@@ -48,9 +48,12 @@ BEGIN
       select tcv.valor
       into v_bono_antiguedad
       from plani.tplanilla tpl
-      left join plani.tfuncionario_planilla tfpl on tfpl.id_funcionario = p_id_funcionario and tfpl.id_planilla = tpl.id_planilla
+      inner join plani.tfuncionario_planilla tfpl on tfpl.id_funcionario = p_id_funcionario and tfpl.id_planilla = tpl.id_planilla
       left join plani.tcolumna_valor tcv on tcv.id_funcionario_planilla = tfpl.id_funcionario_planilla and tcv.codigo_columna = 'BONANT'
       where tpl.id_gestion = v_id_gestion and tpl.id_periodo = v_id_periodo and tpl.nro_planilla like '%PLASUE%';
+
+    -- se modifico por que se mostraba en 0 la columan bono antiguedad para administrativos mod(breydi.vasquez) 13/11/2019
+    --inner join plani.tfuncionario_planilla tfpl on tfpl.id_funcionario = p_id_funcionario and tfpl.id_planilla = tpl.id_planilla
 
       if v_bono_antiguedad is not null then
 	  	v_anteguedad = v_bono_antiguedad;
@@ -61,7 +64,7 @@ BEGIN
     	v_anteguedad = 0;
     end if;
 
-return v_anteguedad;
+return v_anteguedad::numeric;
 
 EXCEPTION
 
