@@ -15,7 +15,7 @@ DECLARE
   v_id_afp				integer;
   v_id_cuenta_bancaria	integer;
   v_licencia			boolean;
-
+  v_id_gerente			integer;
 BEGIN
 
     v_nombre_funcion = 'plani.f_plasue_insert_empleados';
@@ -29,6 +29,14 @@ BEGIN
     if (v_planilla.id_uo is not null) then
     	v_filtro_uo = ' uofun.id_uo in (' || orga.f_get_uos_x_planilla(v_planilla.id_uo) || ','|| v_planilla.id_uo ||') and ';
     end if;
+
+    select tuo.id_funcionario
+    into v_id_gerente
+    from orga.tcargo tcar
+    inner join orga.tuo_funcionario tuo on tuo.id_cargo = tcar.id_cargo
+    inner join orga.tuo uo on uo.id_uo = tuo.id_uo
+    where tuo.estado_reg = 'activo' and tuo.tipo = 'oficial' and tcar.codigo = '1' and uo.estado_reg = 'activo'
+    and current_date <= coalesce(tuo.fecha_finalizacion,'31/12/9999'::date);
 
 	for v_registros in execute('
           select distinct on (uofun.id_funcionario) uofun.id_funcionario , uofun.id_uo_funcionario,ofi.id_lugar,car.id_cargo,tc.codigo as tipo_contrato,
@@ -57,7 +65,7 @@ BEGIN
       --v_licencia = plani.f_get_licencia(v_registros.id_funcionario, v_planilla.fecha_fin);
 
       --Administrativos
-    	if ((v_registros.categoria != 'SUPER' or v_registros.id_funcionario = 10) and v_planilla.modalidad = 'administrativo') then
+    	if ((v_registros.categoria != 'SUPER' or v_registros.id_funcionario = v_id_gerente) and v_planilla.modalidad = 'administrativo') then
         v_id_afp = plani.f_get_afp(v_registros.id_funcionario, v_planilla.fecha_fin);
     	  v_id_cuenta_bancaria = plani.f_get_cuenta_bancaria_empleado(v_registros.id_funcionario, v_planilla.fecha_fin);
     	  if (v_registros.id_lugar is null) then
@@ -103,7 +111,7 @@ BEGIN
             end loop;
     	end if;
         --Pilotos y Copilotos
-      if ((v_registros.categoria = 'SUPER' and v_registros.id_funcionario != 10) and v_planilla.modalidad = 'piloto') then
+      if ((v_registros.categoria = 'SUPER' and v_registros.id_funcionario != v_id_gerente) and v_planilla.modalidad = 'piloto') then
           v_id_afp = plani.f_get_afp(v_registros.id_funcionario, v_planilla.fecha_fin);
     	  v_id_cuenta_bancaria = plani.f_get_cuenta_bancaria_empleado(v_registros.id_funcionario, v_planilla.fecha_fin);
     	  if (v_registros.id_lugar is null) then

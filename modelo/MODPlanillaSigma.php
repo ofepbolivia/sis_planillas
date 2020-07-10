@@ -23,7 +23,7 @@ class MODPlanillaSigma extends MODbase{
 		$this->setParametro('id_gestion','id_gestion','int4');
 		$this->setParametro('id_tipo_planilla','id_tipo_planilla','int4');
         $this->setParametro('id_planilla_aguinaldo','id_planilla_aguinaldo','int4');
-
+        $this->setParametro('modalidad','modalidad','varchar');
 				
 		//Definicion de la lista del resultado del query
 		$this->captura('gerencia','varchar');		

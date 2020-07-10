@@ -172,7 +172,7 @@ class MODReporte extends MODbase{
 		$this->tipo_procedimiento='SEL';//tipo de transaccion
 		$this->setCount(false);	
 		
-		$this->setParametro('id_tipo_contrato','id_tipo_contrato','int4');
+		$this->setParametro('id_tipo_contrato','id_tipo_contrato','varchar');
 		$this->setParametro('id_uo','id_uo','int4');
 		$this->setParametro('fecha','fecha','date');	
 						
@@ -313,6 +313,7 @@ class MODReporte extends MODbase{
         $this->setParametro('id_uo','id_uo','integer');
         $this->setParametro('fecha','fecha','date');
         $this->setParametro('agrupar_por','agrupar_por','varchar');
+        $this->setParametro('licencia','licencia','varchar');
 
 
 
@@ -420,7 +421,7 @@ class MODReporte extends MODbase{
         $this->captura('periodo','varchar');
         $this->captura('codigo_columna','varchar');
         $this->captura('valor','numeric');
-
+		$this->captura('modalidad','varchar');
 
 
 
@@ -440,20 +441,31 @@ class MODReporte extends MODbase{
         $this->tipo_procedimiento='SEL';//tipo de transaccion
 
         $this->setCount(false);
+		$this->setParametro('modalidad','modalidad','varchar');
+		$this->setParametro('id_gestion','id_gestion','integer');
 
         //Definicion de la lista del resultado del query
-        $this->captura('gerencia','varchar');
-        $this->captura('contrato','varchar');
-        $this->captura('desc_funcionario','varchar');
-        $this->captura('cargo','varchar');
-        $this->captura('lugar','varchar');
-        $this->captura('codigo','varchar');
-        $this->captura('email_empresa','varchar');
-        $this->captura('correo','varchar');
-        $this->captura('telefonos','varchar');
-        $this->captura('celulares','varchar');
-        $this->captura('documento','varchar');
-        $this->captura('lugar_trabajo','varchar');
+		$this->captura('id_funcionario','integer');
+		$this->captura('codigo_empleado','varchar');
+		$this->captura('nombre_empleado','varchar');
+
+		$this->captura('descripcion','varchar');
+		$this->captura('codigo_cargo','varchar');
+		$this->captura('doc_id','varchar');
+		$this->captura('id_uo','integer');
+		$this->captura('gerencia','varchar');
+		$this->captura('categoria_prog','varchar');
+
+		//Datos del tipo_reporte_columna
+		$this->captura('sumar_total','varchar');
+		$this->captura('ancho_columna','integer');
+		$this->captura('titulo_reporte_superior','varchar');
+		$this->captura('titulo_reporte_inferior','varchar');
+
+		//Datos de la columna
+		$this->captura('codigo_columna','varchar');
+		$this->captura('valor_columna','numeric');
+		//$this->captura('afp','varchar');
 
         //Ejecuta la instruccion
         $this->armarConsulta();
@@ -512,6 +524,7 @@ class MODReporte extends MODbase{
 		$this->captura('refrigerio','numeric');
 		$this->captura('viatico','numeric');
 		$this->captura('prima','numeric');
+		$this->captura('es_frontera','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -529,6 +542,7 @@ class MODReporte extends MODbase{
 		$this->transaccion='PLA_R_OTROS_ING_SEL';
 		$this->tipo_procedimiento='SEL';
 
+		$this->setParametro('id_proceso_wf','id_proceso_wf','integer');
 		//Define los parametros para la funcion
 		$this->setCount(false);
 		//Definicion de la lista del resultado del query
@@ -541,6 +555,8 @@ class MODReporte extends MODbase{
 		$this->captura('monto3','numeric');
 		$this->captura('monto4','numeric');
 		$this->captura('monto5','numeric');
+		$this->captura('monto6','numeric');
+		$this->captura('monto7','numeric');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -576,6 +592,89 @@ class MODReporte extends MODbase{
 		$this->ejecutarConsulta();
 
 		//Devuelve la respuesta
+		return $this->respuesta;
+	}
+
+	//{'desarrollador':'franklin.espinoza', 'fecha':'29/02/2020'}
+	function reportePlanillaPresupuestariaItems(){
+		//Definicion de variables para ejecucion del procedimientp
+		$this->procedimiento='plani.ft_reporte_sel';
+		$this->transaccion='PLA_PRESUPUESTO_SEL';
+		$this->tipo_procedimiento='SEL';//tipo de transaccion
+
+		$this->setCount(false);
+
+		$this->setParametro('fecha','fecha','date');
+
+		//Definicion de la lista del resultado del query
+		$this->captura('programa','varchar');
+		$this->captura('entidad','varchar');
+		$this->captura('dir_admin','varchar');
+		$this->captura('objeto_gasto','varchar');
+		$this->captura('actividad','varchar');
+		$this->captura('fuente','varchar');
+		$this->captura('organismo','varchar');
+		$this->captura('ue','varchar');
+		$this->captura('item','varchar');
+		$this->captura('cargo','varchar');
+		$this->captura('haber_basico','numeric');
+		$this->captura('costo_anual','numeric');
+		$this->captura('gestion','integer');
+
+		//Ejecuta la instruccion
+		$this->armarConsulta();
+		//echo($this->consulta);exit;
+		$this->ejecutarConsulta();
+		//Devuelve la respuesta
+		return $this->respuesta;
+	}
+
+	//(franklin.espinoza)01/05/2020 listar Otros Ingresos Funcionario Categoria
+	function listarOtrosIngresosCategoria(){
+		//Definicion de variables para ejecucion del procedimiento
+		$this->procedimiento='plani.ft_reporte_sel';// nombre procedimiento almacenado
+		$this->transaccion='PLA_OTROING_CAT_SEL';//nombre de la transaccion
+		$this->tipo_procedimiento='SEL';//tipo de transaccion
+
+		//$this->setCount(true);
+
+		$this->capturaCount('tot_refrigerio','numeric');
+		$this->capturaCount('tot_viatico_adm','numeric');
+		$this->capturaCount('tot_viatico_amp','numeric');
+		$this->capturaCount('tot_viatico_ope','numeric');
+		$this->capturaCount('tot_total_viatico','numeric');
+		$this->capturaCount('tot_prima','numeric');
+		$this->capturaCount('tot_retroactivo','numeric');
+
+		$this->setParametro('gestion','gestion','varchar');
+		$this->setParametro('periodo','periodo','varchar');
+		$this->setParametro('categoria','categoria','varchar');
+
+		//defino varialbes que se capturan como retorno de la funcion
+
+		$this->captura('id_persona','integer');
+		$this->captura('id_funcionario','integer');
+		$this->captura('desc_person','text');
+
+		$this->captura('refrigerio','numeric');
+		$this->captura('viatico_adm','numeric');
+		$this->captura('viatico_amp','numeric');
+		$this->captura('viatico_ope','numeric');
+		$this->captura('total_viatico','numeric');
+		$this->captura('c31','varchar');
+		$this->captura('ci','varchar');
+		$this->captura('cargo','varchar');
+		$this->captura('contrato','varchar');
+		$this->captura('estado','varchar');
+		$this->captura('prima','numeric');
+		$this->captura('retroactivo','numeric');
+
+
+		//Ejecuta la funcion
+		$this->armarConsulta();
+
+		//var_dump($this->getConsulta()); exit;
+		$this->ejecutarConsulta();
 		return $this->respuesta;
 	}
 }

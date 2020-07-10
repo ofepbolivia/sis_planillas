@@ -188,7 +188,7 @@ class RAguinaldoXLSv2
         $this->docexcel->getActiveSheet()->setCellValue('N1','Liquido Pagable');
         $nombre_funcionario = '';
         foreach ($datos as $value)
-        {
+        { //var_dump($value);exit;
             if($nombre_funcionario != '' && $nombre_funcionario != $value['nombre_empleado']){
                 $fila++;
                 $this->numero++;
@@ -232,12 +232,15 @@ class RAguinaldoXLSv2
 
         $index++;
         $codigo_pes = '';
-        $nombre_funcionario = '';
-        foreach ($datos as $value)
-        {
+        $nombre_funcionario = '';//var_dump('detalle');exit;
+        foreach ($datos as $value){
+
+
             if($codigo_pes == '' || $codigo_pes != $value['categoria_prog']){
-                $this->docexcel->getActiveSheet()->freezePaneByColumnAndRow(0,2);
+
                 $this->addHoja($value['categoria_prog'],$index);
+                $this->docexcel->getActiveSheet()->freezePaneByColumnAndRow(0,2);
+                $this->docexcel->getActiveSheet()->setTitle($value['categoria_prog']);
                 $this->docexcel->getActiveSheet()->getTabColor()->setRGB($color_pestana[$index]);
                 $this->docexcel->getActiveSheet()->getStyle('A1:N1')->getAlignment()->setWrapText(true);
                 $this->docexcel->getActiveSheet()->getStyle('A1:N1')->applyFromArray($styleTitulos3);

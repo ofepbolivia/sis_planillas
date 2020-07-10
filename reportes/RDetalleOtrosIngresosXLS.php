@@ -176,8 +176,10 @@ class RDetalleOtrosIngresosXLS
         $this->addHoja('Reporte Global Otros Ingresos',$index);
         $this->docexcel->getActiveSheet()->getTabColor()->setRGB($color_pestana[$index]);
 
-        $this->docexcel->getActiveSheet()->getStyle('A1:H1')->getAlignment()->setWrapText(true);
-        $this->docexcel->getActiveSheet()->getStyle('A1:H1')->applyFromArray($styleTitulos3);
+        //$this->docexcel->getActiveSheet()->getStyle('A1:H1')->getAlignment()->setWrapText(true);
+        $this->docexcel->getActiveSheet()->getStyle('A1:I1')->getAlignment()->setWrapText(true);
+        //$this->docexcel->getActiveSheet()->getStyle('A1:H1')->applyFromArray($styleTitulos3);
+        $this->docexcel->getActiveSheet()->getStyle('A1:I1')->applyFromArray($styleTitulos3);
 
         $fila=2;
         $this->numero=1;
@@ -190,7 +192,7 @@ class RDetalleOtrosIngresosXLS
         $this->docexcel->getActiveSheet()->getColumnDimension('F')->setWidth(15);//viatico
         $this->docexcel->getActiveSheet()->getColumnDimension('G')->setWidth(15);//prima
         $this->docexcel->getActiveSheet()->getColumnDimension('H')->setWidth(15);//hora/vuelo
-        //$this->docexcel->getActiveSheet()->getColumnDimension('I')->setWidth(15);//total_ingreso
+        $this->docexcel->getActiveSheet()->getColumnDimension('I')->setWidth(15);//total_ingreso
         //$this->docexcel->getActiveSheet()->getColumnDimension('F')->setWidth(15);//rc_iva
 
 
@@ -201,9 +203,9 @@ class RDetalleOtrosIngresosXLS
         $this->docexcel->getActiveSheet()->setCellValue('D1','CI.');
         $this->docexcel->getActiveSheet()->setCellValue('E1','Refrigerio.');
         $this->docexcel->getActiveSheet()->setCellValue('F1','Viatico');
-        $this->docexcel->getActiveSheet()->setCellValue('G1','Prima');
-        //$this->docexcel->getActiveSheet()->setCellValue('H1','Horas/Vuelo');
-        $this->docexcel->getActiveSheet()->setCellValue('H1','Total Otros/Ingresos');
+        $this->docexcel->getActiveSheet()->setCellValue('G1','Sueldo Abril');
+        $this->docexcel->getActiveSheet()->setCellValue('H1','Sueldo Mayo');
+        $this->docexcel->getActiveSheet()->setCellValue('I1','Total Otros/Ingresos');
         //$this->docexcel->getActiveSheet()->setCellValue('F1','RC-IVA');
 
         $nombre_funcionario = '';
@@ -264,7 +266,7 @@ class RDetalleOtrosIngresosXLS
                     $this->docexcel->getActiveSheet()->setCellValue('D1', 'CI.');
                     $this->docexcel->getActiveSheet()->setCellValue('E1', 'Refrigerio.');
                     $this->docexcel->getActiveSheet()->setCellValue('F1', 'Viatico');
-                    $this->docexcel->getActiveSheet()->setCellValue('G1', 'Prima');
+                    $this->docexcel->getActiveSheet()->setCellValue('G1', 'Retroactivo');
                     //$this->docexcel->getActiveSheet()->setCellValue('H1', 'Horas/Vuelo');
                     $this->docexcel->getActiveSheet()->setCellValue('H1', ' Total Otros/Ingresos');
 
@@ -312,9 +314,10 @@ class RDetalleOtrosIngresosXLS
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['ci']);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['monto2']);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['monto3']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, 0);
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['monto5']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, '=E'.$fila.'+F'.$fila.'+G'.$fila);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, $value['monto6']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['monto7']);
+                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, '=E'.$fila.'+F'.$fila.'+G'.$fila);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, '=E'.$fila.'+F'.$fila.'+G'.$fila.'+H'.$fila);
 
                 $nombre_funcionario = $value['nombre_empleado'];
             }
@@ -327,8 +330,10 @@ class RDetalleOtrosIngresosXLS
                     $this->docexcel->getActiveSheet()->freezePaneByColumnAndRow(0, 2);
                     $this->addHoja($value['categoria_prog'], $index);
                     $this->docexcel->getActiveSheet()->getTabColor()->setRGB($color_pestana[$index]);
-                    $this->docexcel->getActiveSheet()->getStyle('A1:H1')->getAlignment()->setWrapText(true);
-                    $this->docexcel->getActiveSheet()->getStyle('A1:H1')->applyFromArray($styleTitulos3);
+                    //$this->docexcel->getActiveSheet()->getStyle('A1:H1')->getAlignment()->setWrapText(true);
+                    $this->docexcel->getActiveSheet()->getStyle('A1:I1')->getAlignment()->setWrapText(true);
+                    //$this->docexcel->getActiveSheet()->getStyle('A1:H1')->applyFromArray($styleTitulos3);
+                    $this->docexcel->getActiveSheet()->getStyle('A1:I1')->applyFromArray($styleTitulos3);
                     $fila = 2;
                     $this->numero = 1;
                     $this->docexcel->getActiveSheet()->setTitle($value['categoria_prog']);
@@ -340,7 +345,7 @@ class RDetalleOtrosIngresosXLS
                     $this->docexcel->getActiveSheet()->getColumnDimension('F')->setWidth(15);//viatico
                     $this->docexcel->getActiveSheet()->getColumnDimension('G')->setWidth(15);//prima
                     $this->docexcel->getActiveSheet()->getColumnDimension('H')->setWidth(15);//hora/vuelo
-                    //$this->docexcel->getActiveSheet()->getColumnDimension('H')->setWidth(15);//total_ingreso
+                    $this->docexcel->getActiveSheet()->getColumnDimension('I')->setWidth(15);//total_ingreso
 
 
                     $this->docexcel->getActiveSheet()->setCellValue('A1', 'Nro');
@@ -349,9 +354,9 @@ class RDetalleOtrosIngresosXLS
                     $this->docexcel->getActiveSheet()->setCellValue('D1', 'CI.');
                     $this->docexcel->getActiveSheet()->setCellValue('E1', 'Refrigerio.');
                     $this->docexcel->getActiveSheet()->setCellValue('F1', 'Viatico');
-                    $this->docexcel->getActiveSheet()->setCellValue('G1', 'Prima');
-                    //$this->docexcel->getActiveSheet()->setCellValue('H1', 'Horas/Vuelo');
-                    $this->docexcel->getActiveSheet()->setCellValue('H1', 'Total Otros Ingresos');
+                    $this->docexcel->getActiveSheet()->setCellValue('G1', 'Sueldo Abril');
+                    $this->docexcel->getActiveSheet()->setCellValue('H1', 'Sueldo Mayo');
+                    $this->docexcel->getActiveSheet()->setCellValue('I1', 'Total Otros Ingresos');
 
                     $index++;
                     $nombre_funcionario = '';
@@ -369,9 +374,10 @@ class RDetalleOtrosIngresosXLS
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['ci']);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['monto2']);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['monto3']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, 0);
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['monto5']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, '=E'.$fila.'+F'.$fila.'+G'.$fila);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, $value['monto6']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['monto7']);
+                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, '=E'.$fila.'+F'.$fila.'+G'.$fila);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, '=E'.$fila.'+F'.$fila.'+G'.$fila.'+H'.$fila);
 
                 $nombre_funcionario = $value['nombre_empleado'];
                 $codigo_pes = $value['categoria_prog'];

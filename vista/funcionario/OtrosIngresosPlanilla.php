@@ -36,7 +36,7 @@ header("content-type: text/javascript; charset=UTF-8");
 </style>
 
 <script>
-    Phx.vista.OtrosIngresos=Ext.extend(Phx.gridInterfaz,{
+    Phx.vista.OtrosIngresosPlanilla=Ext.extend(Phx.gridInterfaz,{
         viewConfig: {
             stripeRows: false,
             getRowClass: function(record) {
@@ -46,41 +46,8 @@ header("content-type: text/javascript; charset=UTF-8");
         constructor: function(config) {
 
 
-            Phx.vista.OtrosIngresos.superclass.constructor.call(this,config);
+            Phx.vista.OtrosIngresosPlanilla.superclass.constructor.call(this,config);
             this.maestro = config;
-            /*console.log('this.maestro',this.maestro.maestro.id_funcionario);
-            this.etiqueta_ini = new Ext.form.Label({
-                name: 'etiqueta_ini',
-                grupo: [0,1],
-                fieldLabel: 'Fecha Inicio:',
-                text: 'Gestión:',
-                //style: {color: 'green', font_size: '12pt'},
-                readOnly:true,
-                anchor: '150%',
-                gwidth: 150,
-                format: 'd/m/Y',
-                hidden : false,
-                style: 'font-size: 170%; font-weight: bold; background-image: none;color: red;'
-            });
-
-            this.etiqueta_fin = new Ext.form.Label({
-                name: 'etiqueta_fin',
-                grupo: [0,1],
-                fieldLabel: 'Fecha Fin',
-                text: 'Periodo:',
-                //style: {color: 'red', font_size: '12pt'},
-                readOnly:true,
-                anchor: '150%',
-                gwidth: 150,
-                format: 'd/m/Y',
-                hidden : false,
-                style: 'font-size: 170%; font-weight: bold; background-image: none; color: red;'
-            });
-
-            this.tbar.addField(this.etiqueta_ini);
-            this.tbar.addField(this.cmbGestion);
-            this.tbar.addField(this.etiqueta_fin);
-            this.tbar.addField(this.cmbPeriodo);*/
 
             this.current_date = new Date();
             this.etiqueta_ini = new Ext.form.Label({
@@ -141,14 +108,53 @@ header("content-type: text/javascript; charset=UTF-8");
             this.tbar.addField(this.fecha_ini);
             this.tbar.addField(this.etiqueta_fin);
             this.tbar.addField(this.fecha_fin);
-
-
+            this.addButton('btn_rep_oi',
+                {
+                    text: 'Reporte Otros Ingresos',
+                    iconCls: 'bpagar',
+                    grupo: [0,1,2],
+                    disabled: false,
+                    handler: this.onBtnRepOtrosIngresosPlanilla,
+                    tooltip: 'Reporte Otros ingresos x Planilla'
+                });
             this.iniciarEventos();
             this.init();
         },
+
+        onBtnRepOtrosIngresosPlanilla: function(){
+            Phx.CP.loadingShow();
+            //var data = this.getSelectedData();
+            var fecha_ini = this.fecha_ini.getValue();
+            var fecha_fin = this.fecha_fin.getValue();
+
+            Ext.Ajax.request({
+                url:'../../sis_planillas/control/Planilla/reporteOtrosIngresos',
+                params:{'fecha_ini':fecha_ini, 'fecha_fin':fecha_fin},
+                success:this.successExport,
+                failure: this.conexionFailure,
+                timeout:this.timeout,
+                scope:this
+            });
+
+        },
+
+        iniciarEventos: function(){
+
+            this.store.baseParams.fecha_ini = this.fecha_ini.getValue();
+            this.store.baseParams.fecha_fin = this.fecha_fin.getValue();
+            this.load({params: {start: 0, limit: 50}});
+
+            this.fecha_fin.on('select', function (combo,rec,index) {
+                this.store.baseParams.fecha_ini = this.fecha_ini.getValue();
+                this.store.baseParams.fecha_fin = this.fecha_fin.getValue();
+                this.load({params: {start: 0, limit: 50}});
+            },this);
+        },
+
         bactGroups:[0,1],
         bexcelGroups:[0,1],
-        /*cmbGestion: new Ext.form.ComboBox({
+
+        cmbGestion: new Ext.form.ComboBox({
             fieldLabel: 'Gestion',
             allowBlank: false,
             emptyText: 'Gestión...',
@@ -212,33 +218,7 @@ header("content-type: text/javascript; charset=UTF-8");
             queryDelay: 500,
             listWidth: '280',
             width: 100
-        }),*/
-        iniciarEventos: function(){
-            this.store.baseParams.fecha_ini = this.fecha_ini.getValue();
-            this.store.baseParams.fecha_fin = this.fecha_fin.getValue();
-            this.load({params: {start: 0, limit: 50}});
-            
-            this.fecha_fin.on('select', function (combo,rec,index) {
-                this.store.baseParams.fecha_ini = this.fecha_ini.getValue();
-                this.store.baseParams.fecha_fin = this.fecha_fin.getValue();
-                this.load({params: {start: 0, limit: 50}});
-            },this);
-
-            /*this.cmbGestion.on('select', function (combo, record, index) {
-                this.tmpGestion = record.data.gestion;
-                this.cmbPeriodo.enable();
-                this.cmbPeriodo.reset();
-                this.store.removeAll();
-                this.cmbPeriodo.store.baseParams = Ext.apply(this.cmbPeriodo.store.baseParams, {id_gestion: this.cmbGestion.getValue()});
-                this.cmbPeriodo.modificado = true;
-            }, this);
-
-            this.cmbPeriodo.on('select', function (combo, record, index) {
-                this.tmpPeriodo = record.data.periodo;
-                this.capturaFiltros();
-            }, this);*/
-
-        },
+        }),
 
         capturaFiltros: function (combo, record, index) {
             if (this.validarFiltros()) {

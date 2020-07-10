@@ -25,6 +25,8 @@ DECLARE
   v_id_columna_valor	integer;
   v_max_retro			numeric;
   v_tipo_contrato		varchar;
+
+  v_fecha_fin			date;
 BEGIN
 
     v_nombre_funcion = 'plani.f_plareisu_insert_empleados';
@@ -46,7 +48,7 @@ BEGIN
     v_fecha_inicio = ('01/01/' || v_planilla.gestion) ::date;
     v_cantidad_horas_mes = plani.f_get_valor_parametro_valor('HORLAB', v_fecha_inicio)::integer;
     v_max_retro = plani.f_get_valor_parametro_valor('MAXRETROSUE', v_fecha_inicio)::integer;
-
+    v_fecha_fin = ('30/04/'|| v_planilla.gestion)::date;
 
     for v_registros in execute('
           select uofun.id_funcionario , array_agg(car.id_cargo) as cargos,
@@ -61,8 +63,8 @@ BEGIN
               on car.id_tipo_contrato = tc.id_tipo_contrato
           left join orga.toficina ofi
               on car.id_oficina = ofi.id_oficina
-          where (tc.codigo = ''PLA'' or (tc.codigo = ''EVE'' and uofun.id_uo = 9886)) and UOFUN.tipo = ''oficial'' and '
-          	|| v_filtro_uo || ' uofun.fecha_asignacion <= ''' || v_planilla.fecha_planilla || ''' and
+          where (tc.codigo = ''PLA'' or (tc.codigo = ''EVE'' or uofun.id_uo = 9886)) and UOFUN.tipo = ''oficial'' and '
+          	|| v_filtro_uo || ' uofun.fecha_asignacion <= ''' || v_fecha_fin || ''' and
               (uofun.fecha_finalizacion is null or uofun.fecha_finalizacion >= ''' || v_fecha_inicio || ''') AND
               uofun.estado_reg != ''inactivo'' and uofun.id_funcionario not in (
                   select id_funcionario

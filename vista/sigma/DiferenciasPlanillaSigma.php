@@ -51,6 +51,33 @@ header("content-type: text/javascript; charset=UTF-8");
                 form: true
             },
             {
+                config:{
+                    name:'modalidad',
+                    fieldLabel:'Modalidad',
+                    allowBlank:false,
+                    emptyText:'Modalidad...',
+                    disabled: false,
+                    editable: false,
+                    hidden: false,
+                    typeAhead: true,
+                    triggerAction: 'all',
+                    lazyRender:true,
+                    mode: 'local',
+                    store:['administrativo','piloto'],
+                    width: 177,
+                    renderer:function (value, p, record){return String.format('<div style="color:orangered;">{0}</div>', record.data['modalidad']);}
+
+                },
+                type:'ComboBox',
+                id_grupo:0,
+                filters:{
+                    type: 'list',
+                    options:['administrativo','piloto']
+                },
+                grid:true,
+                form:true
+            },
+            {
                     config:{
                         name : 'id_gestion',
                         origen : 'GESTION',
@@ -61,7 +88,7 @@ header("content-type: text/javascript; charset=UTF-8");
                     id_grupo : 0,
                     form : true
             },
-            {
+            /*{
                 config: {
                     name: 'id_planilla_aguinaldo',
                     fieldLabel: 'Planilla Aguinaldo',
@@ -108,7 +135,7 @@ header("content-type: text/javascript; charset=UTF-8");
                 type: 'AwesomeCombo',
                 id_grupo: 0,
                 form: true
-            },
+            },*/
             {
                 config:{
                     name : 'id_periodo',
@@ -137,6 +164,11 @@ header("content-type: text/javascript; charset=UTF-8");
 					this.Cmp.id_periodo.reset();
 					//this.mostrarComponente(this.Cmp.fecha_planilla);
 					//this.Cmp.fecha_planilla.allowBlank = false;
+                    if (r.data.codigo == 'PLAREISU'){
+                        this.ocultarComponente(this.Cmp.modalidad);
+                        this.Cmp.modalidad.allowBlank = true;
+                        this.Cmp.modalidad.reset();
+                    }
 				} else {
 					this.mostrarComponente(this.Cmp.id_periodo);
 					this.Cmp.id_periodo.allowBlank = false;
@@ -145,7 +177,7 @@ header("content-type: text/javascript; charset=UTF-8");
 	
 				}
 
-				if(r.data.codigo == 'PLAGUIN'){
+				/*if(r.data.codigo == 'PLAGUIN'){
                     this.Cmp.id_planilla_aguinaldo.setVisible(true);
                     this.Cmp.id_planilla_aguinaldo.reset();
                     this.Cmp.id_planilla_aguinaldo.store.baseParams.id_tipo_planilla = r.data.id_tipo_planilla;
@@ -154,21 +186,21 @@ header("content-type: text/javascript; charset=UTF-8");
                     this.Cmp.id_planilla_aguinaldo.setVisible(false);
                     this.Cmp.id_planilla_aguinaldo.reset();
                     this.Cmp.id_planilla_aguinaldo.allowBlank = true;
-                }
+                }*/
 			},this);
 			
 			this.Cmp.id_gestion.on('select',function(c,r,i){
 				this.Cmp.id_periodo.reset();
 				this.Cmp.id_periodo.store.baseParams.id_gestion = r.data.id_gestion;
-                this.Cmp.id_planilla_aguinaldo.enable();
-                this.Cmp.id_planilla_aguinaldo.store.baseParams.id_gestion = r.data.id_gestion;
+                /*this.Cmp.id_planilla_aguinaldo.enable();
+                this.Cmp.id_planilla_aguinaldo.store.baseParams.id_gestion = r.data.id_gestion;*/
 			},this);
 			
 			
 		},
         onReset:function(){ 
             this.form.getForm().reset();
-            this.Cmp.id_planilla_aguinaldo.disable();
+            //this.Cmp.id_planilla_aguinaldo.disable();
         },
 		clsSubmit : 'bprint',
 		tipo:'reporte',

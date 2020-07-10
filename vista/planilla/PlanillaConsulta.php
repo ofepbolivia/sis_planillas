@@ -269,6 +269,34 @@ header("content-type: text/javascript; charset=UTF-8");
             },
             {
                 config:{
+                    name:'modalidad',
+                    fieldLabel:'Modalidad',
+                    allowBlank:false,
+                    emptyText:'Modalidad...',
+                    disabled: true,
+                    editable: false,
+                    hidden: true,
+                    typeAhead: true,
+                    triggerAction: 'all',
+                    lazyRender:true,
+                    mode: 'local',
+                    store:['administrativo','piloto'],
+                    width: 177,
+                    renderer:function (value, p, record){return String.format('<div style="color:orangered;">{0}</div>', record.data['modalidad']);}
+
+                },
+                type:'ComboBox',
+                id_grupo:0,
+                filters:{
+                    type: 'list',
+                    options:['administrativo','piloto']
+                },
+                grid:true,
+                form:true
+            },
+
+            {
+                config:{
                     name: 'estado',
                     fieldLabel: 'Estado',
                     allowBlank: false,
@@ -589,6 +617,7 @@ header("content-type: text/javascript; charset=UTF-8");
             {name:'obs_poa', type: 'string'},
             {name:'periodo_pago', type: 'numeric'},
             {name:'fecha_sigma', type: 'date',dateFormat:'Y-m-d'},
+            {name:'modalidad', type: 'string'}
 
         ],
         sortInfo:{

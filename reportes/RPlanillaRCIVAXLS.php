@@ -142,7 +142,7 @@ class RPlanillaRCIVAXLS
         $tipo  = $this->objParam->getParametro('tipo');
 
 
-        $numberFormat = '#,##0.00';
+        $numberFormat = '0.00';
         $cant_datos = count($datos);
         $cont_total = 1;
         $fila_total = 1;
@@ -322,15 +322,15 @@ class RPlanillaRCIVAXLS
             $this->docexcel->getActiveSheet()->setCellValue('F1', 'Segundo Apellido');
             $this->docexcel->getActiveSheet()->setCellValue('G1', 'Número de Documento o de Identidad');
             $this->docexcel->getActiveSheet()->setCellValue('H1', 'Tipo de Documento');
-            $this->docexcel->getActiveSheet()->setCellValue('I1', 'Novedades');
+            $this->docexcel->getActiveSheet()->setCellValue('I1', 'Novedades (I=Incorporacion V=Vigente D=Desvinculado)');
 
 
             $this->docexcel->getActiveSheet()->setCellValue('J1', 'Monto de Ingreso Neto');
-            $this->docexcel->getActiveSheet()->setCellValue('K1', 'Dos salarios Minimos Nacionales no Imponible');
-            $this->docexcel->getActiveSheet()->setCellValue('L1', 'Imponible Sujeto a Impuesto(base imponible)');
-            $this->docexcel->getActiveSheet()->setCellValue('M1', 'Impuesto RC-IVA');
-            $this->docexcel->getActiveSheet()->setCellValue('N1', '13 % Dos Salarios Minimos Nacionales');
-            $this->docexcel->getActiveSheet()->setCellValue('O1', 'Impuesto Neto RC-IVA');
+            $this->docexcel->getActiveSheet()->setCellValue('K1', 'Dos (2) salarios Minimos Nacionales no Imponible');//K
+            $this->docexcel->getActiveSheet()->setCellValue('L1', 'Importe Sujeto a Impuesto(base imponible)');
+            $this->docexcel->getActiveSheet()->setCellValue('M1', 'Impuesto RC-IVA');//M
+            $this->docexcel->getActiveSheet()->setCellValue('N1', '13 % de dos (2) Salarios Minimos Nacionales');//N
+            $this->docexcel->getActiveSheet()->setCellValue('O1', 'Impuesto Neto RC-IVA');//O
             $this->docexcel->getActiveSheet()->setCellValue('P1', 'F-110 13% de Facturas Presentadas');
             $this->docexcel->getActiveSheet()->setCellValue('Q1', 'Saldo a Favor del Fisco');
             $this->docexcel->getActiveSheet()->setCellValue('R1', 'Saldo a Favor del Depend.');
@@ -363,47 +363,119 @@ class RPlanillaRCIVAXLS
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['prima']);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, '=K'.$fila.'+L'.$fila.'+M'.$fila);
 
+                $this->docexcel->getSheet(0)->getStyle('J'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['ingreso_neto']);
+                $this->docexcel->getSheet(0)->getStyle('K'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $value['dos_salario_minimo']);
+                $this->docexcel->getSheet(0)->getStyle('L'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $value['base_imponible']);
+                $this->docexcel->getSheet(0)->getStyle('M'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(17, $fila, $value['impuesto_rc_iva']);//R
+                $this->docexcel->getSheet(0)->getStyle('N'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['trece_dos_salario_minimo']);//S
+                $this->docexcel->getSheet(0)->getStyle('O'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, '=IF(R' . $fila . '>S' . $fila . ',R' . $fila . '-S' . $fila . ',0)');//T
+                $this->docexcel->getSheet(0)->getStyle('P'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(20, $fila, $value['trece_facturas']);//U
+                $this->docexcel->getSheet(0)->getStyle('Q'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, '=IF(T' . $fila . '>U' . $fila . ',T' . $fila . '-U' . $fila . ',0)');//V
+                $this->docexcel->getSheet(0)->getStyle('R'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, '=IF(U' . $fila . '>T' . $fila . ',U' . $fila . '-T' . $fila . ',0)');//W
+                $this->docexcel->getSheet(0)->getStyle('S'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(23, $fila, $value['saldo_per_anterior']);//X
+                $this->docexcel->getSheet(0)->getStyle('T'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(24, $fila, $value['mantenimiento_valor']);//Y
+                $this->docexcel->getSheet(0)->getStyle('U'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(25, $fila, $value['saldo_per_anterior'] + $value['mantenimiento_valor']);//Z
+                $this->docexcel->getSheet(0)->getStyle('V'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(26, $fila, '=IF(Z' . $fila . '<=U' . $fila . ',Z' . $fila . ',U' . $fila . ')');//AA
+                $this->docexcel->getSheet(0)->getStyle('W'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(27, $fila, '=IF(V' . $fila . '>AA' . $fila . ',V' . $fila . '-AA' . $fila . ',0)');//AB
+                $this->docexcel->getSheet(0)->getStyle('X'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(28, $fila, '=W' . $fila . '+Z' . $fila . '-AA' . $fila);//AC
 
             }else {
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0, $fila, $value['gestion']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(1, $fila, $value['periodo']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(2, $fila, $value['codigo_rc_iva']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['nombre']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['apellido_paterno']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['apellido_materno']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, $value['numero_documento']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['tipo_documento']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['novedades']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['ingreso_neto']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['dos_salario_minimo']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(11, $fila, $value['base_imponible']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['impuesto_rc_iva']);//M
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['trece_dos_salario_minimo']);//N
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, '=IF(M' . $fila . '>N' . $fila . ',M' . $fila . '-N' . $fila . ',0)');//O
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $value['trece_facturas']);//P
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, '=IF(O' . $fila . '>P' . $fila . ',O' . $fila . '-P' . $fila . ',0)');//Q
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(17, $fila, '=IF(P' . $fila . '>O' . $fila . ',P' . $fila . '-O' . $fila . ',0)');//R
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['saldo_per_anterior']);//S
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, $value['mantenimiento_valor']);//T
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(20, $fila, $value['saldo_per_anterior'] + $value['mantenimiento_valor']);//U
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, '=IF(U' . $fila . '<=Q' . $fila . ',U' . $fila . ',Q' . $fila . ')');//V
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, '=IF(Q' . $fila . '>V' . $fila . ',Q' . $fila . '-V' . $fila . ',0)');//W
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(23, $fila, '=R' . $fila . '+U' . $fila . '-V' . $fila);//X
+                if($value['es_frontera'] == 'no') {
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0, $fila, $value['gestion']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(1, $fila, $value['periodo']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(2, $fila, $value['codigo_rc_iva']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['nombre']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['apellido_paterno']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['apellido_materno']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, $value['numero_documento']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['tipo_documento']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['novedades']);
+                    $this->docexcel->getSheet(0)->getStyle('J'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['ingreso_neto']);//J
+                    $this->docexcel->getSheet(0)->getStyle('K'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['dos_salario_minimo']);//K
+                    $this->docexcel->getSheet(0)->getStyle('L'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(11, $fila, '=IF(J' . $fila . '>K' . $fila . ',J' . $fila . '-K' . $fila . ',0)');//L
+                    $this->docexcel->getSheet(0)->getStyle('M'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, '=(L' . $fila . '*13%)');//M
+                    $this->docexcel->getSheet(0)->getStyle('N'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['trece_dos_salario_minimo']);//N
+                    $this->docexcel->getSheet(0)->getStyle('O'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, '=IF(M' . $fila . '>N' . $fila . ',M' . $fila . '-N' . $fila . ',0)');//O
+                    $this->docexcel->getSheet(0)->getStyle('P'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $value['trece_facturas']);//P
+                    $this->docexcel->getSheet(0)->getStyle('Q'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, '=IF(O' . $fila . '>P' . $fila . ',O' . $fila . '-P' . $fila . ',0)');//Q
+                    $this->docexcel->getSheet(0)->getStyle('R'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(17, $fila, '=IF(P' . $fila . '>O' . $fila . ',P' . $fila . '-O' . $fila . ',0)');//R
+                    $this->docexcel->getSheet(0)->getStyle('S'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['saldo_per_anterior']);//S
+                    $this->docexcel->getSheet(0)->getStyle('T'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, $value['mantenimiento_valor']);//T
+                    $this->docexcel->getSheet(0)->getStyle('U'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(20, $fila, $value['saldo_per_anterior'] + $value['mantenimiento_valor']);//U
+                    $this->docexcel->getSheet(0)->getStyle('V'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, '=IF(U' . $fila . '<=Q' . $fila . ',U' . $fila . ',Q' . $fila . ')');//V
+                    $this->docexcel->getSheet(0)->getStyle('W'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, '=IF(Q' . $fila . '>V' . $fila . ',Q' . $fila . '-V' . $fila . ',0)');//W
+                    $this->docexcel->getSheet(0)->getStyle('X'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(23, $fila, '=R' . $fila . '+U' . $fila . '-V' . $fila);//X
+                }else{
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0, $fila, $value['gestion']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(1, $fila, $value['periodo']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(2, $fila, $value['codigo_rc_iva']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['nombre']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['apellido_paterno']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['apellido_materno']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, $value['numero_documento']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $value['tipo_documento']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['novedades']);
+                    $this->docexcel->getSheet(0)->getStyle('J'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila,  0);
+                    $this->docexcel->getSheet(0)->getStyle('K'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, 0);
+                    $this->docexcel->getSheet(0)->getStyle('L'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(11, $fila, 0);
+                    $this->docexcel->getSheet(0)->getStyle('M'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, 0);//M
+                    $this->docexcel->getSheet(0)->getStyle('N'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, 0);//N
+                    $this->docexcel->getSheet(0)->getStyle('O'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, 0);//O
+                    $this->docexcel->getSheet(0)->getStyle('P'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, 0);//P
+                    $this->docexcel->getSheet(0)->getStyle('Q'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, 0);//Q
+                    $this->docexcel->getSheet(0)->getStyle('R'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(17, $fila, 0);//R
+                    $this->docexcel->getSheet(0)->getStyle('S'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, 0);//S
+                    $this->docexcel->getSheet(0)->getStyle('T'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, 0);//T
+                    $this->docexcel->getSheet(0)->getStyle('U'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(20, $fila, 0);//U
+                    $this->docexcel->getSheet(0)->getStyle('V'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, 0);//V
+                    $this->docexcel->getSheet(0)->getStyle('W'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, 0);//W
+                    $this->docexcel->getSheet(0)->getStyle('X'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(23, $fila, 0);//X
+                }
             }
 
             $fila++;

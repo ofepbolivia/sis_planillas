@@ -39,6 +39,7 @@ DECLARE
     v_codigo_pla		varchar;
     v_fecha_fin			date;
     v_id_funcionario		integer;
+    v_tipo_jubilado			varchar;
 BEGIN
 	v_nombre_funcion = 'plani.f_calcular_formula';
     -- iniciamos llave while
@@ -46,7 +47,8 @@ BEGIN
     v_cantidad_variables = 0;
     v_formula = p_formula;
 
-    select tc.* into v_tipo_columna
+    select tc.*, cv.codigo_columna
+    into v_tipo_columna
     from plani.tcolumna_valor cv
     inner join plani.ttipo_columna tc
     	on tc.id_tipo_columna = cv.id_tipo_columna
@@ -61,6 +63,7 @@ BEGIN
                             inner join plani.thoras_trabajadas ht
                                 	on ht.id_horas_trabajadas = cd.id_horas_trabajadas
                             where cv.id_columna_valor = p_id_columna_valor
+                            order by ht.fecha_ini asc
                             ) loop
 
         	if (round(v_detalle.valor,2) = round(v_detalle.valor_generado,2)) then
@@ -115,7 +118,25 @@ BEGIN
                   set valor = v_resultado_detalle,
                   valor_generado = v_resultado_detalle
                   where id_columna_detalle = v_detalle.id_columna_detalle ;
-                  v_resultado = v_resultado + v_resultado_detalle;
+
+                  --v_resultado = v_resultado + v_resultado_detalle;
+                  --begin retroactivo 2019 (franklin.espinoza)
+                  if v_tipo_columna.codigo_columna = 'AFP_SSO' then
+                    select  case when afp.tipo_jubilado in ('jubilado_55','jubilado_65') then 'jubilado' else afp.tipo_jubilado end
+                    into v_tipo_jubilado
+                    from plani.tfuncionario_planilla tfp
+                    inner join plani.tfuncionario_afp afp on afp.id_funcionario = tfp.id_funcionario
+                    where  tfp.id_funcionario_planilla = p_id_funcionario_planilla and afp.fecha_ini < '01/12/2019'::date
+                    order by afp.tipo_jubilado asc
+                    limit 1;
+                    if v_tipo_jubilado = 'jubilado' then
+                    	v_resultado = 0;
+                    else
+                    	v_resultado = v_resultado + v_resultado_detalle;
+                    end if;
+                  else --end retroactivo 2019
+                  	v_resultado = v_resultado + v_resultado_detalle;
+                  end if;
               else
 
                   v_resultado = v_resultado + v_detalle.valor;
@@ -197,7 +218,10 @@ BEGIN
             RAISE EXCEPTION  'La formula % no contiene variables',v_formula;
         END IF;
     END IF;
-
+    --sueldos abril y mayo no contemplas otros ingresos - franklin.espinoza 29/04/2020
+    if v_tipo_columna.codigo_columna = 'OTROSING_RCIVA' and date_part('month',p_fecha_ini)::integer in (4,5) then
+    	v_resultado = 0;
+    end if;
   	return v_resultado;
 EXCEPTION
 

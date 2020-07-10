@@ -655,10 +655,19 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 				this.Cmp.id_periodo.allowBlank = true;
 				this.Cmp.id_periodo.reset();
                 //franklin.espinoza(26/9/2019) agregamos campo modalidad solo PLASUE
-                this.ocultarComponente(this.Cmp.modalidad);
-                this.Cmp.modalidad.allowBlank = true;
-                this.Cmp.modalidad.reset();
-                this.Cmp.modalidad.modificado = true;
+                if(r.data.codigo == 'PLAGUIN'){
+                    this.mostrarComponente(this.Cmp.modalidad);
+                    this.Cmp.modalidad.allowBlank = false;
+                    this.Cmp.modalidad.reset();
+                    this.Cmp.modalidad.modificado = true;
+                    this.Cmp.modalidad.setDisabled(false);
+                }else{
+                    this.ocultarComponente(this.Cmp.modalidad);
+                    this.Cmp.modalidad.allowBlank = true;
+                    this.Cmp.modalidad.reset();
+                    this.Cmp.modalidad.modificado = true;
+                }
+
 			} else {
 				this.mostrarComponente(this.Cmp.id_periodo);
 				this.Cmp.id_periodo.allowBlank = false;

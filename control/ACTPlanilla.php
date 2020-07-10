@@ -15,6 +15,8 @@ require_once(dirname(__FILE__).'/../reportes/RCertificacionPresupuestaria.php');
 require_once(dirname(__FILE__).'/../reportes/RMinisterioTrabajoAguinaldoXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RMinisterioTrabajoSegAguinaldoXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RElaboracionFormC31PDF.php');
+require_once(dirname(__FILE__).'/../reportes/RDetalleOtrosIngresosTableXLS.php');
+require_once(dirname(__FILE__).'/../reportes/RElaboracionPlaniC31PDF.php');
 
 class ACTPlanilla extends ACTbase{
 
@@ -95,6 +97,7 @@ class ACTPlanilla extends ACTbase{
         $nombreArchivo.='.xls';
         $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
         $this->objParam->addParametro('datos',$this->res->datos);
+        $this->objParam->addParametro('modalidad',$this->objParam->getParametro('modalidad'));
 
         $this->objFunc=$this->create('MODPlanilla');
         $this->res=$this->objFunc->listarReporteMinisterioCabecera($this->objParam);
@@ -256,13 +259,18 @@ class ACTPlanilla extends ACTbase{
         $dataSource=$this->objFunc->reporteElaboracionFormC31();
         $this->dataSource=$dataSource->getDatos();
 
+        //Retenciones
+        $this->objFunc = $this->create('MODPlanilla');
+        $dataSourceRetencion = $this->objFunc->reporteRetencionFormC31($this->objParam);
+        $this->dataRetencion = $dataSourceRetencion->getDatos();
+
         $nombreArchivo = uniqid(md5(session_id()).'[Planilla - Elaboración C31]').'.pdf';
         $this->objParam->addParametro('orientacion','P');
         $this->objParam->addParametro('tamano','LETTER');
         $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
 
         $this->objReporte = new RElaboracionFormC31PDF($this->objParam);
-        $this->objReporte->setDatos($this->dataSource);
+        $this->objReporte->setDatos($this->dataSource, $this->dataRetencion);
         $this->objReporte->generarReporte();
         $this->objReporte->output($this->objReporte->url_archivo,'F');
 
@@ -273,7 +281,7 @@ class ACTPlanilla extends ACTbase{
         $this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
     }
 
-    //(f.e.a)13/3/2017 listar Otros Ingresos Funcionario
+    //(f.e.a)13/10/2019 listar Otros Ingresos Funcionario
     function listarOtrosIngresos(){
 
         $this->objParam->defecto('ordenacion','toi.nombre_sys_ingreso');
@@ -294,6 +302,52 @@ class ACTPlanilla extends ACTbase{
         $this->res->imprimirRespuesta($this->res->generarJson());*/
     }
 
-}
+    //(f.e.a) 06/02/2020 reporte excel de otros ingresos por periodo finanzas
+    function reporteOtrosIngresos(){
+        $this->objFunc = $this->create('MODPlanilla');
+        $this->res=$this->objFunc->reporteOtrosIngresos($this->objParam);
+        $titulo_archivo = 'Planilla Otros ingresos';
+        $this->datos=$this->res->getDatos();
 
+        $nombreArchivo = uniqid(md5(session_id()).$titulo_archivo).'.xls';
+        $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
+        $this->objParam->addParametro('titulo_archivo',$titulo_archivo);
+        $this->objParam->addParametro('datos',$this->datos);
+        $this->objParam->addParametro('gestion',$this->objParam->getParametro('gestion'));
+        $this->objParam->addParametro('periodo',$this->objParam->getParametro('periodo'));
+
+        $this->objReporte = new RDetalleOtrosIngresosTableXLS($this->objParam);
+        $this->objReporte->generarReporte();
+
+        $this->mensajeExito=new Mensaje();
+        $this->mensajeExito->setMensaje('EXITO','Reporte.php','Reporte generado','Se generó con éxito el reporte: '.$nombreArchivo,'control');
+        $this->mensajeExito->setArchivoGenerado($nombreArchivo);
+        $this->res = $this->mensajeExito;
+        $this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
+    }
+
+    //Reporte Elaboracion Formulario C31 Planilla de Funcionarios(F.E.A) 17/02/2020
+    function reporteElaboracionPlanillaC31 (){
+
+        $this->objFunc=$this->create('MODPlanilla');
+        $dataSource=$this->objFunc->reporteElaboracionPlanillaC31();
+        $this->dataSource=$dataSource->getDatos();
+
+        $nombreArchivo = uniqid(md5(session_id()).'[Planilla - Funcionarios C31]').'.pdf';
+        $this->objParam->addParametro('orientacion','L');
+        $this->objParam->addParametro('tamano','LETTER');
+        $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
+
+        $this->objReporte = new RElaboracionPlaniC31PDF($this->objParam);
+        $this->objReporte->setDatos($this->dataSource);
+        $this->objReporte->generarReporte();
+        $this->objReporte->output($this->objReporte->url_archivo,'F');
+
+
+        $this->mensajeExito=new Mensaje();
+        $this->mensajeExito->setMensaje('EXITO','Reporte.php','Reporte generado', 'Se generó con éxito el reporte: '.$nombreArchivo,'control');
+        $this->mensajeExito->setArchivoGenerado($nombreArchivo);
+        $this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
+    }
+}
 ?>

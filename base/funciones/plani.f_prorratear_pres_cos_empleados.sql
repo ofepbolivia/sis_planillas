@@ -6,26 +6,30 @@ CREATE OR REPLACE FUNCTION plani.f_prorratear_pres_cos_empleados (
 RETURNS varchar AS
 $body$
 DECLARE
-  v_registros		record;
-  v_columnas		record;
-  v_id_prorrateo	integer;
-  v_id_pres_adm		integer;
-  v_resp	            	varchar;
+  v_registros		          record;
+  v_columnas		          record;
+  v_id_prorrateo	        integer;
+  v_id_pres_adm		        integer;
+  v_resp	            	  varchar;
   v_nombre_funcion      	text;
   v_mensaje_error       	text;
-  v_planilla				record;
-  v_consulta				varchar;
-  v_presupuesto				record;
-  v_id_presupuesto			integer;
-  v_count					integer;
-  v_dias_aguinaldo			integer;
-  v_suma					numeric;
-  v_porcentaje				numeric;
-  v_valor_total				numeric;
-  v_valor_horas				numeric;
-  v_subsidio_actual			numeric;
-  v_horas_laborales			numeric;
+  v_planilla				      record;
+  v_consulta				      varchar;
+  v_presupuesto				    record;
+  v_id_presupuesto			  integer;
+  v_count				  	      integer;
+  v_dias_aguinaldo		  	integer;
+  v_suma					        numeric;
+  v_porcentaje				    numeric;
+  v_valor_total				    numeric;
+  v_valor_horas				    numeric;
+  v_subsidio_actual			  numeric;
+  v_horas_laborales			  numeric;
   v_id_gestion_contable		integer;
+
+  v_id_gestion            varchar;
+  v_inner_cargo_pres      varchar;
+  v_where_id_gestion      varchar;
 BEGIN
 	v_nombre_funcion = 'plani.f_prorratear_pres_cos_empleados';
 
@@ -49,7 +53,7 @@ BEGIN
     if (v_planilla.tipo_presu_cc = 'parametrizacion' and v_planilla.calculo_horas = 'si') then  --RAISE EXCEPTION 'A';
     	v_horas_laborales = plani.f_get_valor_parametro_valor('HORLAB',v_planilla.fecha_periodo);
     	for v_registros in (select fp.id_funcionario_planilla,ht.id_horas_trabajadas, fun.desc_funcionario1,
-        					ht.porcentaje_sueldo,ht.horas_normales,ht.sueldo
+        					ht.porcentaje_sueldo,ht.horas_normales,ht.sueldo, fp.id_funcionario
         							from plani.thoras_trabajadas ht
         							inner join plani.tfuncionario_planilla fp on
                                     	fp.id_funcionario_planilla = ht.id_funcionario_planilla
@@ -147,6 +151,8 @@ BEGIN
                   p_tipo_generacion,
                   v_presupuesto.porcentajes[v_count]*v_registros.sueldo/v_horas_laborales*v_registros.horas_normales/CASE WHEN v_valor_total = 0 THEN 1 ELSE v_valor_total END,
                   v_presupuesto.porcentajes[v_count]*v_registros.horas_normales/CASE WHEN v_valor_horas = 0 THEN 1 ELSE v_valor_horas END,
+                  --case when v_registros.id_funcionario = 819 or v_registros.id_funcionario = 1267 then 100 else v_presupuesto.porcentajes[v_count]*v_registros.sueldo/v_horas_laborales*v_registros.horas_normales/CASE WHEN v_valor_total = 0 THEN 1 ELSE v_valor_total END end,
+                  --case when v_registros.id_funcionario = 819 or v_registros.id_funcionario = 1267 then 100 else v_presupuesto.porcentajes[v_count]*v_registros.horas_normales/CASE WHEN v_valor_horas = 0 THEN 1 ELSE v_valor_horas END end,
                   v_presupuesto.id_oficina,
                   v_presupuesto.id_lugar,
                   v_presupuesto.tipo_contrato
@@ -677,6 +683,18 @@ BEGIN
                                     inner join orga.vfuncionario fun on fun.id_funcionario = fp.id_funcionario
                                     where fp.id_planilla = p_id_planilla) loop
 
+            if v_planilla.tipo_planilla = 'PLAPRI' then
+              v_id_gestion = 'p.id_gestion + 1';
+              v_inner_cargo_pres = 'inner join param.tperiodo tper on tper.periodo = 6 and tper.id_gestion = ges.id_gestion
+                               	  inner join orga.tcargo_presupuesto cp on cp.id_cargo = car.id_cargo and cp.id_gestion = ges.id_gestion and
+                                  ((tper.fecha_ini between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||ges.gestion)::date)) or
+                                  (tper.fecha_fin between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||ges.gestion)::date)))';
+              v_where_id_gestion = '';
+            else
+              v_id_gestion = 'p.id_gestion';
+              v_inner_cargo_pres = 'inner join orga.tcargo_presupuesto cp on cp.id_cargo = car.id_cargo';
+              v_where_id_gestion = 'cp.id_gestion = p.id_gestion and p.id_gestion = cp.id_gestion and ';
+            end if;
 
             v_presupuesto = NULL;
             v_consulta = 'select ofi.id_oficina,ofi.id_lugar,tc.codigo as tipo_contrato,cp.fecha_ini, sum(cp.porcentaje) as suma, pxp.aggarray(cp.id_centro_costo) as ids_presupuesto, pxp.aggarray(cp.porcentaje) as porcentajes
@@ -686,22 +704,16 @@ BEGIN
                           inner join orga.tcargo car on car.id_cargo = uofun.id_cargo
                           inner join orga.toficina ofi on ofi.id_oficina = car.id_oficina
                           inner join orga.ttipo_contrato tc on tc.id_tipo_contrato = car.id_tipo_contrato
-                          inner join param.tgestion ges on ges.id_gestion = p.id_gestion+1 ';
+                          inner join param.tgestion ges on ges.id_gestion = '||v_id_gestion;-- p.id_gestion | p.id_gestion + 1
             --hacer el join con cargo_presupeusto o cargo_centro_costo segun corresponda
             if (p_tipo_generacion = 'presupuestos') then
-            	v_consulta = v_consulta || '
-                				--inner join orga.tcargo_presupuesto cp on cp.id_cargo = car.id_cargo
-                				inner join param.tperiodo tper on tper.periodo = 6 and tper.id_gestion = ges.id_gestion
-                               	inner join orga.tcargo_presupuesto cp on cp.id_cargo = car.id_cargo and cp.id_gestion = ges.id_gestion and
-                               ((tper.fecha_ini between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||ges.gestion)::date)) or
-                               (tper.fecha_fin between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||ges.gestion)::date)))
-                ';
+            	v_consulta = v_consulta || v_inner_cargo_pres;
             else
             	v_consulta = v_consulta || ' inner join orga.tcargo_centro_costo cp on cp.id_cargo = car.id_cargo ';
             end if;
 
             --obtener los presupeustos por contrato
-            v_consulta = v_consulta || ' where 	/*cp.id_gestion = p.id_gestion and p.id_gestion = cp.id_gestion and*/
+            v_consulta = v_consulta || ' where 	'||v_where_id_gestion||'
                                   fp.id_funcionario_planilla = ' || v_registros.id_funcionario_planilla||  ' and cp.fecha_ini<= (''31/12/'' || ges.gestion)::date
                           group by ofi.id_oficina,ofi.id_lugar,tc.codigo,cp.fecha_ini
                           order by cp.fecha_ini desc

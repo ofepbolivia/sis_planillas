@@ -9,9 +9,10 @@ class RElaboracionFormC31PDF extends  ReportePDF {
     var $ancho_sin_totales;
     var $cantidad_columnas_estaticas;
 
-    function setDatos($datos) {
+    function setDatos($datos, $retencion) {
         $this->datos = $datos;
-        //var_dump($this->datos);exit;
+        $this->retencion = $retencion;
+        //var_dump($this->retencion);exit;
     }
 
     function Header() {
@@ -22,7 +23,6 @@ class RElaboracionFormC31PDF extends  ReportePDF {
         $this->Cell(0,5,$this->datos[0]['observaciones'],0,1,'C');
 
         $this->Ln(2);
-
     }
 
     function generarReporte() {
@@ -34,9 +34,9 @@ class RElaboracionFormC31PDF extends  ReportePDF {
         $sueldos = 0;
         $corto_plazo = 0;
         $largo_plazo = 0;
-        $solidario = 0;
-        $vivienda = 0;
         $eventual = 0;
+
+
 
         $categoria = '';
         $partida = '';
@@ -56,7 +56,7 @@ class RElaboracionFormC31PDF extends  ReportePDF {
 
         $total_planilla = 0;
 
-
+        $total_retencion = 0;
         foreach ($this->datos as $value) {
             if($categoria != $value['categoria_prog'] || $categoria == ''){
                 if($categoria != $value['categoria_prog'] && $categoria != ''){
@@ -66,7 +66,6 @@ class RElaboracionFormC31PDF extends  ReportePDF {
                             <tr><td colspan="6" style="text-align: center">Total Categoria</td><td style="text-align: right;">'.number_format($total_sum, 2, ',', '.').'</td></tr>
                             ';
                     $total_planilla = $total_planilla + $total_sum;
-
 
                     $tbl_det = '&nbsp;&nbsp;<span style="font-size: 7pt;"><b>IMPUTACION</b></span> <br>
                                 <table border="1" style="font-size: 7pt;"> 
@@ -78,6 +77,23 @@ class RElaboracionFormC31PDF extends  ReportePDF {
                     $sumatoria = 0;
                     $total_sum = 0;
                     $partida = '';
+
+                    //retenciones
+                    $tbl_reten = '<br>&nbsp;&nbsp;<span style="font-size: 7pt;"><b>RETENCIONES</b></span> <br>
+                    <table border="1" style="font-size: 7pt;">
+                    <tr style="font-weight: bold; text-align: center;"><th width="10%">CONCEPTO</th><th width="15%">ACREEDOR</th><th width="30%">DESCRIPCION</th><th width="10%">MONTO</th></tr>
+                    ';
+                    foreach($this->retencion as $reten){
+                        if($categoria == $reten['categoria_prog']){
+                            $tbl_reten .='<tr style="text-align: center;"><td style="text-align: left;" width="10%">'.$reten['categoria_prog'].'</td><td style="text-align: left;" width="15%">'.$reten['retencion'].'</td><td style="text-align: left;" width="30%">'.ucwords(strtolower($reten['desc_retencion'])).'</td><td style="text-align: right;" width="10%">'.number_format($reten['monto'], 2, ',', '.').'</td></tr>';
+                            $total_retencion += $reten['monto'];
+                        }
+                    }
+                    $tbl_reten .='<tr><td colspan="3" style="text-align: center">Total Retenciones</td><td style="text-align: right; font-weight: bold;">'.number_format($total_retencion, 2, ',', '.').'</td></tr>
+                                  </table>';
+                    $this->writeHTML ($tbl_reten);
+                    $total_retencion = 0;
+                    //retenciones
                 }
                 $this->setFontSubsetting(false);
                 $this->AddPage();
@@ -111,7 +127,7 @@ class RElaboracionFormC31PDF extends  ReportePDF {
                 if($partida != '' && $partida != $value['nombre_partida'] || $programa != '' && $programa != $value['programa']){
 
                     $total_sum = $total_sum + $sumatoria;
-                        $tbl_det .= '
+                    $tbl_det .= '
                             <tr><td>' . $programa . '</td><td>' . $proyecto . '</td><td>' . $actividad . '</td><td>' . $objeto_gasto . '</td><td>' . $entidad_transf . '</td><td>' . $descripcion . '</td><td style="text-align: right;">' .  number_format($sumatoria, 2, ',', '.') . '</td></tr>
                             ';
                     $sumatoria = 0;
@@ -145,8 +161,21 @@ class RElaboracionFormC31PDF extends  ReportePDF {
                                 '.$tbl_det.'</table>';
         $this->writeHTML ($tbl_det);
 
+        //retenciones
+        $tbl_reten = '<br>&nbsp;&nbsp;<span style="font-size: 7pt;"><b>RETENCIONES</b></span> <br>
+                    <table border="1" style="font-size: 7pt;">
+                    <tr style="font-weight: bold; text-align: center;"><th width="10%">CONCEPTO</th><th width="15%">ACREEDOR</th><th width="30%">DESCRIPCION</th><th width="10%">MONTO</th></tr>
+                    ';
+        foreach($this->retencion as $reten){
+            if($categoria == $reten['categoria_prog']){
+                $tbl_reten .='<tr><td style="text-align: left;" width="10%">'.$reten['categoria_prog'].'</td><td style="text-align: left;" width="15%">'.$reten['retencion'].'</td><td style="text-align: left;" width="30%">'.ucwords(strtolower($reten['desc_retencion'])).'</td><td style="text-align: right;" width="10%">'.number_format($reten['monto'], 2, ',', '.').'</td></tr>';
+                $total_retencion += $reten['monto'];
+            }
+        }
+        $tbl_reten .='<tr><td colspan="3" style="text-align: center">Total Retenciones</td><td style="text-align: right; font-weight: bold;">'.number_format($total_retencion, 2, ',', '.').'</td></tr>
+                      </table>';
+        $this->writeHTML ($tbl_reten);
+        //retenciones
     }
-
-
 }
 ?>

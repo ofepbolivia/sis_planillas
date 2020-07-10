@@ -23,14 +23,15 @@ $body$
 
 DECLARE
 
-	v_consulta    		varchar;
-	v_parametros  		record;
-	v_nombre_funcion   	text;
-	v_resp				varchar;
-    v_filtro			varchar;
-    v_codigo_tipo_planilla	varchar;
-    v_codigo_columna		varchar;
-	v_aguinaldo				varchar;
+	v_consulta    		      varchar;
+	v_parametros  		      record;
+	v_nombre_funcion   	    text;
+	v_resp				          varchar;
+  v_filtro			          varchar;
+  v_codigo_tipo_planilla	varchar;
+  v_codigo_columna		    varchar;
+	v_aguinaldo				      varchar;
+	v_modalidad				      varchar='';
 BEGIN
 
 	v_nombre_funcion = 'plani.ft_planilla_sigma_sel';
@@ -56,11 +57,11 @@ BEGIN
                 end if;
             end if;
 
-            if (pxp.f_existe_parametro(p_tabla,'id_planilla_aguinaldo') and (v_parametros.id_planilla_aguinaldo::varchar != '' or v_parametros.id_planilla_aguinaldo is not null )) then
+            /*if (pxp.f_existe_parametro(p_tabla,'id_planilla_aguinaldo') and (/*v_parametros.id_planilla_aguinaldo::varchar != '' or*/ v_parametros.id_planilla_aguinaldo is not null )) then
             	v_aguinaldo = ' and pla.id_planilla = '||v_parametros.id_planilla_aguinaldo;
-            else
+            else*/
             	v_aguinaldo = '';
-            end if;
+            --end if;
 
             select tp.codigo into v_codigo_tipo_planilla
             from plani.ttipo_planilla tp
@@ -73,6 +74,10 @@ BEGIN
             else
             	raise exception 'No se puede sacar el reporte de este tipo de planillas';
             end if;
+
+            if pxp.f_existe_parametro(p_tabla,'modalidad') then
+            	v_modalidad = 'and pla.modalidad = '''||v_parametros.modalidad||'''';
+            end if;
     		--Sentencia de la consulta
             v_consulta:='	with
             				  detalle_erp as(
@@ -80,7 +85,7 @@ BEGIN
                                   from plani.tplanilla pla
                                   inner join plani.tfuncionario_planilla fp on fp.id_planilla = pla.id_planilla
                                   inner join plani.tcolumna_valor cv on cv.id_funcionario_planilla = fp.id_funcionario_planilla
-                                  where cv.codigo_columna = ''LIQPAG'' and cv.estado_reg = ''activo'' and
+                                  where cv.codigo_columna = ''LIQPAG'' and cv.estado_reg = ''activo'' '||v_modalidad||' and
                                   ' || v_filtro || v_aguinaldo ||'),
                               detalle_sigma as (
                                   select pla.id_funcionario,sum(pla.sueldo_liquido) as liquido_sigma

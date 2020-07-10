@@ -104,7 +104,7 @@ class RPrevisionesXLS
         $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(1,4,'Presupuesto');
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(2,4,'Cargo');
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(3,4,'Nombre Completo');
-		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(4,4,'Salario');
+		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(4,4,'Total Ingresos');
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(5,4,'Fecha Incorp');
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(6,4,'Dias');
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(7,4,'Indem Dia');

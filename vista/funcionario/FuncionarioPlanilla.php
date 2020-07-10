@@ -24,7 +24,7 @@ Phx.vista.FuncionarioPlanilla = {
         this.addButton('btnAfp',
         {
             text: 'AFP',
-            grupo: [0,1,2],
+            grupo: [0,1],
             iconCls: 'blist',
             disabled: true,
             handler: this.onBtnAfp,
@@ -42,19 +42,29 @@ Phx.vista.FuncionarioPlanilla = {
 
         this.addButton('btn_oi',
             {
-                text: 'Otros Ingresos',
+                text: 'Otros Ingresos Funcionario',
                 iconCls: 'bpagar',
+                grupo: [0,1],
                 disabled: true,
-                handler: this.onBtnOtrosIngresos,
-                tooltip: 'Detalle Otros ingresos'
+                handler: this.onBtnOtrosIngresosFuncionario,
+                tooltip: 'Detalle Otros ingresos x Funcionario'
+            });
+        this.addButton('btn_oi_pla',
+            {
+                text: 'Otros Ingresos Planilla',
+                iconCls: 'bpagar',
+                grupo: [0,1,2],
+                disabled: false,
+                handler: this.onBtnOtrosIngresosPlanilla,
+                tooltip: 'Detalle Otros ingresos x Planilla'
             });
    },
 
-    onBtnOtrosIngresos: function(){
+    onBtnOtrosIngresosFuncionario: function(){
         var rec = {maestro: this.getSelectedData()};
 
         Phx.CP.loadWindows('../../../sis_planillas/vista/funcionario/OtrosIngresos.php',
-            'Otros Ingresos',
+            'Otros Ingresos Funcionario',
             {
                 width:700,
                 height:450
@@ -62,6 +72,21 @@ Phx.vista.FuncionarioPlanilla = {
             rec,
             this.idContenedor,
             'OtrosIngresos'
+        );
+    },
+
+    onBtnOtrosIngresosPlanilla: function(){
+        var rec = {maestro: this.getSelectedData()};
+
+        Phx.CP.loadWindows('../../../sis_planillas/vista/funcionario/OtrosIngresosPlanilla.php',
+            'Otros Ingresos Planilla',
+            {
+                width:700,
+                height:450
+            },
+            rec,
+            this.idContenedor,
+            'OtrosIngresosPlanilla'
         );
     },
 
@@ -121,6 +146,10 @@ Phx.vista.FuncionarioPlanilla = {
             cls:'UoFuncionarioOpe'
         }*/
 
-    ]
+    ],
+    sortInfo:{
+        field: 'PERSON.nombre_completo2',
+        direction: 'ASC'
+    }
 };
 </script>

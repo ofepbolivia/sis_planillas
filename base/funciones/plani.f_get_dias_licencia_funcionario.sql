@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION plani.f_get_dias_licencia_funcionario (
 
     for v_registros in (select *
                         from plani.tlicencia l
-                        where l.id_funcionario = p_id_funcionario and l.estado = 'finalizado'
+                        where l.id_funcionario = p_id_funcionario and l.estado = 'finalizado' AND l.estado_reg != 'Eliminado'
                               and l.desde <= p_fecha) loop
       v_dias = 0;
       v_fecha_ini_lic = v_registros.desde;

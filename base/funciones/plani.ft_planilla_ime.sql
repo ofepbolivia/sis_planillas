@@ -74,7 +74,7 @@ DECLARE
     v_index				integer;
     v_items				varchar;
 
-
+    v_estado			varchar;
 BEGIN
 
     v_nombre_funcion = 'plani.ft_planilla_ime';
@@ -280,6 +280,14 @@ BEGIN
 	elsif(p_transaccion='PLA_PLANI_ELI')then
 
 		begin
+		      SELECT tp.estado
+          into v_estado
+          FROM plani.tplanilla tp
+          WHERE tp.id_planilla = v_parametros.id_planilla;
+          if v_estado = 'calculo_columnas' then
+            raise 'Estimado Usuario: No puede eliminar la planilla en este estado';
+          end if;
+
         	for v_registros in (select id_funcionario_planilla
             					from plani.tfuncionario_planilla
                                 where id_planilla = v_parametros.id_planilla) loop

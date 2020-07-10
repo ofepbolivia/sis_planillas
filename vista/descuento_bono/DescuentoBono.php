@@ -298,7 +298,7 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
     	this.ocultarComponente(this.Cmp.monto_total);
     	this.Cmp.monto_total.allowBlank = true;  
     	this.ocultarComponente(this.Cmp.valor_por_cuota);
-    	this.ocultarComponente(this.Cmp.id_tipo_columna);
+    	//this.ocultarComponente(this.Cmp.id_tipo_columna);
     	
     	if (rec.data.tipo_dato == 'basica' || rec.data.tipo_dato == 'formula') {
 			this.ocultarComponente(this.Cmp.monto_total);

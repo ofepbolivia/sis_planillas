@@ -61,7 +61,14 @@ class RMinisterioTrabajoAguinaldoXLS
     }
 
     function imprimeDatosSueldo(){
-        $this->docexcel->getActiveSheet()->setTitle('OVTPLA-T02');
+        /*$titulo = '';
+        if($this->objParam->getParametro('modalidad') == 'piloto'){
+            $titulo = 'PILOTOS';
+        }else{
+            $titulo = 'ADMINISTRATIVOS';
+        }*/
+        //$this->docexcel->getActiveSheet()->setTitle('OVTPLA-T02');
+        $this->docexcel->getActiveSheet()->setTitle('Ministerio de Trabajo');
         $datos = $this->objParam->getParametro('datos');
         $datos_cabecera = $this->objParam->getParametro('datos_cabecera');
         $columnas = 0;
@@ -211,7 +218,7 @@ class RMinisterioTrabajoAguinaldoXLS
         $this->docexcel->getActiveSheet()->setCellValue('R1','Caja de salud');//Modalidad de contrato
         $this->docexcel->getActiveSheet()->setCellValue('S1','AFP a la que aporta');//Horas pagadas (día)
         $this->docexcel->getActiveSheet()->setCellValue('T1','NUA/CUA');//
-        $this->docexcel->getActiveSheet()->setCellValue('U1','Sucursal o ubicacion adicional');//Nº de dominicales
+        $this->docexcel->getActiveSheet()->setCellValue('U1','Sucursal o ubicación adicional');//Nº de dominicales
         $this->docexcel->getActiveSheet()->setCellValue('V1','Clasificación laboral');//
         $this->docexcel->getActiveSheet()->setCellValue('W1','Cargo');//Horas extra
         $this->docexcel->getActiveSheet()->setCellValue('X1','Modalidad de contrato');//Horas de recargo nocturno
@@ -221,8 +228,9 @@ class RMinisterioTrabajoAguinaldoXLS
         $this->docexcel->getActiveSheet()->setCellValue('AA1','Promedio bono producción');//Salario dominical
         $this->docexcel->getActiveSheet()->setCellValue('AB1','Promedio subsidio frontera');//Monto pagado por domingo trabajado
         $this->docexcel->getActiveSheet()->setCellValue('AC1','Promedio trabajo extraordinario y nocturno');//Monto pagado por horas extra
-        $this->docexcel->getActiveSheet()->setCellValue('AD1','Promedio pago dominical trabajo');//Monto pagado por horas nocturnas
-        $this->docexcel->getActiveSheet()->setCellValue('AE1','Promedio otros descuentos');//Monto pagado por horas extra dominicales
+        $this->docexcel->getActiveSheet()->setCellValue('AD1','Promedio pago dominical trabajado');//Monto pagado por horas nocturnas
+        //$this->docexcel->getActiveSheet()->setCellValue('AE1','Promedio otros descuentos');//Monto pagado por horas extra dominicales
+        $this->docexcel->getActiveSheet()->setCellValue('AE1','Promedio otros bonos');//Monto pagado por horas extra dominicales
         $this->docexcel->getActiveSheet()->setCellValue('AF1','Promedio total ganado');//Bono de antiguedad
         $this->docexcel->getActiveSheet()->setCellValue('AG1','Meses trabajados');//Bono de producción
         $this->docexcel->getActiveSheet()->setCellValue('AH1','Total ganado después de duodécimas');//Subsidio de frontera

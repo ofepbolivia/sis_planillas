@@ -19,6 +19,7 @@ require_once(dirname(__FILE__).'/../reportes/RAguinaldoXLSv2.php');
 require_once(dirname(__FILE__).'/../reportes/RPlanillaRCIVAXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RPlanillaPrimaXLS.php');
 require_once(dirname(__FILE__).'/../reportes/RDetalleOtrosIngresosXLS.php');
+require_once(dirname(__FILE__).'/../reportes/RPlanillaPresupuestariaItemPDF.php');
 
 class ACTReporte extends ACTbase{
 
@@ -112,7 +113,7 @@ class ACTReporte extends ACTbase{
                 $nombreArchivo .= '.xls';
                 $this->objParam->addParametro('nombre_archivo', $nombreArchivo);
                 $this->objParam->addParametro('config', $this->res->datos[0]);
-                $this->objParam->addParametro('datos', $this->res2->datos);
+                $this->objParam->addParametro('datos', $this->res2->datos);//var_dump($this->res2->datos);exit;
                 if ($id_reporte == 7 || $id_reporte == 8) {
                     //Instancia la clase de excel para aguinaldo v2018
                     $this->objReporteFormato = new RAguinaldoXLSv2($this->objParam);
@@ -344,52 +345,79 @@ class ACTReporte extends ACTbase{
     function reporteGeneralPlanilla(){
 
         $this->objFunc=$this->create('MODReporte');
-        if($this->objParam->getParametro('configuracion_reporte') == 'contacto'){
-            $this->res=$this->objFunc->reporteGeneralPlanilla($this->objParam);
-            $titulo_archivo = 'Empleados con Datos de Contato';
-        }else if($this->objParam->getParametro('configuracion_reporte') == 'programatica'){
-            $this->res=$this->objFunc->reportePresupuestoCatProg($this->objParam);
-            $titulo_archivo = 'Prespuesto Retroactivo';
-        }else if($this->objParam->getParametro('configuracion_reporte') == 'aguinaldo'){
-            $this->res=$this->objFunc->reporteAguinaldo($this->objParam);
-            $titulo_archivo = 'Planilla Aguinaldo';
-        }else if($this->objParam->getParametro('configuracion_reporte') == 'rc_iva'){
-            $this->res=$this->objFunc->reporteRCIVA($this->objParam);
-            $titulo_archivo = 'Planilla RC-IVA';
-        }else if($this->objParam->getParametro('configuracion_reporte') == 'otros_ing'){
-            $this->res=$this->objFunc->reporteOtrosIngresosRCIVA($this->objParam);
-            $titulo_archivo = 'Planilla Otros Ingresos RC-IVA';
+
+        if($this->objParam->getParametro('configuracion_reporte') != 'plani_presupuestaria') {
+            if($this->objParam->getParametro('configuracion_reporte') == 'contacto'){
+                $this->res=$this->objFunc->reporteGeneralPlanilla($this->objParam);
+                $titulo_archivo = 'Empleados con Datos de Contato';
+            }else if($this->objParam->getParametro('configuracion_reporte') == 'programatica'){
+                $this->res=$this->objFunc->reportePresupuestoCatProg($this->objParam);
+                $titulo_archivo = 'Prespuesto Retroactivo';
+            }else if($this->objParam->getParametro('configuracion_reporte') == 'aguinaldo'){
+                $this->res=$this->objFunc->reporteAguinaldo($this->objParam);
+                $titulo_archivo = 'Planilla Aguinaldo';
+            }else if($this->objParam->getParametro('configuracion_reporte') == 'rc_iva'){
+                $this->res=$this->objFunc->reporteRCIVA($this->objParam);
+                $titulo_archivo = 'Planilla RC-IVA';
+            }else if($this->objParam->getParametro('configuracion_reporte') == 'otros_ing'){
+                $this->res=$this->objFunc->reporteOtrosIngresosRCIVA($this->objParam);
+                $titulo_archivo = 'Planilla Otros Ingresos RC-IVA';
+            }
+
+
+            $this->datos=$this->res->getDatos();//var_dump($this->datos);exit;
+
+            $nombreArchivo = uniqid(md5(session_id()).$titulo_archivo).'.xls';
+            $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
+            $this->objParam->addParametro('titulo_archivo',$titulo_archivo);
+            $this->objParam->addParametro('datos',$this->datos);
+
+            if($this->objParam->getParametro('configuracion_reporte') == 'contacto'){
+                $this->objReporte = new RGeneralPlanillaXls($this->objParam);
+            }else if($this->objParam->getParametro('configuracion_reporte') == 'programatica'){
+                $this->objReporte = new RPresupuestoRetroactivoXls($this->objParam);
+            }else if($this->objParam->getParametro('configuracion_reporte') == 'aguinaldo'){
+                $this->objReporte = new RAguinaldoXLSv2($this->objParam);
+            }else if($this->objParam->getParametro('configuracion_reporte') == 'rc_iva'){
+                $this->objReporte = new RPlanillaRCIVAXLS($this->objParam);
+            }else if($this->objParam->getParametro('configuracion_reporte') == 'otros_ing'){
+                $this->objParam->addParametro('tipo','formulario');
+                $this->objReporte = new RDetalleOtrosIngresosXLS($this->objParam);
+            }
+
+            $this->objReporte->generarReporte();
+
+
+            $mensajeExito = new Mensaje();
+            $mensajeExito->setMensaje('EXITO', 'Reporte.php', 'Reporte generado', 'Se generó con éxito el reporte: ' . $nombreArchivo, 'control');
+            $mensajeExito->setArchivoGenerado($nombreArchivo);
+            $this->res = $mensajeExito;
+            $this->res->imprimirRespuesta($this->res->generarJson());
+        }else{
+
+            $dataSource = $this->objFunc->reportePlanillaPresupuestariaItems($this->objParam);
+            $titulo_archivo = 'Planilla Presupuestaria Items';
+
+
+            $this->dataSource=$dataSource->getDatos();
+
+            $nombreArchivo = uniqid(md5(session_id()).'[Planilla Presupuestaria Items]').'.pdf';
+            $this->objParam->addParametro('orientacion','P');
+            $this->objParam->addParametro('tamano','LETTER');
+            $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
+
+            $this->objReporte = new RPlanillaPresupuestariaItemPDF($this->objParam);
+            $this->objReporte->setDatos($this->dataSource);
+
+            $this->objReporte->setDatos($this->dataSource);
+            $this->objReporte->generarReporte();
+            $this->objReporte->output($this->objReporte->url_archivo,'F');
+
+            $this->mensajeExito=new Mensaje();
+            $this->mensajeExito->setMensaje('EXITO','Reporte.php','Reporte generado', 'Se generó con éxito el reporte: '.$nombreArchivo,'control');
+            $this->mensajeExito->setArchivoGenerado($nombreArchivo);
+            $this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
         }
-
-
-        $this->datos=$this->res->getDatos();
-
-        $nombreArchivo = uniqid(md5(session_id()).$titulo_archivo).'.xls';
-        $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
-        $this->objParam->addParametro('titulo_archivo',$titulo_archivo);
-        $this->objParam->addParametro('datos',$this->datos);
-
-        if($this->objParam->getParametro('configuracion_reporte') == 'contacto'){
-            $this->objReporte = new RGeneralPlanillaXls($this->objParam);
-        }else if($this->objParam->getParametro('configuracion_reporte') == 'programatica'){
-            $this->objReporte = new RPresupuestoRetroactivoXls($this->objParam);
-        }else if($this->objParam->getParametro('configuracion_reporte') == 'aguinaldo'){
-            $this->objReporte = new RAguinaldoXLSv2($this->objParam);
-        }else if($this->objParam->getParametro('configuracion_reporte') == 'rc_iva'){
-            $this->objReporte = new RPlanillaRCIVAXLS($this->objParam);
-        }else if($this->objParam->getParametro('configuracion_reporte') == 'otros_ing'){
-            $this->objParam->addParametro('tipo','formulario');
-            $this->objReporte = new RDetalleOtrosIngresosXLS($this->objParam);
-        }
-
-        $this->objReporte->generarReporte();
-
-
-        $mensajeExito = new Mensaje();
-        $mensajeExito->setMensaje('EXITO', 'Reporte.php', 'Reporte generado', 'Se generó con éxito el reporte: ' . $nombreArchivo, 'control');
-        $mensajeExito->setArchivoGenerado($nombreArchivo);
-        $this->res = $mensajeExito;
-        $this->res->imprimirRespuesta($this->res->generarJson());
     }
 
     function uploadCsvCodigosRCIVA(){
@@ -498,6 +526,39 @@ class ACTReporte extends ACTbase{
         $this->mensajeExito->setArchivoGenerado($nombreArchivo);
         $this->res = $this->mensajeExito;
         $this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
+    }
+
+    //(f.e.a)01/05/2020 listar Otros Ingresos Funcionario Categoria
+    function listarOtrosIngresosCategoria(){
+
+        $this->objParam->defecto('ordenacion','vf.desc_funcionario2');
+        $this->objParam->defecto('dir_ordenacion','asc');
+
+        if($this->objParam->getParametro('tipoReporte')=='excel_grid' || $this->objParam->getParametro('tipoReporte')=='pdf_grid'){
+            $this->objReporte = new Reporte($this->objParam,$this);
+            $this->res = $this->objReporte->generarReporteListado('MODReporte','listarOtrosIngresosCategoria');
+        } else{
+            $this->objFunc=$this->create('MODReporte');
+            $this->res=$this->objFunc->listarOtrosIngresosCategoria($this->objParam);
+        }
+
+        //adicionar una fila al resultado con el summario
+        $temp = Array();
+        $temp['id_funcionario'] = 0;
+        $temp['desc_person'] = '<b style="font-size: 20px; color: #CD6155; text-align: right">TOTALES:</b>';
+        $temp['refrigerio'] ='<b style="font-size: 15px; color: #586E7E">'.$this->res->extraData['tot_refrigerio'].'</b>';
+        $temp['viatico_adm'] ='<b style="font-size: 15px; color: #586E7E">'.$this->res->extraData['tot_viatico_adm'].'</b>';
+        $temp['viatico_amp'] ='<b style="font-size: 15px; color: #586E7E">'.$this->res->extraData['tot_viatico_amp'].'</b>';
+        $temp['viatico_ope'] ='<b style="font-size: 15px; color: #586E7E">'.$this->res->extraData['tot_viatico_ope'].'</b>';
+        $temp['total_viatico'] ='<b style="font-size: 15px; color: #586E7E">'.$this->res->extraData['tot_total_viatico'].'</b>';
+        $temp['prima'] ='<b style="font-size: 15px; color: #586E7E">'.$this->res->extraData['tot_prima'].'</b>';
+        $temp['retroactivo'] ='<b style="font-size: 15px; color: #586E7E">'.$this->res->extraData['tot_retroactivo'].'</b>';
+
+        $this->res->total++;
+
+        $this->res->addLastRecDatos($temp);
+
+        $this->res->imprimirRespuesta($this->res->generarJson());
     }
 
 }

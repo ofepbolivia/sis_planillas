@@ -197,7 +197,7 @@ class RPlanillaActualizadaItemXLS
         //*************************************Detalle*****************************************
         $this->numero = 1;
         $fila = 6;
-        $datos = $this->objParam->getParametro('datos');
+        $datos = $this->objParam->getParametro('datos');//var_dump($datos);exit;
         $cat= $datos[0]['categoria_programatica'];
         $ger = '';
         $dep = '';

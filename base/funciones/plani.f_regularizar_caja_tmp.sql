@@ -21,7 +21,7 @@ BEGIN
                         from plani.tplanilla tp
                         inner join plani.tfuncionario_planilla tfp on tfp.id_planilla = tp.id_planilla
                         inner join plani.tcolumna_valor tcv on tcv.id_funcionario_planilla = tfp.id_funcionario_planilla and tcv.codigo_columna = 'CAJSAL'
-                        where tp.id_planilla = 528 loop
+                        where tp.id_planilla = 723 loop
 
 
 
@@ -34,7 +34,7 @@ BEGIN
                             inner join plani.thoras_trabajadas ht on ht.id_funcionario_planilla = fp.id_funcionario_planilla
                             inner join param.tperiodo tper on tper.id_periodo = p.id_periodo
                             where fp.id_funcionario = v_resultado.id_funcionario and  tp.codigo = 'PLASUE' and
-                            ht.estado_reg = 'activo' and p.id_gestion = v_resultado.id_gestion and tper.periodo <= 7) loop
+                            ht.estado_reg = 'activo' and p.id_gestion = v_resultado.id_gestion and tper.periodo <= 12) loop
 
             INSERT INTO
                 plani.tcolumna_detalle

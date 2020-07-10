@@ -74,7 +74,9 @@ BEGIN
                   v_resultado = ((v_salario_minimo*v_porcentaje/100)*3);
                 else
                   if  p_fecha_ini > p_fecha_per_ini and date_part('month', p_fecha_ini) = date_part('month', p_fecha_per_ini) then
-                    v_horas_normales = v_horas_normales - ((date_part('day', p_fecha_ini) - date_part('day', p_fecha_per_ini))*8);
+                    if v_valor_min = p_nivel_antiguedad then
+                      v_horas_normales = v_horas_normales - ((date_part('day', p_fecha_ini) - date_part('day', p_fecha_per_ini))*8);
+                    end if;
                   end if;
                   v_resultado = ((v_salario_minimo*v_porcentaje/100)*3)*v_horas_normales/v_horas_laborales;
 

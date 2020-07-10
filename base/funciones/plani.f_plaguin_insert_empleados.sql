@@ -25,13 +25,11 @@ BEGIN
     v_nombre_funcion = 'plani.f_plaguin_insert_empleados';
     v_filtro_uo = '';
 	select id_tipo_planilla, per.id_periodo, ges.fecha_ini, ges.fecha_fin, id_uo, 
-    		p.id_usuario_reg,p.fecha_planilla,ges.gestion,p.id_gestion
+    		p.id_usuario_reg,p.fecha_planilla,ges.gestion,p.id_gestion, p.modalidad
     into v_planilla 
     from plani.tplanilla p
-    left join param.tperiodo per
-    	on p.id_periodo = per.id_periodo
-    inner join param.tgestion ges
-    	on ges.id_gestion = p.id_gestion
+    left join param.tperiodo per on p.id_periodo = per.id_periodo
+    inner join param.tgestion ges on ges.id_gestion = p.id_gestion
     where p.id_planilla = p_id_planilla;
     
     if (v_planilla.fecha_planilla >= ('20/12/' || v_planilla.gestion)::date) then
@@ -51,10 +49,14 @@ BEGIN
           	''' || v_fecha_fin_planilla || ''' 
           else 
           	uofun.fecha_finalizacion 
-          end) as fecha_fin,uofun.fecha_finalizacion as fecha_fin_real 
+          end) as fecha_fin,uofun.fecha_finalizacion as fecha_fin_real,
+          ca.codigo as categoria
           from orga.tuo_funcionario uofun
-          inner join orga.tcargo car
-              on car.id_cargo = uofun.id_cargo
+          inner join orga.tcargo car on car.id_cargo = uofun.id_cargo
+
+          inner join orga.tescala_salarial es on es.id_escala_salarial = car.id_escala_salarial and es.estado_reg = ''activo''
+          inner JOIN orga.tcategoria_salarial ca ON ca.id_categoria_salarial = es.id_categoria_salarial
+
           inner join orga.ttipo_contrato tc
               on car.id_tipo_contrato = tc.id_tipo_contrato  
           inner join orga.toficina ofi
@@ -79,50 +81,98 @@ BEGIN
             end if;
         end if;
         v_dias = plani.f_get_dias_aguinaldo(v_registros.id_funcionario, v_registros.fecha_ini, v_registros.fecha_fin);
-        
-        
-        if (v_dias >= 90  and v_entra = 'si') then
-        	v_id_afp = plani.f_get_afp(v_registros.id_funcionario, v_registros.fecha_fin);
-        	v_id_cuenta_bancaria = plani.f_get_cuenta_bancaria_empleado(v_registros.id_funcionario, v_planilla.fecha_fin);
-             v_tipo_contrato = plani.f_get_tipo_contrato(v_registros.id_uo_funcionario);  
-            INSERT INTO plani.tfuncionario_planilla (
-                id_usuario_reg,					estado_reg,					id_funcionario,
-                id_planilla,					id_uo_funcionario,			id_lugar,
-                forzar_cheque,					finiquito,					id_afp,
-                id_cuenta_bancaria,				tipo_contrato)
-            VALUES (
-                v_planilla.id_usuario_reg,		'activo',					v_registros.id_funcionario,
-                p_id_planilla,					v_registros.id_uo_funcionario,v_registros.id_lugar,
-                'no',							'no',						v_id_afp,
-                v_id_cuenta_bancaria,			v_tipo_contrato)
-            RETURNING id_funcionario_planilla into v_id_funcionario_planilla;
-            
-            for v_columnas in (	select * 
-                                from plani.ttipo_columna 
-                                where id_tipo_planilla = v_planilla.id_tipo_planilla and estado_reg = 'activo' order by orden) loop
-                INSERT INTO 
-                    plani.tcolumna_valor
-                  (
-                    id_usuario_reg,
-                    estado_reg,
-                    id_tipo_columna,
-                    id_funcionario_planilla,
-                    codigo_columna,
-                    formula,
-                    valor,
-                    valor_generado
-                  ) 
-                  VALUES (
-                    v_planilla.id_usuario_reg,
-                    'activo',
-                    v_columnas.id_tipo_columna,
-                    v_id_funcionario_planilla,
-                    v_columnas.codigo,
-                    v_columnas.formula,
-                    0,
-                    0
-                  );
-            end loop;
+
+        if ((v_registros.categoria != 'SUPER' or v_registros.id_funcionario = 10) and v_planilla.modalidad = 'administrativo') then
+          if (v_dias >= 90  and v_entra = 'si') then
+            v_id_afp = plani.f_get_afp(v_registros.id_funcionario, v_registros.fecha_fin);
+            v_id_cuenta_bancaria = plani.f_get_cuenta_bancaria_empleado(v_registros.id_funcionario, v_planilla.fecha_fin);
+               v_tipo_contrato = plani.f_get_tipo_contrato(v_registros.id_uo_funcionario);
+              INSERT INTO plani.tfuncionario_planilla (
+                  id_usuario_reg,					estado_reg,					id_funcionario,
+                  id_planilla,					id_uo_funcionario,			id_lugar,
+                  forzar_cheque,					finiquito,					id_afp,
+                  id_cuenta_bancaria,				tipo_contrato)
+              VALUES (
+                  v_planilla.id_usuario_reg,		'activo',					v_registros.id_funcionario,
+                  p_id_planilla,					v_registros.id_uo_funcionario,v_registros.id_lugar,
+                  'no',							'no',						v_id_afp,
+                  v_id_cuenta_bancaria,			v_tipo_contrato)
+              RETURNING id_funcionario_planilla into v_id_funcionario_planilla;
+
+              for v_columnas in (	select *
+                                  from plani.ttipo_columna
+                                  where id_tipo_planilla = v_planilla.id_tipo_planilla and estado_reg = 'activo' order by orden) loop
+                  INSERT INTO
+                      plani.tcolumna_valor
+                    (
+                      id_usuario_reg,
+                      estado_reg,
+                      id_tipo_columna,
+                      id_funcionario_planilla,
+                      codigo_columna,
+                      formula,
+                      valor,
+                      valor_generado
+                    )
+                    VALUES (
+                      v_planilla.id_usuario_reg,
+                      'activo',
+                      v_columnas.id_tipo_columna,
+                      v_id_funcionario_planilla,
+                      v_columnas.codigo,
+                      v_columnas.formula,
+                      0,
+                      0
+                    );
+              end loop;
+          end if;
+        end if;
+
+        if ((v_registros.categoria = 'SUPER' and v_registros.id_funcionario != 10) and v_planilla.modalidad = 'piloto') then
+
+          if (v_dias >= 90  and v_entra = 'si') then
+            v_id_afp = plani.f_get_afp(v_registros.id_funcionario, v_registros.fecha_fin);
+            v_id_cuenta_bancaria = plani.f_get_cuenta_bancaria_empleado(v_registros.id_funcionario, v_planilla.fecha_fin);
+               v_tipo_contrato = plani.f_get_tipo_contrato(v_registros.id_uo_funcionario);
+              INSERT INTO plani.tfuncionario_planilla (
+                  id_usuario_reg,					estado_reg,					id_funcionario,
+                  id_planilla,					id_uo_funcionario,			id_lugar,
+                  forzar_cheque,					finiquito,					id_afp,
+                  id_cuenta_bancaria,				tipo_contrato)
+              VALUES (
+                  v_planilla.id_usuario_reg,		'activo',					v_registros.id_funcionario,
+                  p_id_planilla,					v_registros.id_uo_funcionario,v_registros.id_lugar,
+                  'no',							'no',						v_id_afp,
+                  v_id_cuenta_bancaria,			v_tipo_contrato)
+              RETURNING id_funcionario_planilla into v_id_funcionario_planilla;
+
+              for v_columnas in (	select *
+                                  from plani.ttipo_columna
+                                  where id_tipo_planilla = v_planilla.id_tipo_planilla and estado_reg = 'activo' order by orden) loop
+                  INSERT INTO
+                      plani.tcolumna_valor
+                    (
+                      id_usuario_reg,
+                      estado_reg,
+                      id_tipo_columna,
+                      id_funcionario_planilla,
+                      codigo_columna,
+                      formula,
+                      valor,
+                      valor_generado
+                    )
+                    VALUES (
+                      v_planilla.id_usuario_reg,
+                      'activo',
+                      v_columnas.id_tipo_columna,
+                      v_id_funcionario_planilla,
+                      v_columnas.codigo,
+                      v_columnas.formula,
+                      0,
+                      0
+                    );
+              end loop;
+          end if;
         end if;
     end loop;
     return 'exito';

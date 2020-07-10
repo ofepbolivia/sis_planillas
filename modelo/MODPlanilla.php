@@ -654,7 +654,7 @@ class MODPlanilla extends MODbase{
         $this->transaccion='PLA_MINTRA_AGUI_SEL';
         $this->tipo_procedimiento='SEL';//tipo de transaccion
 
-        $this->setParametro('id_periodo','id_periodo','int4');
+        //$this->setParametro('modalidad','modalidad','varchar');
         $this->setParametro('id_gestion','id_gestion','int4');
 
         //Definicion de la lista del resultado del query
@@ -795,6 +795,30 @@ class MODPlanilla extends MODbase{
         return $this->respuesta;
     }
 
+    //Reporte Elaboracion Formulario C31 sigma(F.E.A) 30/01/2019
+    function reporteRetencionFormC31(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='plani.ft_planilla_sel';
+        $this->transaccion='PLA_RETEN_C31_SEL';
+        $this->tipo_procedimiento='SEL';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
+
+        $this->captura('categoria_prog', 'varchar');
+        $this->captura('retencion', 'varchar');
+        $this->captura('desc_retencion', 'varchar');
+        $this->captura('afp', 'varchar');
+        $this->captura('monto', 'numeric');
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        //echo($this->consulta);exit;
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
+        return $this->respuesta;
+    }
+
     function listarOtrosIngresos(){
         //Definicion de variables para ejecucion del procedimiento
         $this->procedimiento='plani.ft_planilla_sel';// nombre procedimiento almacenado
@@ -802,9 +826,11 @@ class MODPlanilla extends MODbase{
         $this->tipo_procedimiento='SEL';//tipo de transaccion
         $this->setCount(true);
 
-        $this->setParametro('id_gestion','id_gestion','int4');
+        $this->setParametro('fecha_ini','fecha_ini','date');
+        $this->setParametro('fecha_fin','fecha_fin','date');
+        /*$this->setParametro('id_gestion','id_gestion','int4');
         $this->setParametro('id_periodo','id_periodo','int4');
-        $this->setParametro('id_funcionario','id_funcionario','int4');
+        $this->setParametro('id_funcionario','id_funcionario','int4');*/
 
         //defino varialbes que se capturan como retorno de la funcion
 
@@ -833,6 +859,100 @@ class MODPlanilla extends MODbase{
         $this->armarConsulta();
         //echo $this->getConsulta(); exit;
         $this->ejecutarConsulta();
+        return $this->respuesta;
+    }
+    //(f.e.a) 06/02/2020 reporte excel de otros ingresos por periodo finanzas
+    function reporteOtrosIngresos(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='plani.ft_planilla_sel';// nombre procedimiento almacenado
+        $this->transaccion='PLA_RP_OTROS_ING_SEL';//nombre de la transaccion
+        $this->tipo_procedimiento='SEL';//tipo de transaccion
+        $this->setCount(false);
+
+        //$this->setParametro('fecha_ini','fecha_ini','date');
+        //$this->setParametro('fecha_fin','fecha_fin','date');
+        $this->setParametro('gestion','gestion','integer');
+        $this->setParametro('periodo','periodo','integer');
+
+        //defino varialbes que se capturan como retorno de la funcion
+
+        $this->captura('nombre_empleado','text');
+        $this->captura('sistema_fuente','varchar');
+        $this->captura('monto','numeric');
+        $this->captura('ci','varchar');
+        $this->captura('cargo','varchar');
+        $this->captura('contrato','varchar');
+        $this->captura('categoria','varchar');
+        $this->captura('area','varchar');
+        $this->captura('regional','varchar');
+        $this->captura('c31','varchar');
+        $this->captura('fecha_pago','date');
+        $this->captura('tipo','varchar');
+        $this->captura('estado','varchar');
+        $this->captura('tasa_nacional','numeric');
+        $this->captura('tasa_internacional','numeric');
+        $this->captura('importe_retencion','numeric');
+        $this->captura('orden','varchar');
+        //$this->captura('prima','numeric');
+        //$this->captura('retro','numeric');
+
+
+        //Ejecuta la funcion
+        $this->armarConsulta();
+        //echo $this->getConsulta(); exit;
+        $this->ejecutarConsulta();
+        return $this->respuesta;
+    }
+
+    //Reporte Elaboracion Formulario C31 sigma(F.E.A) 17/02/2020
+    function reporteElaboracionPlanillaC31(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='plani.ft_planilla_sel';
+        $this->transaccion='PLA_REP_PLANIC31_SEL';
+        $this->tipo_procedimiento='SEL';
+
+        //Define los parametros para la funcion
+        $this->setParametro('id_proceso_wf','id_proceso_wf','int4');
+
+        $this->captura('categoria_prog', 'varchar');
+        $this->captura('codigo_programa', 'varchar');
+        $this->captura('desc_programa', 'varchar');
+        $this->captura('lugar', 'varchar');
+        $this->captura('presupuesto', 'varchar');
+        $this->captura('gestion', 'varchar');
+        $this->captura('entidad', 'varchar');
+        $this->captura('dir_admin', 'varchar');
+        $this->captura('actividad', 'varchar');
+        $this->captura('tipo_proceso', 'varchar');
+        $this->captura('periodo', 'varchar');
+        $this->captura('fecha_ini', 'date');
+        $this->captura('fecha_fin', 'date');
+        $this->captura('fuente', 'varchar');
+        $this->captura('organismo', 'varchar');
+        $this->captura('ue', 'varchar');
+        $this->captura('funcionario', 'varchar');
+        $this->captura('ci', 'varchar');
+        $this->captura('item', 'varchar');
+        $this->captura('fecha_planilla', 'date');
+        $this->captura('dias', 'integer');
+        $this->captura('haber', 'numeric');
+        $this->captura('bono', 'numeric');
+        $this->captura('otros_ing', 'numeric');
+        $this->captura('total_ing', 'numeric');
+        $this->captura('rc_iva', 'numeric');
+        $this->captura('afp_lab', 'numeric');
+        $this->captura('descuento', 'numeric');
+        $this->captura('total_descuento', 'numeric');
+        $this->captura('liquido', 'numeric');
+        $this->captura('subsidio', 'numeric');
+
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        //echo($this->consulta);exit;
+        $this->ejecutarConsulta();
+
+        //Devuelve la respuesta
         return $this->respuesta;
     }
 			

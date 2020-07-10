@@ -68,6 +68,28 @@ header("content-type: text/javascript; charset=UTF-8");
                 type:'DateField',
                 id_grupo:1,
                 form:true
+            },
+            {
+                config:{
+                    name:'licencia',
+                    fieldLabel:'Incluir Items Con Licencia',
+                    allowBlank: true,
+                    emptyText:'Seleccione Licencias...',
+                    anchor: '30%',
+                    typeAhead: true,
+                    triggerAction: 'all',
+                    lazyRender:true,
+                    mode: 'local',
+                    store:['si','no']
+
+                },
+                type:'ComboBox',
+                id_grupo:3,
+                filters:{
+                    type: 'list',
+                    options:['no','si']
+                },
+                form:true
             }
         ],
         title : 'Generar Reporte',
