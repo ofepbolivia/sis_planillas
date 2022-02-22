@@ -34,14 +34,14 @@ BEGIN
     select tp.valor
     into v_salario_minimo
     from plani.tparametro_valor tp
-    where tp.codigo = 'SALMIN' and tp.fecha_fin is null;
+    where tp.codigo = 'SALMIN' and tp.fecha_fin is null;--tp.fecha_fin between '01/05/2019'::date and '30/04/2021'::date;
 
     select tp.valor
     into v_horas_laborales
     from plani.tparametro_valor tp
     where tp.codigo = 'HORLAB' and tp.fecha_fin is null;
 
-    select th.horas_normales
+    select sum(th.horas_normales)
     into v_horas_normales
     from plani.thoras_trabajadas th
     where th.id_funcionario_planilla = p_id_funcionario_planilla;
@@ -132,8 +132,6 @@ BEGIN
    				v_inferior = 30 - v_superior;
 
               	v_resultado = ((v_salario_minimo*11/100)*3) * v_inferior/30 + ((v_salario_minimo*v_porcentaje/100)*3) * v_superior/30;
-
-
         	else
 
             	if v_horas_normales = 240 then
@@ -141,6 +139,7 @@ BEGIN
                 else
               		v_resultado = ((v_salario_minimo*v_porcentaje/100)*3)*v_horas_normales/v_horas_laborales;
               	end if;
+
             end if;
         end if;
     elsif v_porcentaje = 26 then
@@ -165,9 +164,45 @@ BEGIN
         end if;
 
     elsif v_porcentaje = 34 then
-
+        if p_fecha_ini = p_fecha_per_ini then
+        	if v_horas_normales = 240 then
+              	v_resultado = ((v_salario_minimo*v_porcentaje/100)*3);
+            else
+              	v_resultado = ((v_salario_minimo*v_porcentaje/100)*3)*v_horas_normales/v_horas_laborales;
+            end if;
+        else
+        	if v_valor_min = p_nivel_antiguedad and p_fecha_ini between p_fecha_per_ini and p_fecha_per_fin then
+              v_superior = 30 - date_part('day',p_fecha_ini) + 1;
+   			  v_inferior = 30 - v_superior;
+              v_resultado = ((v_salario_minimo*26/100)*3) * v_inferior/30 + ((v_salario_minimo*v_porcentaje/100)*3) * v_superior/30;
+        	else
+            	if v_horas_normales = 240 then
+              		v_resultado = ((v_salario_minimo*v_porcentaje/100)*3);
+              	else
+              		v_resultado = ((v_salario_minimo*v_porcentaje/100)*3)*v_horas_normales/v_horas_laborales;
+              	end if;
+            end if;
+        end if;
     elsif v_porcentaje = 46 then
-
+        if p_fecha_ini = p_fecha_per_ini then
+        	if v_horas_normales = 240 then
+              	v_resultado = ((v_salario_minimo*v_porcentaje/100)*3);
+            else
+              	v_resultado = ((v_salario_minimo*v_porcentaje/100)*3)*v_horas_normales/v_horas_laborales;
+            end if;
+        else
+        	if v_valor_min = p_nivel_antiguedad and p_fecha_ini between p_fecha_per_ini and p_fecha_per_fin then
+              v_superior = 30 - date_part('day',p_fecha_ini) + 1;
+   			  v_inferior = 30 - v_superior;
+              v_resultado = ((v_salario_minimo*34/100)*3) * v_inferior/30 + ((v_salario_minimo*v_porcentaje/100)*3) * v_superior/30;
+        	else
+            	if v_horas_normales = 240 then
+              		v_resultado = ((v_salario_minimo*v_porcentaje/100)*3);
+              	else
+              		v_resultado = ((v_salario_minimo*v_porcentaje/100)*3)*v_horas_normales/v_horas_laborales;
+              	end if;
+            end if;
+        end if;
     else
     	v_resultado = 0;
     end if;
@@ -189,3 +224,6 @@ STABLE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.f_calcular_prorrateo_bono_antiguedad (p_nivel_antiguedad integer, p_id_funcionario_planilla integer, p_id_funcionario integer, p_fecha_ini date, p_fecha_per_ini date, p_fecha_per_fin date)
+  OWNER TO postgres;

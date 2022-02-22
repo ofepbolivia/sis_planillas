@@ -62,7 +62,7 @@ class RMinisterioTrabajoUpdateXLS
 
     function imprimeDatosSueldo(){
         $this->docexcel->getActiveSheet()->setTitle('OVTPLA-T02');
-        $datos = $this->objParam->getParametro('datos');
+        $datos = $this->objParam->getParametro('datos'); //var_dump('$datos', $datos);exit;
         $datos_cabecera = $this->objParam->getParametro('datos_cabecera');
         $columnas = 0;
         $this->docexcel->setActiveSheetIndex(0);
@@ -269,7 +269,7 @@ class RMinisterioTrabajoUpdateXLS
         $this->orden=[];
         $numberFormat = '#0.00;[Red]-##0.00';
         //$this->docexcel->getStyle('AB10:AT1700')->getNumberFormat()->setFormatCode($numberFormat);
-
+        $otros_ingresos = 0;
         foreach($datos as $value) {
 
             if ($numero != $value['fila']) {
@@ -327,6 +327,7 @@ class RMinisterioTrabajoUpdateXLS
                     }
                 }
                 $numero = $value['fila'];
+                $otros_ingresos =  0;
 
             }
 
@@ -378,7 +379,7 @@ class RMinisterioTrabajoUpdateXLS
 
             if ($value['codigo_columna'] == 'SUELDOBA' || $value['codigo_columna'] == 'BONANT' || $value['codigo_columna'] == 'BONFRONTERA' ||
                 $value['codigo_columna'] == 'AFP_LAB' || $value['codigo_columna'] == 'CAJSAL' || $value['codigo_columna'] == 'IMPURET' ||
-                $value['codigo_columna'] == 'OTRO_DESC' || $value['codigo_columna'] == 'REINBANT' || $value['codigo_columna'] == 'PAGOVAR') {
+                $value['codigo_columna'] == 'OTRO_DESC' || $value['codigo_columna'] == 'REINBANT' || $value['codigo_columna'] == 'PAGOVAR' || $value['codigo_columna'] == 'PAGOFIJ') {
 
                 if($value['codigo_columna'] == 'SUELDOBA' || $value['codigo_columna'] == 'BONANT' || $value['codigo_columna'] == 'BONFRONTERA') {
 
@@ -393,8 +394,10 @@ class RMinisterioTrabajoUpdateXLS
                     $columna++;
                 }else{
 
-                    if ($value['codigo_columna'] == 'PAGOVAR'){
-                        $this->orden[0] = $value['valor'];
+                    if ($value['codigo_columna'] == 'PAGOVAR' || $value['codigo_columna'] == 'PAGOFIJ'){
+                        $otros_ingresos += $value['valor'];
+                        $this->orden[0] = $otros_ingresos;
+                        $this->resumen['otros_bonos'] += $value['valor'];
                     }
                     else if($value['codigo_columna'] == 'AFP_LAB') {
                         $this->orden[3] = $value['valor'];

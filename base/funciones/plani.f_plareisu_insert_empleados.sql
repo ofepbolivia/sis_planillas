@@ -48,7 +48,7 @@ BEGIN
     v_fecha_inicio = ('01/01/' || v_planilla.gestion) ::date;
     v_cantidad_horas_mes = plani.f_get_valor_parametro_valor('HORLAB', v_fecha_inicio)::integer;
     v_max_retro = plani.f_get_valor_parametro_valor('MAXRETROSUE', v_fecha_inicio)::integer;
-    v_fecha_fin = ('30/04/'|| v_planilla.gestion)::date;
+    v_fecha_fin = ('31/05/'|| v_planilla.gestion)::date;
 
     for v_registros in execute('
           select uofun.id_funcionario , array_agg(car.id_cargo) as cargos,
@@ -63,9 +63,10 @@ BEGIN
               on car.id_tipo_contrato = tc.id_tipo_contrato
           left join orga.toficina ofi
               on car.id_oficina = ofi.id_oficina
-          where (tc.codigo = ''PLA'' or (tc.codigo = ''EVE'' or uofun.id_uo = 9886)) and UOFUN.tipo = ''oficial'' and '
+          where (( select ult.fecha_finalizacion from orga.tuo_funcionario ult where ult.id_uo_funcionario = orga.f_get_ultima_asignacion(uofun.id_funcionario) ) between '''||v_fecha_inicio||''' and '''||v_fecha_fin||''') and
+          (tc.codigo = ''PLA'' or (tc.codigo = ''EVE'' or uofun.id_uo = 9886)) and UOFUN.tipo = ''oficial'' and '
           	|| v_filtro_uo || ' uofun.fecha_asignacion <= ''' || v_fecha_fin || ''' and
-              (uofun.fecha_finalizacion is null or uofun.fecha_finalizacion >= ''' || v_fecha_inicio || ''') AND
+              (coalesce(uofun.fecha_finalizacion, ''31/12/9999''::date) between '''||v_fecha_inicio||''' and '''||v_fecha_fin||''') AND
               uofun.estado_reg != ''inactivo'' and uofun.id_funcionario not in (
                   select id_funcionario
                   from plani.tfuncionario_planilla fp
@@ -210,3 +211,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.f_plareisu_insert_empleados (p_id_planilla integer)
+  OWNER TO postgres;

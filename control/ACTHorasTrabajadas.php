@@ -44,6 +44,13 @@ class ACTHorasTrabajadas extends ACTbase{
 		$this->res=$this->objFunc->eliminarHorasTrabajadas($this->objParam);
 		$this->res->imprimirRespuesta($this->res->generarJson());
 	}
+
+    /**{dev:franklin.espinoza, date:04/12/2020, descripcion:listar Licencia Funcionario}**/
+	function listarLicenciaFuncionario(){
+			$this->objFunc=$this->create('MODHorasTrabajadas');
+		$this->res=$this->objFunc->listarLicenciaFuncionario($this->objParam);
+		$this->res->imprimirRespuesta($this->res->generarJson());
+	}
 			
 }
 

@@ -267,7 +267,7 @@ Phx.vista.FuncionarioAfp=Ext.extend(Phx.gridInterfaz,{
 	bdel:true,
 	bsave:true,
 	onButtonEdit : function () {
-    	this.ocultarComponente(this.Cmp.fecha_ini); 
+    	//this.ocultarComponente(this.Cmp.fecha_ini);
     	Phx.vista.FuncionarioAfp.superclass.onButtonEdit.call(this);
     	
     },

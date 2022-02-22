@@ -94,7 +94,7 @@ class MODFuncionarioAfp extends MODbase{
 	function eliminarFuncionarioAfp(){
 		//Definicion de variables para ejecucion del procedimiento
 		$this->procedimiento='plani.ft_funcionario_afp_ime';
-		$this->transaccion='PLA_AFP_ELI';
+		$this->transaccion='PLA_FUNAFP_ELI';
 		$this->tipo_procedimiento='IME';
 				
 		//Define los parametros para la funcion

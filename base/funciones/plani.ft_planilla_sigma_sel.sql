@@ -77,7 +77,7 @@ BEGIN
 
             if pxp.f_existe_parametro(p_tabla,'modalidad') then
             	v_modalidad = 'and pla.modalidad = '''||v_parametros.modalidad||'''';
-            end if;
+            end if; v_modalidad = '';
     		--Sentencia de la consulta
             v_consulta:='	with
             				  detalle_erp as(
@@ -104,13 +104,13 @@ BEGIN
                               inner join orga.tuo uo on uo.id_uo = orga.f_get_uo_gerencia(uofun.id_uo,NULL,now()::date)
                               where de.liquido_erp != ds.liquido_sigma or ds.liquido_sigma is null
 
-                              /*union all
+                              union all
 
                               select NULL::varchar, fun.ci, NULL::varchar, fun.desc_funcionario1,
                               		NULL::numeric,ds.liquido_sigma
                               from detalle_sigma ds
                               inner join orga.vfuncionario fun on fun.id_funcionario = ds.id_funcionario
-                              where ds.id_funcionario not in (select id_funcionario from detalle_erp)*/';
+                              where ds.id_funcionario not in (select id_funcionario from detalle_erp)';
 			raise notice '%',v_consulta;
 
 			--Devuelve la respuesta
@@ -164,3 +164,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.ft_planilla_sigma_sel (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;

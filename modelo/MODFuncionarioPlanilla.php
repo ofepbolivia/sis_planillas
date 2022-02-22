@@ -39,11 +39,14 @@ class MODFuncionarioPlanilla extends MODbase{
 		$this->captura('afp','varchar');
 		$this->captura('nro_afp','varchar');
 		$this->captura('banco','varchar');
-		$this->captura('nro_cuenta','varchar');	
-		$this->captura('ci','varchar');	
-		$this->captura('desc_cargo','varchar');	
-		$this->captura('tipo_contrato','varchar');		
-		
+		$this->captura('nro_cuenta','varchar');
+		$this->captura('ci','varchar');
+		$this->captura('desc_cargo','varchar');
+		$this->captura('tipo_contrato','varchar');
+
+		$this->captura('centro_costo','varchar');
+		$this->captura('categoria','varchar');
+
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();
@@ -66,6 +69,7 @@ class MODFuncionarioPlanilla extends MODbase{
 		$this->setParametro('id_lugar','id_lugar','int4');
 		$this->setParametro('id_uo_funcionario','id_uo_funcionario','int4');
 		$this->setParametro('estado_reg','estado_reg','varchar');
+        $this->setParametro('tipo_contrato','tipo_contrato','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -238,6 +242,36 @@ class MODFuncionarioPlanilla extends MODbase{
 		//Devuelve la respuesta
 		return $this->respuesta;
 	}
+
+    //(franklin.espinoza)20/11/2020 listar Beneficiario Subsidio
+    function listarBeneficiariosSubsidio(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='plani.ft_funcionario_planilla_sel';// nombre procedimiento almacenado
+        $this->transaccion='PLA_BENEF_SUB_SEL';//nombre de la transaccion
+        $this->tipo_procedimiento='SEL';//tipo de transaccion
+        $this->setCount(true);
+
+        $this->setParametro('gestion','gestion','int4');
+        $this->setParametro('periodo','periodo','int4');
+
+        //defino varialbes que se capturan como retorno de la funcion
+
+        $this->captura('id_funcionario','integer');
+        $this->captura('id_persona','integer');
+        
+        $this->captura('desc_person','text');
+        $this->captura('nombre','text');
+        $this->captura('valor_por_cuota','text');
+        $this->captura('fecha_ini','text');
+        $this->captura('fecha_fin','text');
+
+
+        //Ejecuta la funcion
+        $this->armarConsulta();
+        //echo $this->getConsulta(); exit;
+        $this->ejecutarConsulta();
+        return $this->respuesta;
+    }
 			
 }
 ?>

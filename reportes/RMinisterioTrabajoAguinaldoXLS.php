@@ -368,7 +368,7 @@ class RMinisterioTrabajoAguinaldoXLS
             if ($value['codigo_columna'] == 'PROME') {
                 $this->resumen['promedio_total'] = $this->resumen['promedio_total'] + $value['valor'];
                 $this->docexcel->getActiveSheet()->getStyle('AF'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
-                $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(31,$fila,$value['valor']);
+                $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(31,$fila,/*'=Y'.$fila.' + Z'.$fila.' + AA'.$fila.' + AB'.$fila.' + AC'.$fila.' + AD'.$fila.' + AE'.$fila*/$value['valor']);
             }
 
             if ($value['codigo_columna'] == 'LIQPAG') {

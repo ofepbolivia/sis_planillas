@@ -53,6 +53,11 @@ header("content-type: text/javascript; charset=UTF-8");
                     this.Cmp.fecha.modificado = true;
                     this.Cmp.fecha.allowBlank = true;
 
+                    this.Cmp.estado.setVisible(false);
+                    this.Cmp.estado.reset();
+                    this.Cmp.estado.modificado = true;
+                    this.Cmp.estado.allowBlank = true;
+
                 }else if(rec.data.tipo == 'rc_iva'){
                     this.Cmp.id_gestion.setVisible(true);
                     this.Cmp.id_periodo.setVisible(true);
@@ -70,6 +75,12 @@ header("content-type: text/javascript; charset=UTF-8");
                     this.Cmp.fecha.reset();
                     this.Cmp.fecha.modificado = true;
                     this.Cmp.fecha.allowBlank = true;
+
+                    this.Cmp.estado.setVisible(false);
+                    this.Cmp.estado.reset();
+                    this.Cmp.estado.modificado = true;
+                    this.Cmp.estado.allowBlank = true;
+
                 }else if(rec.data.tipo == 'otros_ing'){
                     this.Cmp.id_gestion.setVisible(true);
                     this.Cmp.id_periodo.setVisible(true);
@@ -83,6 +94,12 @@ header("content-type: text/javascript; charset=UTF-8");
                     this.Cmp.fecha.reset();
                     this.Cmp.fecha.modificado = true;
                     this.Cmp.fecha.allowBlank = true;
+
+                    this.Cmp.estado.setVisible(false);
+                    this.Cmp.estado.reset();
+                    this.Cmp.estado.modificado = true;
+                    this.Cmp.estado.allowBlank = true;
+
                 }else if(rec.data.tipo == 'aguinaldo'){
                     this.Cmp.id_gestion.setVisible(true);
                     this.Cmp.modalidad.setVisible(true);
@@ -100,6 +117,12 @@ header("content-type: text/javascript; charset=UTF-8");
                     this.Cmp.fecha.reset();
                     this.Cmp.fecha.modificado = true;
                     this.Cmp.fecha.allowBlank = true;
+
+                    this.Cmp.estado.setVisible(false);
+                    this.Cmp.estado.reset();
+                    this.Cmp.estado.modificado = true;
+                    this.Cmp.estado.allowBlank = true;
+
                 }else if(rec.data.tipo == 'plani_presupuestaria'){
 
                     this.Cmp.fecha.setVisible(true);
@@ -126,6 +149,12 @@ header("content-type: text/javascript; charset=UTF-8");
                     this.Cmp.id_periodo.reset();
                     this.Cmp.id_periodo.modificado = true;
                     this.Cmp.id_periodo.allowBlank = true;
+
+                    this.Cmp.estado.setVisible(false);
+                    this.Cmp.estado.reset();
+                    this.Cmp.estado.modificado = true;
+                    this.Cmp.estado.allowBlank = true;
+
                 }else{
                     this.Cmp.oficina.setVisible(false);
                     this.Cmp.oficina.reset();
@@ -151,6 +180,25 @@ header("content-type: text/javascript; charset=UTF-8");
                     this.Cmp.fecha.reset();
                     this.Cmp.fecha.modificado = true;
                     this.Cmp.fecha.allowBlank = true;
+
+                    this.Cmp.estado.setVisible(false);
+                    this.Cmp.estado.reset();
+                    this.Cmp.estado.modificado = true;
+                    this.Cmp.estado.allowBlank = true;
+
+
+                    if( rec.data.tipo == 'programatica' ){
+
+                        this.Cmp.id_gestion.setVisible(true);
+                        this.Cmp.id_gestion.reset();
+                        this.Cmp.id_gestion.modificado = true;
+                        this.Cmp.id_gestion.allowBlank = true;
+
+                        this.Cmp.estado.setVisible(true);
+                        this.Cmp.estado.reset();
+                        this.Cmp.estado.modificado = true;
+                        this.Cmp.estado.allowBlank = true;
+                    }
                 }
             }, this);
 
@@ -199,8 +247,8 @@ header("content-type: text/javascript; charset=UTF-8");
                             ['programatica', 'Categoria Programatica'],
                             ['aguinaldo', 'Planilla Aguinaldo'],
                             ['rc_iva', 'Planilla RC-IVA'],
-                            ['plani_presupuestaria', 'Planillas Presupuestaria Items (New)'],
-                            ['otros_ing', 'Otros Ingresos RC-IVA']
+                            ['plani_presupuestaria', 'Planillas Presupuestaria Items (New)']/*,
+                            ['otros_ing', 'Otros Ingresos RC-IVA']*/
                         ]
                     }),
                     anchor : '70%',
@@ -261,7 +309,8 @@ header("content-type: text/javascript; charset=UTF-8");
                     origen : 'GESTION',
                     fieldLabel : 'Gestion',
                     allowBlank : false,
-                    hidden: true
+                    hidden: true,
+                    width : 177
                 },
                 type : 'ComboRec',
                 id_grupo : 0,
@@ -325,7 +374,36 @@ header("content-type: text/javascript; charset=UTF-8");
                 id_grupo : 0,
                 grid : true,
                 form : true
-            }
+            },
+            {
+                config:{
+                    name:'estado',
+                    fieldLabel:'Estado',
+                    allowBlank:false,
+                    emptyText:'Estado...',
+                    disabled: false,
+                    editable: false,
+                    hidden: true,
+                    typeAhead: true,
+                    triggerAction: 'all',
+                    lazyRender:true,
+                    mode: 'local',
+                    store:['activo','inactivo'],
+                    width: 177,
+                    msgTarget: 'side',
+                    renderer:function (value, p, record){return String.format('<div style="color:orangered;">{0}</div>', record.data['estado']);}
+
+                },
+                type:'ComboBox',
+                id_grupo:0,
+                filters:{
+                    type: 'list',
+                    options:['activo','inactivo']
+                },
+                grid:true,
+                form:true
+            },
+
 
         ],
         title : 'Reporte RRHH BoA',

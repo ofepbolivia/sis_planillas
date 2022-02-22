@@ -299,7 +299,8 @@ class ACTReporte extends ACTbase{
         }
 
         $this->objFunc=$this->create('MODReporte');
-        $this->res=$this->objFunc->ListarReportePlanillaActualizadaItem ($this->objParam);
+        //$this->res=$this->objFunc->ListarReportePlanillaActualizadaItem ($this->objParam);
+        $this->res=$this->objFunc->listarPlanillaItems ($this->objParam);
         //obtener titulo de reporte
         $titulo ='Planilla actualizada Item';
         //Genera el nombre del archivo (aleatorio + titulo)
@@ -554,7 +555,7 @@ class ACTReporte extends ACTbase{
         $temp['prima'] ='<b style="font-size: 15px; color: #586E7E">'.$this->res->extraData['tot_prima'].'</b>';
         $temp['retroactivo'] ='<b style="font-size: 15px; color: #586E7E">'.$this->res->extraData['tot_retroactivo'].'</b>';
 
-        $this->res->total++;
+        //$this->res->total++;
 
         $this->res->addLastRecDatos($temp);
 

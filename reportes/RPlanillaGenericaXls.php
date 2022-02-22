@@ -126,7 +126,7 @@ class RPlanillaGenericaXls
 		//*************************************Cabecera*****************************************
 
         //$this->docexcel->getActiveSheet()->freezePaneByColumnAndRow(0,3);
-        $this->docexcel->getActiveSheet()->getStyle("A1:O2")->applyFromArray($this->styleTitulos);
+        $this->docexcel->getActiveSheet()->getStyle("A1:P2")->applyFromArray($this->styleTitulos);
 
 		$this->docexcel->getActiveSheet()->getColumnDimension($this->equivalencias[$columnas])->setWidth(20);
         //$this->docexcel->getActiveSheet()->mergeCells('A1:A2');
@@ -135,7 +135,8 @@ class RPlanillaGenericaXls
 
         $this->docexcel->getActiveSheet()->getColumnDimension($this->equivalencias[$columnas])->setWidth(20);
         //$this->docexcel->getActiveSheet()->mergeCells('B1:B2');
-        $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,1,'Motivo Retiro');
+        //$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,1,'Motivo Retiro');
+        $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,1,'Cargo');
         $columnas++;
 
 		if ($config['numerar'] == 'si') {
@@ -239,17 +240,19 @@ class RPlanillaGenericaXls
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(0,$fila,$detalle['gerencia']);	
 		$columnas = 1;
 
-        if ($detalle['motivo_retiro'] == 'retiro'){
-            $this->docexcel->getActiveSheet()->getStyle("A$fila:O$fila")->applyFromArray($this->styleVacio);
+        /*if ($detalle['motivo_retiro'] == 'retiro'){
+            $this->docexcel->getActiveSheet()->getStyle("A$fila:P$fila")->applyFromArray($this->styleVacio);
             $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(1,$fila,$detalle['motivo_retiro']);
             $columnas = 2;
         }else{
 
-            $this->docexcel->getActiveSheet()->getStyle("A$fila:O$fila")->applyFromArray($this->styledetalle);
+            $this->docexcel->getActiveSheet()->getStyle("A$fila:P$fila")->applyFromArray($this->styledetalle);
             $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(1,$fila,$detalle['motivo_retiro']);
             $columnas = 2;
-        }
-
+        }*/
+        $this->docexcel->getActiveSheet()->getStyle("A$fila:P$fila")->applyFromArray($this->styledetalle);
+        $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(1,$fila,$detalle['cargo']);
+        $columnas = 2;
 		if ($config['numerar'] == 'si') {
 			$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columnas,$fila,$fila);
 			$columnas++;

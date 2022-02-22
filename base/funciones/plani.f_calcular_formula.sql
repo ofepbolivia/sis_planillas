@@ -212,6 +212,7 @@ BEGIN
                 end if;
                 --v_resultado = coalesce(v_registros.res,0);
             END LOOP;
+
         ELSIF (v_tipo_columna.recalcular = 'si' and p_recalcular = 'no') then
         	v_resultado = 0;
         ELSE
@@ -219,9 +220,9 @@ BEGIN
         END IF;
     END IF;
     --sueldos abril y mayo no contemplas otros ingresos - franklin.espinoza 29/04/2020
-    if v_tipo_columna.codigo_columna = 'OTROSING_RCIVA' and date_part('month',p_fecha_ini)::integer in (4,5) then
+    /*if v_tipo_columna.codigo_columna = 'OTROSING_RCIVA' and date_part('month',p_fecha_ini)::integer in (4,5) then
     	v_resultado = 0;
-    end if;
+    end if;*/
   	return v_resultado;
 EXCEPTION
 
@@ -240,3 +241,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.f_calcular_formula (p_id_funcionario_planilla integer, p_formula varchar, p_fecha_ini date, p_id_columna_valor integer, p_recalcular varchar)
+  OWNER TO postgres;

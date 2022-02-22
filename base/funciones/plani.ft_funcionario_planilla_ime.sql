@@ -64,7 +64,7 @@ $body$
 
         execute 'select * from ' || v_tipo_planilla.funcion_validacion_nuevo_empleado || '(' ||
                 p_id_usuario || ', '||v_parametros.id_funcionario  || ', '|| v_parametros.id_planilla
-                || ', '''|| v_parametros.forzar_cheque || ''', '''|| v_parametros.finiquito||''')'
+                || ', '''|| v_parametros.forzar_cheque || ''', '''|| v_parametros.finiquito||''', '''||v_parametros.tipo_contrato||''')'
         into v_func_planilla;
 
 
@@ -156,3 +156,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.ft_funcionario_planilla_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;

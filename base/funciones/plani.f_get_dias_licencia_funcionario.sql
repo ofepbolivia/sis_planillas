@@ -67,7 +67,9 @@ CREATE OR REPLACE FUNCTION plani.f_get_dias_licencia_funcionario (
           v_dias = v_dias + extract(day from v_fecha_fin_lic)::integer;
         end if;*/
 
-      v_total_dias = v_total_dias + pxp.f_get_dias_mes_30(v_fecha_ini_lic,v_fecha_fin_lic);
+      --v_total_dias = v_total_dias + pxp.f_get_dias_mes_30(v_fecha_ini_lic,v_fecha_fin_lic);
+
+      v_total_dias = v_total_dias + ((v_fecha_fin_lic-v_fecha_ini_lic)+1);
 
       --v_total_dias = v_total_dias + (v_meses * 30) + v_dias;
 

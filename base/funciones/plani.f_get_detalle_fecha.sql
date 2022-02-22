@@ -23,7 +23,12 @@ BEGIN
 	v_nombre_funcion = 'plani.f_get_detalle_fecha';
 
 	if p_operacion = 'days' then
-    	v_detalle = DATE_PART('days', DATE_TRUNC('month', p_fecha) + '1 MONTH'::INTERVAL - '1 DAY'::INTERVAL)::varchar;
+    	--v_detalle = DATE_PART('days', DATE_TRUNC('month', p_fecha) + '1 MONTH'::INTERVAL - '1 DAY'::INTERVAL)::varchar;
+        if date_part('month', p_fecha) != 2 then
+    		v_detalle = DATE_PART('days', DATE_TRUNC('month', p_fecha) + '1 MONTH'::INTERVAL - '1 DAY'::INTERVAL)::varchar;
+        else
+        	v_detalle = 30;
+        end if;
     elsif p_operacion = 'first' then
     	if date_trunc('month', p_fecha) = p_fecha then
         	v_detalle = 'true';
@@ -53,3 +58,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.f_get_detalle_fecha (p_fecha date, p_operacion varchar)
+  OWNER TO postgres;

@@ -58,7 +58,7 @@ class RDiferenciasPlanillaSigmaXLS
 	
 	function imprimeDatos(){
 		$this->docexcel->getActiveSheet()->setTitle('DIFERENCIAS');
-		$datos = $this->objParam->getParametro('datos');	
+		$datos = $this->objParam->getParametro('datos');
 		$columnas = 0;
 		$this->docexcel->setActiveSheetIndex(0);
 		

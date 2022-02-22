@@ -102,9 +102,10 @@ header("content-type: text/javascript; charset=UTF-8");
                 mode:'remote',
                 pageSize:50,
                 queryDelay:500,
-                listWidth:'100',
+                listWidth:'50',
                 hidden:false,
-                width:100,
+                editable:false,
+                width:50,
                 resizable:true
             });
 
@@ -151,15 +152,57 @@ header("content-type: text/javascript; charset=UTF-8");
                 mode: 'remote',
                 pageSize: 50,
                 queryDelay: 500,
-                listWidth: '100',
-                width: 100,
+                listWidth: '50',
+                width: 50,
+                editable:false,
                 resizable:true
             });
+
+            /*this.label_tipo = new Ext.form.Label({
+                name: 'label_tipo',
+                grupo: [0,1,2,3,4,5],
+                fieldLabel: 'Tipo',
+                text: ' Tipo:',
+                readOnly:true,
+                anchor: '150%',
+                gwidth: 150,
+                hidden : false,
+                style: 'font-size: 170%; font-weight: bold; background-image: none; color: #CD6155;'
+            });
+
+            this.cmbTipo = new Ext.form.ComboBox({
+                name : 'campo_tipo',
+                grupo : [0,1],
+                fieldLabel : 'Tipo',
+                msgTarget : 'side',
+                hidden : false,
+                allowBlank : false,
+                emptyText :'Tipo...',
+                typeAhead : true,
+                triggerAction : 'all',
+                lazyRender : true,
+                mode : 'local',
+                anchor : '70%',
+                width : 90,
+                gwidth : 200,
+                editable : false,
+                store : new Ext.data.ArrayStore({
+                    fields : ['tipo', 'valor'],
+                    data : [
+                        ['refrigerios', 'Refrigerios'],
+                        ['viaticos', 'Viaticos']
+                    ]
+                }),
+                valueField : 'tipo',
+                displayField : 'valor'
+            });*/
 
             this.tbar.addField(this.label_gestion);
             this.tbar.addField(this.gestion);
             this.tbar.addField(this.label_periodo);
             this.tbar.addField(this.periodo);
+            /*this.tbar.addField(this.label_tipo);
+            this.tbar.addField(this.cmbTipo);*/
 
             this.addButton('btn_rep_oi',
                 {
@@ -170,47 +213,292 @@ header("content-type: text/javascript; charset=UTF-8");
                     disabled: false,
                     handler: this.onBtnRepOtrosIngresosPlanilla,
                     tooltip: 'Reporte Otros ingresos x Categoria'
-                });
+                }
+            );
+
+            this.addButton('btn_refrigerio',
+                {
+                    text: 'Validar Refrigerios',
+                    iconCls: 'bmoney',
+                    style: 'color : #00B167; ',
+                    grupo: [0,1,2,3,4,5,6],
+                    disabled: false,
+                    handler: this.onBtnValidarRefrigerio,
+                    tooltip: 'Validación Otros Ingresos - Refrigerios'
+                }
+            );
+
+            this.addButton('btn_viatico',
+                {
+                    text: 'Validar Viatico Administrativo',
+                    iconCls: 'bmoney',
+                    style: 'color : #00B167; ',
+                    grupo: [0,1,2,3,4,5,6],
+                    disabled: false,
+                    handler: this.onBtnValidarViatico,
+                    tooltip: 'Validación Otros Ingresos - Viatico Administrativo'
+                }
+            );
+
+            this.addButton('btn_viatico_operativo',
+                {
+                    text: 'Validar Viatico Operativo',
+                    iconCls: 'bmoney',
+                    style: 'color : #00B167; ',
+                    grupo: [0,1,2,3,4,5,6],
+                    disabled: false,
+                    handler: this.onBtnValidarViaticoOperativo,
+                    tooltip: 'Validación Otros Ingresos - Viatico Operativo'
+                }
+            );
 
             this.iniciarEventos();
             this.init();
         },
 
+        onBtnValidarRefrigerio: function (){
+
+            if (this.periodo.getValue() != '') {
+                Ext.Msg.show({
+                    title: 'Refrigerios',
+                    msg: 'Estamado Usuario: <br> Esta seguro de Validar Otros Ingresos - Refrigerios.',
+                    fn: function (btn){
+                        if(btn == 'ok'){
+                            Phx.CP.loadingShow();
+                            var gestion = this.gestion.getRawValue();
+                            var periodo = this.periodo.getValue();
+
+                            Ext.Ajax.request({
+                                url:'../../sis_planillas/control/Planilla/validarResponsableOtrosIngresos',
+                                params:{'gestion':gestion, 'periodo':periodo, 'sistema':'refrigerio'},
+                                success: function (resp) {
+                                    Phx.CP.loadingHide();
+                                    var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
+
+                                    if(reg.ROOT.datos.error){
+                                        Ext.Msg.show({
+                                            title: 'Refrigerios',
+                                            msg: reg.ROOT.datos.mensaje ,
+                                            buttons: Ext.Msg.OK,
+                                            width: 400,
+                                            icon: Ext.Msg.INFO
+                                        });
+                                    }else{
+                                        Ext.Msg.show({
+                                            title: 'Refrigerios',
+                                            msg: 'Estimado Usuario: <br> Otros Ingresos (Refrigerios) para el periodo '+reg.ROOT.datos.periodo+'/'+reg.ROOT.datos.gestion+' fue validado Exitosamente.',
+                                            buttons: Ext.Msg.OK,
+                                            width: 400,
+                                            icon: Ext.Msg.INFO
+                                        });
+                                    }
+                                },
+                                failure: this.conexionFailure,
+                                timeout:this.timeout,
+                                scope:this
+                            });
+                        }
+                    },
+                    buttons: Ext.Msg.OKCANCEL,
+                    width: 400,
+                    maxWidth:1024,
+                    icon: Ext.Msg.WARNING,
+                    scope:this
+                });
+            }else {
+                Ext.Msg.show({
+                    title: 'Refrigerios',
+                    msg: 'Estimado Usuario: <br> Seleccione un periodo para Validar.',
+                    buttons: Ext.Msg.OK,
+                    width: 400,
+                    icon: Ext.Msg.INFO
+                });
+            }
+
+        },
+
+        onBtnValidarViatico: function (){
+
+            if (this.periodo.getValue() != '') {
+                Ext.Msg.show({
+                    title: 'Viáticos',
+                    msg: 'Estamado Usuario: <br>Esta seguro de Validar Otros Ingresos - Viatico Administrativo.',
+                    fn: function (btn) {
+                        if (btn == 'ok') {
+                            Phx.CP.loadingShow();
+                            var gestion = this.gestion.getRawValue();
+                            var periodo = this.periodo.getValue();
+                            Ext.Ajax.request({
+                                url: '../../sis_planillas/control/Planilla/validarResponsableOtrosIngresos',
+                                params: {'gestion': gestion, 'periodo': periodo, 'sistema': 'viatico'},
+                                success: function (resp) {
+                                    Phx.CP.loadingHide();
+                                    var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
+
+                                    if(reg.ROOT.datos.error){
+                                        Ext.Msg.show({
+                                            title: 'Viáticos',
+                                            msg: reg.ROOT.datos.mensaje ,
+                                            buttons: Ext.Msg.OK,
+                                            width: 400,
+                                            icon: Ext.Msg.INFO
+                                        });
+                                    }else {
+                                        Ext.Msg.show({
+                                            title: 'Viáticos',
+                                            msg: 'Estimado Usuario: <br> Otros Ingresos (Viático Administrativo) para el periodo ' + reg.ROOT.datos.periodo + '/' + reg.ROOT.datos.gestion + ' fue validado Exitosamente.',
+                                            buttons: Ext.Msg.OK,
+                                            width: 400,
+                                            icon: Ext.Msg.INFO
+                                        });
+                                    }
+                                },
+                                failure: this.conexionFailure,
+                                timeout: this.timeout,
+                                scope: this
+                            });
+                        }
+                    },
+                    buttons: Ext.Msg.OKCANCEL,
+                    width: 400,
+                    maxWidth: 1024,
+                    icon: Ext.Msg.WARNING,
+                    scope: this
+                });
+            }else {
+                Ext.Msg.show({
+                    title: 'Viáticos',
+                    msg: 'Estimado Usuario: <br>Seleccione un periodo para Validar.',
+                    buttons: Ext.Msg.OK,
+                    width: 400,
+                    icon: Ext.Msg.INFO
+                });
+            }
+
+        },
+
+        onBtnValidarViaticoOperativo: function (){
+
+            if (this.periodo.getValue() != '') {
+                Ext.Msg.show({
+                    title: 'Viáticos',
+                    msg: 'Estamado Usuario: <br>Esta seguro de Validar Otros Ingresos - Viatico Operativo.',
+                    fn: function (btn) {
+                        if (btn == 'ok') {
+                            Phx.CP.loadingShow();
+                            var gestion = this.gestion.getRawValue();
+                            var periodo = this.periodo.getValue();
+                            Ext.Ajax.request({
+                                url: '../../sis_planillas/control/Planilla/validarResponsableOtrosIngresos',
+                                params: {'gestion': gestion, 'periodo': periodo, 'sistema': 'viatico_operativo'},
+                                success: function (resp) {
+                                    Phx.CP.loadingHide();
+                                    var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
+
+                                    if(reg.ROOT.datos.error){
+                                        Ext.Msg.show({
+                                            title: 'Viáticos',
+                                            msg: reg.ROOT.datos.mensaje ,
+                                            buttons: Ext.Msg.OK,
+                                            width: 400,
+                                            icon: Ext.Msg.INFO
+                                        });
+                                    }else {
+                                        Ext.Msg.show({
+                                            title: 'Viáticos',
+                                            msg: 'Estimado Usuario: <br> Otros Ingresos (Viático Operativo) para el periodo ' + reg.ROOT.datos.periodo + '/' + reg.ROOT.datos.gestion + ' fue validado Exitosamente.',
+                                            buttons: Ext.Msg.OK,
+                                            width: 400,
+                                            icon: Ext.Msg.INFO
+                                        });
+                                    }
+                                },
+                                failure: this.conexionFailure,
+                                timeout: this.timeout,
+                                scope: this
+                            });
+                        }
+                    },
+                    buttons: Ext.Msg.OKCANCEL,
+                    width: 400,
+                    maxWidth: 1024,
+                    icon: Ext.Msg.WARNING,
+                    scope: this
+                });
+            }else {
+                Ext.Msg.show({
+                    title: 'Viáticos',
+                    msg: 'Estimado Usuario: <br>Seleccione un periodo para Validar.',
+                    buttons: Ext.Msg.OK,
+                    width: 400,
+                    icon: Ext.Msg.INFO
+                });
+            }
+
+        },
+
         onBtnRepOtrosIngresosPlanilla: function(){
-            Phx.CP.loadingShow();
+
             //var data = this.getSelectedData();
             var gestion = this.gestion.getRawValue();
             var periodo = this.periodo.getValue();
-
-            Ext.Ajax.request({
-                url:'../../sis_planillas/control/Planilla/reporteOtrosIngresos',
-                params:{'gestion':gestion, 'periodo':periodo},
-                success:this.successExport,
-                failure: this.conexionFailure,
-                timeout:this.timeout,
-                scope:this
-            });
+            //var tipo = this.cmbTipo.getValue();
+            if ( gestion != '' && periodo != '' /*&& tipo!= ''*/ ) {
+                Phx.CP.loadingShow();
+                Ext.Ajax.request({
+                    url: '../../sis_planillas/control/Planilla/reporteOtrosIngresos',
+                    params: {'gestion': gestion, 'periodo': periodo/*, tipo: tipo*/},
+                    success: this.successExport,
+                    failure: this.conexionFailure,
+                    timeout: this.timeout,
+                    scope: this
+                });
+            }else{
+                Ext.Msg.show({
+                    title: 'Información',
+                    msg: '<b>Estimado Funcionario: '+'\n'+' Debe seleccionar la gestión y el periodo.</b>',
+                    buttons: Ext.Msg.OK,
+                    width: 512,
+                    icon: Ext.Msg.INFO
+                });
+            }
 
         },
 
         iniciarEventos: function(){
 
-            this.gestion.store.load({params:{start:0, limit:this.tam_pag}, scope:this, callback: function (param,op,suc) {
+            /*this.gestion.store.load({params:{start:0, limit:this.tam_pag}, scope:this, callback: function (param,op,suc) {
                     this.gestion.setValue(param[0].data.id_gestion);
                     this.gestion.collapse();
                     this.periodo.focus(false,  5);
                     this.periodo.store.baseParams.id_gestion = this.gestion.getValue();
                     this.periodo.store.reload();
-                }});
+            }});*/
+
+            this.gestion.store.load({params:{start:0, limit:this.tam_pag}, scope:this,callback: function (arr,op,suc) {
+                    current_year = (new Date()).getFullYear();
+                    let index;
+                    arr.forEach(function(rec, ind){
+                        if (rec.data.gestion == current_year){
+                            index = ind;
+                        }
+                    });
+                    this.gestion.setValue(arr[index].data.id_gestion);
+                    this.gestion.collapse();
+                    this.periodo.focus(false,  5);
+                    this.periodo.store.baseParams.id_gestion = this.gestion.getValue();
+                    this.periodo.store.reload();
+            }});
 
             this.gestion.on('select', function (combo,rec,index) {
                 this.periodo.store.baseParams.id_gestion = this.gestion.getValue();
                 this.periodo.store.reload();
-                if(this.periodo.getValue() != ''){
+                if( this.periodo.getValue() != '' /*&& this.cmbTipo.getValue() != ''*/ ){
 
                     this.store.baseParams.gestion = this.gestion.getRawValue();
                     this.store.baseParams.periodo = this.periodo.getValue();
                     this.store.baseParams.categoria = this.tabtbar.getActiveTab().name;
+                    //this.store.baseParams.tipo = this.cmbTipo.getValue();
 
                     this.load({params: {start: 0, limit: 50}});
                 }
@@ -218,12 +506,26 @@ header("content-type: text/javascript; charset=UTF-8");
 
             this.periodo.on('select', function (combo,rec,index) {
 
-                this.store.baseParams.gestion = this.gestion.getRawValue();
-                this.store.baseParams.periodo = this.periodo.getValue();
-                this.store.baseParams.categoria = this.tabtbar.getActiveTab().name;
+                if( this.gestion.getValue() != '' /*&& this.cmbTipo.getValue() != ''*/ ) {
+                    this.store.baseParams.gestion = this.gestion.getRawValue();
+                    this.store.baseParams.periodo = this.periodo.getValue();
+                    this.store.baseParams.categoria = this.tabtbar.getActiveTab().name;
+                    //this.store.baseParams.tipo = this.cmbTipo.getValue();
 
-                this.load({params: {start: 0, limit: 50}});
+                    this.load({params: {start: 0, limit: 50}});
+                }
             },this);
+
+            /*this.cmbTipo.on('select', function (combo,rec,index) {
+
+                if( this.gestion.getValue() != '' && this.periodo.getValue() != '' ) {
+                    this.store.baseParams.gestion = this.gestion.getRawValue();
+                    this.store.baseParams.periodo = this.periodo.getValue();
+                    this.store.baseParams.categoria = this.tabtbar.getActiveTab().name;
+                    this.store.baseParams.tipo = this.cmbTipo.getValue();
+                    this.load({params: {start: 0, limit: 50}});
+                }
+            },this);*/
         },
 
         actualizarSegunTab: function(name, indice){

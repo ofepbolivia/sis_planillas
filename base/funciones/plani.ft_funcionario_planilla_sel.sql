@@ -29,6 +29,11 @@ DECLARE
 	v_resp				varchar;
     v_fecha_ini			date;
     v_fecha_fin			date;
+    --pago subsidios
+    v_fecha_inicio    	date;
+    v_fecha_final     	date;
+    v_periodo			integer;
+    v_gestion			integer;
 
 BEGIN
 
@@ -69,7 +74,11 @@ BEGIN
                         fcb.nro_cuenta,
                         funcio.ci,
                         (c.nombre || ''--'' || c.codigo)::varchar desc_cargo,
-                        funplan.tipo_contrato
+                        funplan.tipo_contrato,
+
+                        (''(''||vcc.codigo_tcc ||'') '' ||vcc.descripcion_tcc)::varchar AS centro_costo,
+                        cp.codigo_categoria categoria
+
 						from plani.tfuncionario_planilla funplan
 						inner join orga.tuo_funcionario uofun on uofun.id_uo_funcionario = funplan.id_uo_funcionario
 						inner join orga.tcargo c on c.id_cargo = uofun.id_cargo
@@ -80,9 +89,16 @@ BEGIN
                         left join plani.tfuncionario_afp fafp on fafp.id_funcionario_afp = funplan.id_afp
                         left join plani.tafp afp on afp.id_afp = fafp.id_afp
                         inner join param.tlugar lug on lug.id_lugar = funplan.id_lugar
-                        left join orga.tfuncionario_cuenta_bancaria fcb on
-                        	fcb.id_funcionario_cuenta_bancaria = funplan.id_cuenta_bancaria
+                        left join orga.tfuncionario_cuenta_bancaria fcb on fcb.id_funcionario_cuenta_bancaria = funplan.id_cuenta_bancaria
                         left join param.tinstitucion ins on ins.id_institucion = fcb.id_institucion
+
+                        inner join plani.tplanilla tpla on tpla.id_planilla = funplan.id_planilla
+
+                        left join orga.tcargo_presupuesto tcp on tcp.id_cargo = c.id_cargo and tcp.id_gestion = tpla.id_gestion
+                        left join param.vcentro_costo vcc on vcc.id_centro_costo = tcp.id_centro_costo
+                        left join pre.tpresupuesto pre on pre.id_centro_costo = tcp.id_centro_costo
+                        left join pre.vcategoria_programatica cp on cp.id_categoria_programatica = pre.id_categoria_prog
+
 				        where  ';
 
 			--Definicion de la respuesta
@@ -116,9 +132,16 @@ BEGIN
                         left join plani.tfuncionario_afp fafp on fafp.id_funcionario_afp = funplan.id_afp
                         left join plani.tafp afp on afp.id_afp = fafp.id_afp
                         inner join param.tlugar lug on lug.id_lugar = funplan.id_lugar
-                        left join orga.tfuncionario_cuenta_bancaria fcb on
-                        	fcb.id_funcionario_cuenta_bancaria = funplan.id_cuenta_bancaria
+                        left join orga.tfuncionario_cuenta_bancaria fcb on fcb.id_funcionario_cuenta_bancaria = funplan.id_cuenta_bancaria
                         left join param.tinstitucion ins on ins.id_institucion = fcb.id_institucion
+
+                        inner join plani.tplanilla tpla on tpla.id_planilla = funplan.id_planilla
+
+                        left join orga.tcargo_presupuesto tcp on tcp.id_cargo = c.id_cargo and tcp.id_gestion = tpla.id_gestion
+                        left join param.vcentro_costo vcc on vcc.id_centro_costo = tcp.id_centro_costo
+                        left join pre.tpresupuesto pre on pre.id_centro_costo = tcp.id_centro_costo
+                        left join pre.vcategoria_programatica cp on cp.id_categoria_programatica = pre.id_categoria_prog
+
 					    where ';
 
 			--Definicion de la respuesta
@@ -400,6 +423,91 @@ BEGIN
 
 		end;
 
+    /*********************************
+        #TRANSACCION:  'PLA_BENEF_SUB_SEL'
+        #DESCRIPCION:	Listado de pagos de Subsidios
+        #AUTOR:		franklin.espinoza
+        #FECHA:		20-11-2020 16:11:04
+        ***********************************/
+    elsif(p_transaccion='PLA_BENEF_SUB_SEL')then
+
+      begin
+
+		/*select tp.periodo
+        into v_periodo
+        from param.tperiodo tp
+        where tp.id_periodo = v_parametros.id_periodo;
+
+        select tg.gestion
+        into v_gestion
+        from param.tgestion tg
+        where tg.id_gestion = v_parametros.id_gestion;*/
+
+        v_fecha_inicio = ('01/'||v_parametros.periodo||'/'||v_parametros.gestion)::date;
+        v_fecha_final  = (v_fecha_inicio + INTERVAL '1 month - 1 day')::date;
+
+        v_consulta = '
+        	SELECT
+            funcio.id_funcionario,
+            funcio.id_persona,
+            person.nombre_completo2 AS desc_person,
+            (pxp.list(tic.nombre::text))::text as nombre,
+            (pxp.list(case when toi.valor_por_cuota=0 then 2000::text else toi.valor_por_cuota::text end))::text as valor_por_cuota,
+            (pxp.list(to_char(toi.fecha_ini,''dd/mm/yyyy'')::text))::text as fecha_ini,
+            (pxp.list(to_char(toi.fecha_fin,''dd/mm/yyyy'')::text))::text as fecha_fin
+            FROM orga.tfuncionario funcio
+            inner join plani.tdescuento_bono toi on toi.id_funcionario = funcio.id_funcionario
+            inner join plani.ttipo_columna tic on tic.id_tipo_columna = toi.id_tipo_columna
+            INNER JOIN segu.vpersona person ON person.id_persona=funcio.id_persona
+            inner join segu.tusuario usu1 on usu1.id_usuario = funcio.id_usuario_reg
+            left join segu.tusuario usu2 on usu2.id_usuario = funcio.id_usuario_mod
+            WHERE tic.codigo in (''SUBLAC'',''SUBNAT'',''SUBPRE'') and coalesce(toi.fecha_fin,''31/12/9999''::date) >= '''||v_fecha_inicio||'''::date and toi.fecha_fin is not null';
+		    v_consulta = v_consulta || ' group by funcio.id_funcionario, desc_person';
+
+        v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' OFFSET ' || v_parametros.puntero;
+        raise notice 'v_consulta: %',v_consulta;
+        --Devuelve la respuesta
+        return v_consulta;
+      end;
+    /*********************************
+        #TRANSACCION:   'PLA_BENEF_SUB_CONT'
+        #DESCRIPCION:	contador del listado de Otros Ingresos Funcionario
+        #AUTOR:			franklin.espinoza
+        #FECHA:			20-11-2020 16:11:04
+        ***********************************/
+    elsif(p_transaccion='PLA_BENEF_SUB_CONT')then
+
+      begin
+
+		/*select tp.periodo
+        into v_periodo
+        from param.tperiodo tp
+        where tp.id_periodo = v_parametros.id_periodo;
+
+        select tg.gestion
+        into v_gestion
+        from param.tgestion tg
+        where tg.id_gestion = v_parametros.id_gestion;*/
+
+        v_fecha_inicio = ('01/'||v_parametros.periodo||'/'||v_parametros.gestion)::date;
+        v_fecha_final  = (v_fecha_inicio + INTERVAL '1 month - 1 day')::date;
+
+        v_consulta = '
+        	SELECT
+            count(funcio.id_funcionario)
+            FROM orga.tfuncionario funcio
+            inner join plani.tdescuento_bono toi on toi.id_funcionario = funcio.id_funcionario
+            inner join plani.ttipo_columna tic on tic.id_tipo_columna = toi.id_tipo_columna
+            INNER JOIN segu.vpersona person ON person.id_persona=funcio.id_persona
+            inner join segu.tusuario usu1 on usu1.id_usuario = funcio.id_usuario_reg
+            left join segu.tusuario usu2 on usu2.id_usuario = funcio.id_usuario_mod
+            WHERE tic.codigo in (''SUBLAC'',''SUBNAT'',''SUBPRE'') and coalesce(toi.fecha_fin,''31/12/9999''::date) >= '''||v_fecha_inicio||'''::date and toi.fecha_fin is not null';
+       --v_consulta = v_consulta || ' group by funcio.id_funcionario, desc_person';
+       --Devuelve la respuesta
+        raise notice 'v_consulta: %', v_consulta;
+        return v_consulta;
+      end;
+
 	else
 
 		raise exception 'Transaccion inexistente';
@@ -421,3 +529,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.ft_funcionario_planilla_sel (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;

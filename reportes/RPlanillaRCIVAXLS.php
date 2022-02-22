@@ -414,7 +414,7 @@ class RPlanillaRCIVAXLS
                     $this->docexcel->getSheet(0)->getStyle('M'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                     $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, '=(L' . $fila . '*13%)');//M
                     $this->docexcel->getSheet(0)->getStyle('N'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
-                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['trece_dos_salario_minimo']);//N
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, '=IF(M' . $fila . '>0,K' . $fila . '*13%,0)');//N $value['trece_dos_salario_minimo']
                     $this->docexcel->getSheet(0)->getStyle('O'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                     $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, '=IF(M' . $fila . '>N' . $fila . ',M' . $fila . '-N' . $fila . ',0)');//O
                     $this->docexcel->getSheet(0)->getStyle('P'.$fila)->getNumberFormat()->setFormatCode($numberFormat);

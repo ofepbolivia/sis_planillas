@@ -55,6 +55,7 @@ class MODPlanilla extends MODbase{
 		$this->captura('periodo_pago','integer');
 		$this->captura('fecha_sigma','date');
         $this->captura('modalidad','varchar');
+        $this->captura('momento_planilla','varchar');
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();
@@ -352,6 +353,7 @@ class MODPlanilla extends MODbase{
 		$this->setParametro('periodo_pago','periodo_pago','integer');
 		$this->setParametro('fecha_sigma','fecha_sigma','date');
 		$this->setParametro('modalidad','modalidad','varchar');
+		$this->setParametro('momento_planilla','momento_planilla','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -384,6 +386,7 @@ class MODPlanilla extends MODbase{
         $this->setParametro('periodo_pago','periodo_pago','integer');
         $this->setParametro('fecha_sigma','fecha_sigma','date');
         $this->setParametro('modalidad','modalidad','varchar');
+        $this->setParametro('momento_planilla','momento_planilla','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -481,7 +484,7 @@ class MODPlanilla extends MODbase{
         $this->setParametro('json_procesos','json_procesos','text');
 
         //Ejecuta la instruccion
-        $this->armarConsulta();
+        $this->armarConsulta();//var_dump('consulta', $this->consulta);exit;
         $this->ejecutarConsulta();
 
         //Devuelve la respuesta
@@ -553,6 +556,7 @@ class MODPlanilla extends MODbase{
 		$this->captura('gestion', 'integer');
 		$this->captura('codigo_poa', 'varchar');
 		$this->captura('codigo_descripcion', 'varchar');
+		$this->captura('tipo_contrato', 'varchar');
 
 
 		//Ejecuta la instruccion
@@ -873,10 +877,13 @@ class MODPlanilla extends MODbase{
         //$this->setParametro('fecha_fin','fecha_fin','date');
         $this->setParametro('gestion','gestion','integer');
         $this->setParametro('periodo','periodo','integer');
+        //$this->setParametro('tipo','tipo','varchar');
 
         //defino varialbes que se capturan como retorno de la funcion
 
+
         $this->captura('nombre_empleado','text');
+        $this->captura('id_funcionario','integer');
         $this->captura('sistema_fuente','varchar');
         $this->captura('monto','numeric');
         $this->captura('ci','varchar');
@@ -893,6 +900,8 @@ class MODPlanilla extends MODbase{
         $this->captura('tasa_internacional','numeric');
         $this->captura('importe_retencion','numeric');
         $this->captura('orden','varchar');
+        $this->captura('ref_sep','numeric');
+        $this->captura('id_fuente','integer');
         //$this->captura('prima','numeric');
         //$this->captura('retro','numeric');
 
@@ -952,6 +961,23 @@ class MODPlanilla extends MODbase{
         //echo($this->consulta);exit;
         $this->ejecutarConsulta();
 
+        //Devuelve la respuesta
+        return $this->respuesta;
+    }
+    //{develop:franklin.espinoza, date:30/7/2020, description: Validar Otros Ingresos por su responsable correspondiente}
+    function validarResponsableOtrosIngresos(){
+        //Definicion de variables para ejecucion del procedimientp
+        $this->procedimiento='plani.ft_planilla_ime';
+        $this->transaccion='PLA_VAL_OTR_ING_IME';
+        $this->tipo_procedimiento='IME';//tipo de transaccion
+
+        $this->setParametro('gestion','gestion','integer');
+        $this->setParametro('periodo','periodo','integer');
+        $this->setParametro('sistema','sistema','varchar');
+
+        //Ejecuta la instruccion
+        $this->armarConsulta();
+        $this->ejecutarConsulta();
         //Devuelve la respuesta
         return $this->respuesta;
     }

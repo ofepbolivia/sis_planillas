@@ -1,4 +1,6 @@
 <?php
+/*set_time_limit(0);//avoid timeout
+ini_set('memory_limit','-1');*/
 class RDetalleOtrosIngresosTableXLS
 {
     private $docexcel;
@@ -14,7 +16,7 @@ class RDetalleOtrosIngresosTableXLS
         $this->objParam = $objParam;
         $this->url_archivo = "../../../reportes_generados/".$this->objParam->getParametro('nombre_archivo');
         //ini_set('memory_limit','512M');
-        set_time_limit(400);
+        //set_time_limit(400);
         $cacheMethod = PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
         $cacheSettings = array('memoryCacheSize'  => '10MB');
         PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
@@ -276,7 +278,7 @@ class RDetalleOtrosIngresosTableXLS
         $total_ref = 0;$total_pri = 0;$total_ret = 0;
 
         $color_group = ['FFC7CE', '70AD47'];
-
+        //print_r($datos);exit;
         foreach ($datos as $value) {
 
             if ($nombre_funcionario != '' && $nombre_funcionario != $value['nombre_empleado']) {
@@ -372,9 +374,9 @@ class RDetalleOtrosIngresosTableXLS
                     $totales_x_categoria['eve']['adm']['total'] = $total_adm;
                     $totales_x_categoria['eve']['ope']['monto'] = $total_ope;
                     $totales_x_categoria['eve']['ope']['total'] = $sum_viatico;
-                    $totales_x_categoria['eve']['ref']['monto']=$total_ref;
-                    $totales_x_categoria['eve']['pri']['monto']=$total_pri;
-                    $totales_x_categoria['eve']['ret']['monto']=$total_ret;
+                    $totales_x_categoria['eve']['ref']['monto'] = $total_ref;
+                    $totales_x_categoria['eve']['pri']['monto'] = $total_pri;
+                    $totales_x_categoria['eve']['ret']['monto'] = $total_ret;
 
                 }else if($categoria == '7.FIN'){
 
@@ -406,21 +408,22 @@ class RDetalleOtrosIngresosTableXLS
                 $this->docexcel->getActiveSheet()->getStyle('F'.$fila.':L'.$fila)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB($color_cell[1]);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin, $fila, $value['c31']);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+1, $fila, $value['orden']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+2, $fila, $value['monto']-$value['tasa_nacional']-$value['tasa_internacional']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+2, $fila, '=K'.$fila.'-I'.$fila.'-J'.$fila);//$value['monto']-$value['tasa_nacional']-$value['tasa_internacional']
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+3, $fila, $value['tasa_nacional']);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+4, $fila, $value['tasa_internacional']);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+5, $fila, '=H'.$fila.'+I'.$fila.'+J'.$fila);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+5, $fila, $value['monto']);//'=H'.$fila.'+I'.$fila.'+J'.$fila
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+6, $fila, date_format(date_create($value['fecha_pago']), 'd/m/Y'));
 
                 //total detalle
-                $sum_via_adm +=  $value['monto'];
+                $sum_via_adm +=  $value['monto']-$value['tasa_nacional']-$value['tasa_internacional'];
                 $sum_tasa_nac +=  $value['tasa_nacional'];
                 $sum_tasa_int +=  $value['tasa_internacional'];
-                $total_via_adm += $value['monto']+$value['tasa_nacional']+$value['tasa_internacional'];
+                //$total_via_adm += $value['monto']+$value['tasa_nacional']+$value['tasa_internacional'];
+                $total_via_adm += $value['monto'];
 
                 //total_resumen
-                $sum_adm+=  $value['monto'];$sum_nac+= $value['tasa_nacional'];$sum_int += $value['tasa_internacional'];
-                $total_adm+= $value['monto']+$value['tasa_nacional']+$value['tasa_internacional'];
+                $sum_adm+=  $value['monto']-$value['tasa_nacional']-$value['tasa_internacional'];$sum_nac+= $value['tasa_nacional'];$sum_int += $value['tasa_internacional'];
+                $total_adm+= $value['monto'];//$value['monto']+$value['tasa_nacional']+$value['tasa_internacional']
 
             }else {
                 $this->docexcel->getActiveSheet()->getStyle('F'.$fila.':L'.$fila)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB($color_cell[1]);
@@ -429,7 +432,7 @@ class RDetalleOtrosIngresosTableXLS
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+2, $fila, 0);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+3, $fila, 0);
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+4, $fila, 0);
-                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+5, $fila, '=H'.$fila.'+I'.$fila.'+J'.$fila);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+5, $fila, 0);//'=H'.$fila.'+I'.$fila.'+J'.$fila
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($col_admin+6, $fila, '');
                 $sum_via_adm +=  0;
                 $sum_tasa_nac +=  0;
@@ -509,6 +512,21 @@ class RDetalleOtrosIngresosTableXLS
             //$codigo = $value['codigo'];
             $fila++;
         }
+
+        if($categoria == '6.EVE' && $categoria != '7.FIN'){
+
+            $totales_x_categoria['eve']['adm']['monto'] = $sum_adm;
+            $totales_x_categoria['eve']['adm']['nacional'] = $sum_nac;
+            $totales_x_categoria['eve']['adm']['internacional'] = $sum_int;
+            $totales_x_categoria['eve']['adm']['total'] = $total_adm;
+            $totales_x_categoria['eve']['ope']['monto'] = $total_ope;
+            $totales_x_categoria['eve']['ope']['total'] = $sum_viatico;
+            $totales_x_categoria['eve']['ref']['monto'] = $total_ref;
+            $totales_x_categoria['eve']['pri']['monto'] = $total_pri;
+            $totales_x_categoria['eve']['ret']['monto'] = $total_ret;
+
+        }
+
         if($categoria == '7.FIN'){
 
             $totales_x_categoria['fin']['adm']['monto'] = $sum_adm;
@@ -557,10 +575,10 @@ class RDetalleOtrosIngresosTableXLS
         $this->docexcel->getActiveSheet()->mergeCells('A'.$fila.':E'.$fila);
         $this->docexcel->getActiveSheet()->setCellValue('A'.$fila,'TOTAL CONCEPTO');
         //admin
-        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $sum_via_adm);
+        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, $total_via_adm-$sum_tasa_nac-$sum_tasa_int);//$sum_via_adm
         $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $sum_tasa_nac);
         $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $sum_tasa_int);
-        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $total_via_adm);
+        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $total_via_adm);//$total_via_adm
         //operativo
         $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $total_via_ope);
         $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $total_viatico);
@@ -684,6 +702,7 @@ class RDetalleOtrosIngresosTableXLS
         $color_group = ['FFC7CE', '70AD47'];
 
         $row_ini = $fila;
+        //print_r($totales_x_categoria);exit;
         foreach ($totales_x_categoria as $pro => $programa) {
 
             switch ($pro){
@@ -705,7 +724,7 @@ class RDetalleOtrosIngresosTableXLS
             foreach ($programa as $con => $concepto){
                 switch ($con){
                     case 'adm':
-                        $this->docexcel->getActiveSheet()->setCellValue('H'.$fila,$concepto['monto']-$value['tasa_nacional']-$value['tasa_internacional']);
+                        $this->docexcel->getActiveSheet()->setCellValue('H'.$fila,$concepto['monto']);//-$value['tasa_nacional']-$value['tasa_internacional']
                         $this->docexcel->getActiveSheet()->setCellValue('I'.$fila,$concepto['nacional']);
                         $this->docexcel->getActiveSheet()->setCellValue('J'.$fila,$concepto['internacional']);
                         $this->docexcel->getActiveSheet()->setCellValue('K'.$fila,$concepto['total']); break;
@@ -783,10 +802,10 @@ class RDetalleOtrosIngresosTableXLS
 
                 $this->docexcel->getActiveSheet()->setCellValue('A'.$fila,'TOTAL '.$comprobante);
 
-                $this->docexcel->getActiveSheet()->setCellValue('H'.$fila,$total_adm);
+                $this->docexcel->getActiveSheet()->setCellValue('H'.$fila, $sum_adm);//'=K'.$fila.'-I'.$fila.'-J'.$fila
                 $this->docexcel->getActiveSheet()->setCellValue('I'.$fila,$sum_nac);
                 $this->docexcel->getActiveSheet()->setCellValue('J'.$fila,$sum_int);
-                $this->docexcel->getActiveSheet()->setCellValue('K'.$fila,$sum_adm);
+                $this->docexcel->getActiveSheet()->setCellValue('K'.$fila,$total_adm);
 
                 $this->docexcel->getActiveSheet()->setCellValue('O'.$fila,$total_ope);
                 $this->docexcel->getActiveSheet()->setCellValue('Q'.$fila,'=SUM(K'.$fila.':O'.$fila.')');
@@ -810,10 +829,10 @@ class RDetalleOtrosIngresosTableXLS
 
             if($comp['tipo'] == 'adm') {
 
-                $sum_adm+=  $comp['monto']-$value['tasa_nacional']-$value['tasa_internacional'];
-                $sum_nac+= $comp['tasa_nacional'];
+                $sum_adm +=  ($comp['monto']-$comp['tasa_nacional']-$comp['tasa_internacional']);
+                $sum_nac += $comp['tasa_nacional'];
                 $sum_int += $comp['tasa_internacional'];
-                $total_adm+= $comp['monto']-$comp['tasa_nacional']-$comp['tasa_internacional'];
+                $total_adm += $comp['monto'];//-$comp['tasa_nacional']-$comp['tasa_internacional']
             }
             if($comp['tipo'] == 'ope'){
                 $total_ope += $comp['monto'];
@@ -843,10 +862,10 @@ class RDetalleOtrosIngresosTableXLS
 
         $this->docexcel->getActiveSheet()->setCellValue('A'.$fila,'TOTAL '.$comprobante);
 
-        $this->docexcel->getActiveSheet()->setCellValue('H'.$fila, $total_adm);
+        $this->docexcel->getActiveSheet()->setCellValue('H'.$fila, $sum_adm);//$total_adm
         $this->docexcel->getActiveSheet()->setCellValue('I'.$fila,$sum_nac);
         $this->docexcel->getActiveSheet()->setCellValue('J'.$fila,$sum_int);
-        $this->docexcel->getActiveSheet()->setCellValue('K'.$fila, $sum_adm);
+        $this->docexcel->getActiveSheet()->setCellValue('K'.$fila, $total_adm);//$sum_adm
 
         $this->docexcel->getActiveSheet()->setCellValue('O'.$fila,$total_ope);
         $this->docexcel->getActiveSheet()->setCellValue('Q'.$fila,'=SUM(K'.$fila.':O'.$fila.')');
@@ -1006,8 +1025,11 @@ class RDetalleOtrosIngresosTableXLS
     function generarReporte(){
         $this->imprimeDatos();
         $this->docexcel->setActiveSheetIndex(0);
-        $this->objWriter = PHPExcel_IOFactory::createWriter($this->docexcel, 'Excel5');
+        $this->objWriter = PHPExcel_IOFactory::createWriter($this->docexcel, 'Excel2007');
+        //$this->objWriter = PHPExcel_IOFactory::createWriter($this->docexcel, 'Excel5');
         $this->objWriter->save($this->url_archivo);
+
+        //return $this->url_archivo;
     }
 
 }

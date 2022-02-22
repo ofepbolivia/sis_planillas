@@ -761,3 +761,11 @@ ALTER TABLE plani.tplanilla
 COMMENT ON COLUMN plani.tplanilla.modalida
 IS 'Campo que indica si es planilla administrativo o pilotos.';
 /***********************************F-SCP-FEA-PLANI-1-27/09/2019****************************************/
+
+/***********************************I-SCP-FEA-PLANI-1-30/07/2020****************************************/
+ALTER TABLE plani.totros_ingresos
+  ADD COLUMN validado_erp VARCHAR(2);
+
+ALTER TABLE plani.totros_ingresos
+  ALTER COLUMN validado_erp SET DEFAULT 'no';
+/***********************************F-SCP-FEA-PLANI-1-30/07/2020****************************************/

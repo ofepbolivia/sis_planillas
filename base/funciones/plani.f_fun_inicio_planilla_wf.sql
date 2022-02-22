@@ -206,7 +206,7 @@ BEGIN
                id_int_comprobante = (case when id_int_comprobante is not null then id_int_comprobante else  v_id_int_comprobante  end)
             where id_proceso_wf = p_id_proceso_wf;
           v_resbool = conta.f_igualar_cbte(v_id_int_comprobante,p_id_usuario,false);
-     	  v_resp =  conta.f_validar_cbte(p_id_usuario,p_id_usuario_ai,p_usuario_ai,v_id_int_comprobante);
+     	  --v_resp =  conta.f_validar_cbte(p_id_usuario,p_id_usuario_ai,p_usuario_ai,v_id_int_comprobante);
      	  return true;
 
      elsif (p_codigo_estado  in ('planilla_finalizada')) then
@@ -250,3 +250,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.f_fun_inicio_planilla_wf (p_id_usuario integer, p_id_usuario_ai integer, p_usuario_ai varchar, p_id_estado_wf integer, p_id_proceso_wf integer, p_codigo_estado varchar)
+  OWNER TO postgres;

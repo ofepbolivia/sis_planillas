@@ -278,6 +278,33 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 			form: true,
             bottom_filter : true
 		},
+
+        {
+            config:{
+                name: 'momento_planilla',
+                fieldLabel: 'Momento',
+                allowBlank: false,
+                emptyText:'Momento...',
+                typeAhead: true,
+                triggerAction: 'all',
+                lazyRender:true,
+                mode: 'local',
+                gwidth: 200,
+                store:['normal','extraordinaria'],
+                width: 270,
+                listWidth:270,
+                msgTarget: 'side'
+            },
+            type:'ComboBox',
+            filters:{
+                type: 'list',
+                options: ['normal','extraordinaria'],
+            },
+            id_grupo:0,
+            grid:true,
+            form:true
+        },
+
         {
             config:{
                 name:'modalidad',
@@ -639,7 +666,8 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 		{name:'usr_mod', type: 'string'},
 		{name:'periodo_pago', type: 'numeric'},
 		{name:'fecha_sigma', type: 'date',dateFormat:'Y-m-d'},
-        {name:'modalidad', type: 'string'}
+        {name:'modalidad', type: 'string'},
+        {name:'momento_planilla', type: 'string'}
 
 	],
 	sortInfo:{
@@ -649,7 +677,9 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
 	bdel:true,
 	bsave:true,
 	iniciarEventos : function() {
+        var tipo_planilla = '';
 		this.Cmp.id_tipo_planilla.on('select',function(c,r,i) {
+		    tipo_planilla = r.data.codigo;
 			if (r.data.periodicidad == 'anual') {
 				this.ocultarComponente(this.Cmp.id_periodo);
 				this.Cmp.id_periodo.allowBlank = true;
@@ -685,6 +715,16 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
                     this.Cmp.modalidad.modificado = true;
                 }
 			}
+
+            if(r.data.codigo == 'PLASUB'){
+                this.Cmp.fecha_planilla.editable =  false;
+                this.Cmp.fecha_planilla.disabled =  true;
+                this.Cmp.fecha_planilla.readOnly =  true;
+            }else{
+                this.Cmp.fecha_planilla.editable =  true;
+                this.Cmp.fecha_planilla.disabled =  false;
+                this.Cmp.fecha_planilla.readOnly =  false;
+            }
 		},this);
 		
 		this.Cmp.id_gestion.on('select',function(c,r,i){
@@ -699,10 +739,17 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
         this.getComponente('id_periodo').on('select',function (c,r,i) {
 
             var fecha_actual = new Date();
-            fecha_actual.setDate(1);
-            fecha_actual.setMonth(r.data.periodo);
-            console.log('periodo',this.Cmp.id_periodo.getValue(), r.data.periodo,fecha_actual);
+
+            if(tipo_planilla == 'PLASUE'){
+                let year =this.Cmp.id_gestion.getRawValue();
+                let month = r.data.periodo;
+                fecha_actual = new Date(year, month, 0);
+            }else{
+                fecha_actual.setDate(1);
+                fecha_actual.setMonth(r.data.periodo-1);
+            }
             this.getComponente('fecha_sigma').setMinValue(fecha_actual);
+            this.getComponente('fecha_planilla').setValue(fecha_actual);
         }, this);
 		
 		
@@ -899,7 +946,7 @@ Phx.vista.Planilla=Ext.extend(Phx.gridInterfaz,{
         	 this.getBoton('ant_estado').enable();
              this.getBoton('sig_estado').enable();
         }
-        
+
         
         this.getBoton('btnChequeoDocumentosWf').enable();       
          

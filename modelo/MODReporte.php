@@ -189,7 +189,7 @@ class MODReporte extends MODbase{
 		
 		
 		//Ejecuta la instruccion
-		$this->armarConsulta();
+		$this->armarConsulta();// echo $this->consulta;exit;
 		$this->ejecutarConsulta();
 		
 		//Devuelve la respuesta
@@ -265,7 +265,8 @@ class MODReporte extends MODbase{
 		$this->captura('valor_columna','numeric');			
 		$this->captura('nombre','varchar');
 		$this->captura('categoria_prog','varchar');
-		$this->captura('motivo_retiro','varchar');
+		//$this->captura('motivo_retiro','varchar');
+		$this->captura('cargo','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();//echo $this->consulta; exit;
@@ -399,6 +400,8 @@ class MODReporte extends MODbase{
 
         $this->setCount(false);
         $this->setParametro('oficina','oficina','varchar');
+        $this->setParametro('id_gestion','id_gestion','integer');
+        $this->setParametro('estado','estado','varchar');
 
         //Definicion de la lista del resultado del query
         /*$this->captura('desc_fun','varchar');
@@ -551,12 +554,26 @@ class MODReporte extends MODbase{
 		$this->captura('monto','numeric');
 		$this->captura('gerencia','varchar');
 		$this->captura('categoria_prog','varchar');
-		$this->captura('monto2','numeric');
-		$this->captura('monto3','numeric');
-		$this->captura('monto4','numeric');
+		$this->captura('refrigerio','numeric');//monto2
+		$this->captura('viatico','numeric');//monto3
+		$this->captura('refri_sep','numeric');//monto3
+		$this->captura('fecha_ini','date');//monto3
+		$this->captura('fecha_fin','date');//monto3
+
+		/*$this->captura('monto4','numeric');
 		$this->captura('monto5','numeric');
 		$this->captura('monto6','numeric');
 		$this->captura('monto7','numeric');
+
+		$this->captura('periodo','integer');
+		$this->captura('sueldo_abril','numeric');
+		$this->captura('refrigerio_abril','numeric');
+		$this->captura('viatico_abril','numeric');
+		$this->captura('sueldo_mayo','numeric');
+		$this->captura('refrigerio_mayo','numeric');
+		$this->captura('viatico_mayo','numeric');
+		$this->captura('refrigerio_junio','numeric');
+		$this->captura('viatico_junio','numeric');*/
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -649,6 +666,7 @@ class MODReporte extends MODbase{
 		$this->setParametro('gestion','gestion','varchar');
 		$this->setParametro('periodo','periodo','varchar');
 		$this->setParametro('categoria','categoria','varchar');
+		//$this->setParametro('tipo','tipo','varchar');
 
 		//defino varialbes que se capturan como retorno de la funcion
 
@@ -668,6 +686,7 @@ class MODReporte extends MODbase{
 		$this->captura('estado','varchar');
 		$this->captura('prima','numeric');
 		$this->captura('retroactivo','numeric');
+		//$this->captura('ref_sep','numeric');
 
 
 		//Ejecuta la funcion
@@ -677,5 +696,53 @@ class MODReporte extends MODbase{
 		$this->ejecutarConsulta();
 		return $this->respuesta;
 	}
+
+	/**(franklin.espinoza)24/04/2021 Listar Planilla Actualizada de Items**/
+	function listarPlanillaItems(){
+
+		//Definicion de variables para ejecucion del procedimientp
+		$this->procedimiento='plani.ft_reporte_sel';
+		$this->transaccion='PLA_REP_UOITEMS_SEL';
+		$this->tipo_procedimiento='SEL';//tipo de transaccion
+		$this->setCount(false);
+		//Datos de la planilla
+
+		$this->setParametro('id_tipo_contrato','id_tipo_contrato','integer');
+		$this->setParametro('id_uo','id_uo','integer');
+		$this->setParametro('fecha','fecha','date');
+		$this->setParametro('agrupar_por','agrupar_por','varchar');
+		$this->setParametro('licencia','licencia','varchar');
+
+		$this->captura('escala','varchar');
+		$this->captura('cargo','varchar');
+		$this->captura('nro_item','varchar');
+		$this->captura('nombre_funcionario','varchar');
+		$this->captura('genero','varchar');
+		$this->captura('haber_basico','numeric');
+		$this->captura('bono_antiguedad','numeric');
+		$this->captura('bono_frontera','numeric');
+		$this->captura('sumatoria','numeric');
+		$this->captura('fecha_inicio','varchar');
+		$this->captura('ci','varchar');
+		$this->captura('expedicion','varchar');
+		$this->captura('codigo','varchar');
+		$this->captura('nombre','varchar');
+		$this->captura('codigo_nombre_gerencia','varchar');
+		$this->captura('nombre_unidad','varchar');
+		$this->captura('id_tipo_contrato','integer');
+		$this->captura('gerencia','varchar');
+		$this->captura('departamento','varchar');
+		$this->captura('categoria_programatica','varchar');
+		$this->captura('fecha_finalizacion','varchar');
+		$this->captura('correlativo','integer');
+
+		//Ejecuta la instruccion
+		$this->armarConsulta();
+		//echo $this->consulta;exit;
+		$this->ejecutarConsulta();
+		//Devuelve la respuesta
+		return $this->respuesta;
+	}
+	/**(franklin.espinoza)24/04/2021 Listar Planilla Actualizada de Items**/
 }
 ?>

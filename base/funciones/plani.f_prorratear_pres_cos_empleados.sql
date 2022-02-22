@@ -684,16 +684,16 @@ BEGIN
                                     where fp.id_planilla = p_id_planilla) loop
 
             if v_planilla.tipo_planilla = 'PLAPRI' then
-              v_id_gestion = 'p.id_gestion + 1';
+              v_id_gestion = ' p.id_gestion + 1 ';
               v_inner_cargo_pres = 'inner join param.tperiodo tper on tper.periodo = 6 and tper.id_gestion = ges.id_gestion
                                	  inner join orga.tcargo_presupuesto cp on cp.id_cargo = car.id_cargo and cp.id_gestion = ges.id_gestion and
                                   ((tper.fecha_ini between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||ges.gestion)::date)) or
                                   (tper.fecha_fin between cp.fecha_ini and coalesce(cp.fecha_fin,(''31/12/''||ges.gestion)::date)))';
               v_where_id_gestion = '';
             else
-              v_id_gestion = 'p.id_gestion';
+              v_id_gestion = ' p.id_gestion ';
               v_inner_cargo_pres = 'inner join orga.tcargo_presupuesto cp on cp.id_cargo = car.id_cargo';
-              v_where_id_gestion = 'cp.id_gestion = p.id_gestion and p.id_gestion = cp.id_gestion and ';
+              v_where_id_gestion = ' cp.id_gestion = p.id_gestion and p.id_gestion = cp.id_gestion and ';
             end if;
 
             v_presupuesto = NULL;
@@ -782,7 +782,7 @@ BEGIN
         end loop;
     end if;  --RAISE EXCEPTION 'A: %, B: %', v_planilla.id_gestion, v_id_gestion_contable;
     --si la gestion de la planilla es distinta a la gestion de la fecha en la que se generara el prorrateo
-    /*if (v_planilla.id_gestion != v_id_gestion_contable)then
+    if (v_planilla.id_gestion != v_id_gestion_contable)then
 
     	--raise exception 'ingresa:';
     	update plani.tprorrateo
@@ -793,7 +793,7 @@ BEGIN
         where fp.id_funcionario_planilla = plani.tprorrateo.id_funcionario_planilla
         and fp.id_planilla = p_id_planilla;
 
-    end if;*/
+    end if;
     --llenar tprorrateo_columna de acuerdo al prorrateo
     if (v_planilla.tipo_presu_cc = 'parametrizacion' and v_planilla.calculo_horas = 'si') then
     	v_consulta = '	select pro.id_oficina,pro.id_lugar,pro.id_prorrateo, pro.porcentaje,pro.porcentaje_dias, cv.id_tipo_columna,cv.codigo_columna,tc.compromete
@@ -1071,3 +1071,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.f_prorratear_pres_cos_empleados (p_id_planilla integer, p_tipo_generacion varchar, p_id_usuario integer)
+  OWNER TO postgres;

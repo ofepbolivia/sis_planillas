@@ -17,6 +17,11 @@ class ACTFuncionarioPlanilla extends ACTbase{
 		if ($this->objParam->getParametro('id_planilla') != '') {
 			$this->objParam->addFiltro("funplan.id_planilla = ". $this->objParam->getParametro('id_planilla'));
 		}
+		
+        if ($this->objParam->getParametro('contrato') != '') {
+            $this->objParam->addFiltro("funplan.tipo_contrato = ''". $this->objParam->getParametro('contrato')."''");
+        }
+
 		if($this->objParam->getParametro('tipoReporte')=='excel_grid' || $this->objParam->getParametro('tipoReporte')=='pdf_grid'){
 			$this->objReporte = new Reporte($this->objParam,$this);
 			$this->res = $this->objReporte->generarReporteListado('MODFuncionarioPlanilla','listarFuncionarioPlanilla');
@@ -82,8 +87,46 @@ class ACTFuncionarioPlanilla extends ACTbase{
 		$this->mensajeExito->setArchivoGenerado($nombreArchivo);
 		$this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
 	}
-	
-			
+
+    //(f.e.a)13/10/2019 listar Otros Ingresos Funcionario
+    function listarOtrosIngresos(){
+
+        $this->objParam->defecto('ordenacion','toi.nombre_sys_ingreso');
+        $this->objParam->defecto('dir_ordenacion','asc');
+
+        if($this->objParam->getParametro('tipoReporte')=='excel_grid' || $this->objParam->getParametro('tipoReporte')=='pdf_grid'){
+            $this->objReporte = new Reporte($this->objParam,$this);
+            $this->res = $this->objReporte->generarReporteListado('MODPlanilla','listarOtrosIngresos');
+        } else{
+            $this->objFunc=$this->create('MODPlanilla');
+
+            $this->res=$this->objFunc->listarOtrosIngresos($this->objParam);
+        }
+        $this->res->imprimirRespuesta($this->res->generarJson());
+
+        /*$this->objFunc=$this->create('MODPlanilla');
+        $this->res=$this->objFunc->listarOtrosIngresos($this->objParam);
+        $this->res->imprimirRespuesta($this->res->generarJson());*/
+    }
+
+    //(franklin.espinoza)20/11/2020 listar Beneficiario Subsidio
+    function listarBeneficiariosSubsidio(){
+
+        $this->objParam->defecto('ordenacion','desc_person');
+        $this->objParam->defecto('dir_ordenacion','asc');
+
+        if($this->objParam->getParametro('tipoReporte')=='excel_grid' || $this->objParam->getParametro('tipoReporte')=='pdf_grid'){
+            $this->objReporte = new Reporte($this->objParam,$this);
+            $this->res = $this->objReporte->generarReporteListado('MODFuncionarioPlanilla','listarBeneficiariosSubsidio');
+        } else{
+            $this->objFunc=$this->create('MODFuncionarioPlanilla');
+
+            $this->res=$this->objFunc->listarBeneficiariosSubsidio($this->objParam);
+        }
+        $this->res->imprimirRespuesta($this->res->generarJson());
+
+    }
+
 }
 
 ?>

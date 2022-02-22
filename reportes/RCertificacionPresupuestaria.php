@@ -5,7 +5,7 @@ require_once(dirname(__FILE__) . '/../../lib/tcpdf/tcpdf_barcodes_2d.php');
 class RCertificacionPresupuestaria extends  ReportePDF{
     var $datos ;
     var $ancho_hoja;
-    var $fecha, $codigo_cg, $nombre_cg, $codigo_moneda, $bandera_header;
+    var $fecha, $codigo_cg, $nombre_cg, $codigo_moneda, $bandera_header, $tipo_contrato = 'PLANTA';
 
     function Header() {
         $this->Ln(3);
@@ -48,7 +48,7 @@ class RCertificacionPresupuestaria extends  ReportePDF{
             $this->writeHTML($tbl);
             $this->ancho_hoja = $this->getPageWidth() - PDF_MARGIN_LEFT - PDF_MARGIN_RIGHT - 10;
             $this->SetMargins(5, 36.5, 5);
-        }else{
+        }else if ($this->bandera_header == 2){
             $this->Ln(9);
             $tbl = '<table border="1" style="font-size: 7pt;">';
 
@@ -70,13 +70,44 @@ class RCertificacionPresupuestaria extends  ReportePDF{
             $this->writeHTML($tbl);
             $this->ancho_hoja = $this->getPageWidth() - PDF_MARGIN_LEFT - PDF_MARGIN_RIGHT - 10;
             $this->SetMargins(5, 40, 5);
+        }else if ($this->bandera_header == 3) {
+            //$contrato = $this->tipo_contrato;
+            $this->Ln(6);
+            $tbl = '<table border="0" style="font-size: 7pt;"> 
+                    <tr><td width="28%"><b>ENTIDAD: </b></td><td width="23%"> ' . $this->datos[0]['nombre_entidad'] . '</td><td width="23%"><b>NRO. PLANILLA: </b></td><td width="28%">' . $this->datos[0]['num_tramite'] . '</td></tr>
+                    <tr><td><b>DIRECCIÓN ADMINISTRATIVA: </b></td><td> ' . $this->datos[0]['direccion_admin'] . '</td><td><b>FECHA: </b></td><td>' . $this->fecha . '</td></tr>
+                    <tr><td><b>UNIDAD EJECUTORA: </b></td><td> ' . $this->datos[0]['unidad_ejecutora'] . '</td><td><b>UNIDAD SOLICITANTE: </b></td><td>' . $this->datos[0]['unidad_solicitante'] . ' </td></tr>
+                    <tr><td><b>CON IMPUTACIÓN PRESUPUESTARIA: </b><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Compromiso: <img width="13" height="13" src="' . dirname(__FILE__) . '/../../sis_presupuestos/reportes/media/tiqueado.png"></td><td></td><td><b>FUNCIONARIO SOLICITANTE: </b></td><td>' . $this->datos[0]['funcionario_solicitante'] . '</td></tr>
+                    <tr><td colspan="4"><b>CATEGORIA: </b> ' . $this->datos[0]['codigo_proceso'] .' - [ ' . $this->tipo_contrato . ' ]</td></tr>
+                    </table>';
+
+            $tbl .= '<table border="1" style="font-size: 7pt;"> 
+                             <tr><td colspan="10" align="center"><b>CLASE DE GASTO: (' . $this->codigo_cg . ') ' . $this->nombre_cg . '</b></td></tr>
+                             <tr>
+                                <td width="7%" align="center"><b>CENTRO DE COSTO</b></td>
+                                <td width="5%" align="center"><br><b>PROG.</b></td>
+                                <td width="5%" align="center"><br><b>PROY.</b></td>
+                                <td width="5%" align="center"><br><b>ACT.</b></td>
+                                <td width="5%" align="center"><br><b>FTE.</b></td>
+                                <td width="5%" align="center" ><b>ORG. FINAN</b></td>
+                                <td width="10%" align="center" valign="center"><br><b>PARTIDA</b></td>
+                                <td width="40%" align="center"><br><b>DESCRIPCIÓN</b></td>
+                                <td width="7%" align="center"><b>ENT.</b> <br><b>TRANSF</b></td>
+                                <td width="11%" align="right"><br><b>IMPORTE ' . ($this->codigo_moneda == 'Bs' ? 'Bs.' : '$us.') . '</b></td>
+                            </tr>';
+
+            $tbl .= '</table>';
+
+            $this->writeHTML($tbl);
+            $this->ancho_hoja = $this->getPageWidth() - PDF_MARGIN_LEFT - PDF_MARGIN_RIGHT - 10;
+            $this->SetMargins(5, 36.5, 5);
         }
 
     }
 
     function setDatos($datos) {
 
-        $this->datos = $datos;
+        $this->datos = $datos;//var_dump($this->datos);exit;
         $this->fecha = date_format(date_create($this->datos[0]['fecha_soli']), 'd/m/Y');
         $this->codigo_cg = $this->datos[0]['codigo_cg'];
         $this->nombre_cg = $this->datos[0]['nombre_cg'];
@@ -410,7 +441,256 @@ class RCertificacionPresupuestaria extends  ReportePDF{
                 $this->writeHTML($tbl, true, false, false, false, '');
             }
         }
+        /******************************************************DETALLE PLANTA******************************************************/
+        $this->bandera_header = 3;
+        $this->AddPage();
+        //$this->array_sort_by($this->datos,'tipo_contrato');
 
+        $record_conceptos = [];
+        foreach ($this->datos as $rec){
+            if( $rec['tipo_contrato'] == 'PLA' ){
+                $record_conceptos[] = $rec;
+            }
+        }
+
+        $this->Ln(17);
+        //variables para la tabla
+        $codigo_cg = '';
+        $id_cp = 0;
+        $cod_partida = '';
+        $tbl = '<table border="1" style="font-size: 6pt;">';
+        $cont_parcial = 0;
+        $cont_total = 0;
+        $contador = 0;
+        $total_general = 0;
+        $cod_moneda = $this->datos[0]['codigo_moneda'];
+        $codigo = '';
+        $codigo_programa = '';
+        foreach( $record_conceptos as $record){
+            if ($record['tipo_contrato'] == 'PLA') {
+                if ($record["codigo_programa"] != $codigo_programa) {
+                    $this->bandera_header = 1;
+                } else {
+                    $this->bandera_header = 2;
+                }
+                $codigo_programa = $record["codigo_programa"];
+
+                if ($record["codigo_cg"] != $codigo_cg) {
+                    if ($record["id_cp"] != $id_cp || $record["codigo_partida"] != $cod_partida) {
+                        if ($id_cp != '' || $cod_partida != '') {
+                            $tbl .= '<tr>
+                                   <td colspan="9" align="center" colspan="9" ><b> TOTAL PARCIAL</b>[' . $codigo . ']</td>
+                                   <td align="right" ><b>' . number_format($cont_parcial, 2, ',', '.') . '</b></td>
+                               </tr>';
+                            $cont_total += $cont_parcial;
+                            $cont_parcial = 0;
+                            $id_cp = $record["id_cp"];
+                            $cod_partida = $record["codigo_partida"];
+                        }
+                    }
+                    if ($codigo_cg != '') {
+
+                        $tbl .= '<tr>
+                                   <td colspan="9" align="center" ><b> SUB - TOTAL CLASE DE GASTOS (' . $record["codigo_cg"] . ') ' . $record["nombre_cg"] . '</b></td>
+                                   <td align="right" ><b>' . number_format($cont_total, 2, ',', '.') . '</b></td>
+                               </tr>';
+                        $total_general += $cont_total;
+
+                    }
+                    $codigo_cg = $record["codigo_cg"];
+                    $cont_total = 0;
+                }
+
+                if ($record["id_cp"] != $id_cp || $record["codigo_partida"] != $cod_partida) {
+
+                    if ($id_cp != '' || $cod_partida != '') {
+                        $tbl .= '<tr>
+                                   <td colspan="9" align="center" colspan="9" ><b> TOTAL PARCIAL</b>[' . $codigo . ']</td>
+                                   <td align="right" ><b>' . number_format($cont_parcial, 2, ',', '.') . '</b></td>
+                               </tr>';
+                        $cont_total += $cont_parcial;
+                        $cont_parcial = 0;
+                    }
+                    $id_cp = $record["id_cp"];
+                    $cod_partida = $record["codigo_partida"];
+                }
+
+                $tbl .= '<tr >
+                                <td width="7%" align="center">' . $record["centro_costo"] . '</td>
+                                <td width="5%" align="center">' . $record["codigo_programa"] . '</td>
+                                <td width="5%" align="center">' . $record["codigo_proyecto"] . '</td>
+                                <td width="5%" align="center">' . $record["codigo_actividad"] . '</td>
+                                <td width="5%" align="center">' . $record["codigo_fuente_fin"] . '</td>
+                                <td width="5%" align="center" >' . $record["codigo_origen_fin"] . '</td>
+                                <td width="10%" align="center" valign="center">' . $record["codigo_partida"] . '</td>
+                                <td width="40%" align="left">' . $record["nombre_partida"] . '</td>
+                                <td width="7%" align="center">' . $record["codigo_transf"] . '</td>
+                                <td width="11%" align="right">' . number_format($record["precio_total"], 2, ',', '.') . '</td>
+                            </tr>';
+                $cont_parcial += $record["precio_total"];
+                $codigo = $codigo = $record["codigo_programa"] . '-' . $record["codigo_proyecto"] . '-' . $record["codigo_actividad"] . '-' . $record["codigo_fuente_fin"] . '-' . $record["codigo_origen_fin"] . ', ' . $record["codigo_partida"];
+            }
+        }
+
+
+        $cont_total += $cont_parcial;
+        $codigo = $record["codigo_programa"].'-'.$record["codigo_proyecto"].'-'.$record["codigo_actividad"].'-'.$record["codigo_fuente_fin"].'-'.$record["codigo_origen_fin"].', '.$record["codigo_partida"];
+
+        if($id_cp != '' || $cod_partida != ''){
+            $tbl.='<tr>
+                               <td colspan="9" align="center" colspan="9" ><b> TOTAL PARCIAL</b>['.$codigo.']</td>
+                               <td align="right" ><b>'.number_format($cont_parcial,2, ',', '.').'</b></td>
+                           </tr>';
+            $total_general+=$cont_total;
+        }
+
+        $tbl .= '<tr>
+                               <td colspan="9" align="center" ><b> SUB - TOTAL CLASE DE GASTOS (' . $record["codigo_cg"] . ') ' . $record["nombre_cg"] . '</b></td>
+                               <td align="right" ><b>' . number_format($cont_total, 2, ',', '.') . '</b></td>
+                           </tr>';
+        $centimos = explode('.', $total_general);
+
+        $tbl.='<tr>
+                           <td colspan="9" align="center" ><b> TOTAL GENERAL AUTORIZADO</b></td>
+                           <td align="right" ><b>'.number_format($total_general,2, ',', '.').'</b></td>
+                       </tr>';
+        $tbl.='<tr>
+                   <td colspan="10" align="left">&nbsp;&nbsp;&nbsp;&nbsp;Son: <b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$this->convertir((integer)$total_general).' '.($centimos[1]==''?'00':$centimos[1]).'/100 ........................................................'.($cod_moneda=='Bs'?'Bolivianos.':'Dolares.').'</b></td>
+                        
+               </tr>';
+        $tbl.='</table>';
+        $this->writeHTML ($tbl);
+        /******************************************************DETALLE PLANTA******************************************************/
+
+        /******************************************************DETALLE EVENTUAL******************************************************/
+        $this->tipo_contrato = 'EVENTUAL';
+        $this->bandera_header = 3;
+        $this->AddPage();
+        $record_conceptos = [];
+        foreach ($this->datos as $key => $rec){
+            if( $rec['tipo_contrato'] == 'EVE'){
+                $record_conceptos[] = $rec;
+            }
+        }
+
+        $this->Ln(17);
+        //variables para la tabla
+        $codigo_cg = '';
+        $id_cp = 0;
+        $cod_partida = '';
+        $tbl = '<table border="1" style="font-size: 6pt;">';
+        $cont_parcial = 0;
+        $cont_total = 0;
+        $contador = 0;
+        $total_general = 0;
+        $cod_moneda = $this->datos[0]['codigo_moneda'];
+        $codigo = '';
+        $codigo_programa = '';
+        foreach( $record_conceptos as $record){
+            if ($record['tipo_contrato'] == 'EVE') {
+                if ($record["codigo_programa"] != $codigo_programa) {
+                    $this->bandera_header = 1;
+                } else {
+                    $this->bandera_header = 2;
+                }
+                $codigo_programa = $record["codigo_programa"];
+
+                if ($record["codigo_cg"] != $codigo_cg) {
+                    if ($record["id_cp"] != $id_cp || $record["codigo_partida"] != $cod_partida) {
+                        if ($id_cp != '' || $cod_partida != '') {
+                            $tbl .= '<tr>
+                                   <td colspan="9" align="center" colspan="9" ><b> TOTAL PARCIAL</b>[' . $codigo . ']</td>
+                                   <td align="right" ><b>' . number_format($cont_parcial, 2, ',', '.') . '</b></td>
+                               </tr>';
+                            $cont_total += $cont_parcial;
+                            $cont_parcial = 0;
+                            $id_cp = $record["id_cp"];
+                            $cod_partida = $record["codigo_partida"];
+                        }
+                    }
+                    if ($codigo_cg != '') {
+
+                        $tbl .= '<tr>
+                                   <td colspan="9" align="center" ><b> SUB - TOTAL CLASE DE GASTOS (' . $record["codigo_cg"] . ') ' . $record["nombre_cg"] . '</b></td>
+                                   <td align="right" ><b>' . number_format($cont_total, 2, ',', '.') . '</b></td>
+                               </tr>';
+                        $total_general += $cont_total;
+
+                    }
+                    $codigo_cg = $record["codigo_cg"];
+                    $cont_total = 0;
+                }
+
+                if ($record["id_cp"] != $id_cp || $record["codigo_partida"] != $cod_partida) {
+
+                    if ($id_cp != '' || $cod_partida != '') {
+                        $tbl .= '<tr>
+                                   <td colspan="9" align="center" colspan="9" ><b> TOTAL PARCIAL</b>[' . $codigo . ']</td>
+                                   <td align="right" ><b>' . number_format($cont_parcial, 2, ',', '.') . '</b></td>
+                               </tr>';
+                        $cont_total += $cont_parcial;
+                        $cont_parcial = 0;
+                    }
+                    $id_cp = $record["id_cp"];
+                    $cod_partida = $record["codigo_partida"];
+                }
+
+                $tbl .= '<tr >
+                                <td width="7%" align="center">' . $record["centro_costo"] . '</td>
+                                <td width="5%" align="center">' . $record["codigo_programa"] . '</td>
+                                <td width="5%" align="center">' . $record["codigo_proyecto"] . '</td>
+                                <td width="5%" align="center">' . $record["codigo_actividad"] . '</td>
+                                <td width="5%" align="center">' . $record["codigo_fuente_fin"] . '</td>
+                                <td width="5%" align="center" >' . $record["codigo_origen_fin"] . '</td>
+                                <td width="10%" align="center" valign="center">' . $record["codigo_partida"] . '</td>
+                                <td width="40%" align="left">' . $record["nombre_partida"] . '</td>
+                                <td width="7%" align="center">' . $record["codigo_transf"] . '</td>
+                                <td width="11%" align="right">' . number_format($record["precio_total"], 2, ',', '.') . '</td>
+                            </tr>';
+                $cont_parcial += $record["precio_total"];
+                $codigo = $codigo = $record["codigo_programa"] . '-' . $record["codigo_proyecto"] . '-' . $record["codigo_actividad"] . '-' . $record["codigo_fuente_fin"] . '-' . $record["codigo_origen_fin"] . ', ' . $record["codigo_partida"];
+            }
+        }
+
+
+        $cont_total += $cont_parcial;
+        $codigo = $record["codigo_programa"].'-'.$record["codigo_proyecto"].'-'.$record["codigo_actividad"].'-'.$record["codigo_fuente_fin"].'-'.$record["codigo_origen_fin"].', '.$record["codigo_partida"];
+
+        if($id_cp != '' || $cod_partida != ''){
+            $tbl.='<tr>
+                               <td colspan="9" align="center" colspan="9" ><b> TOTAL PARCIAL</b>['.$codigo.']</td>
+                               <td align="right" ><b>'.number_format($cont_parcial,2, ',', '.').'</b></td>
+                           </tr>';
+            $total_general+=$cont_total;
+        }
+
+        $tbl .= '<tr>
+                               <td colspan="9" align="center" ><b> SUB - TOTAL CLASE DE GASTOS (' . $record["codigo_cg"] . ') ' . $record["nombre_cg"] . '</b></td>
+                               <td align="right" ><b>' . number_format($cont_total, 2, ',', '.') . '</b></td>
+                           </tr>';
+        $centimos = explode('.', $total_general);
+
+        $tbl.='<tr>
+                           <td colspan="9" align="center" ><b> TOTAL GENERAL AUTORIZADO</b></td>
+                           <td align="right" ><b>'.number_format($total_general,2, ',', '.').'</b></td>
+                       </tr>';
+        $tbl.='<tr>
+                   <td colspan="10" align="left">&nbsp;&nbsp;&nbsp;&nbsp;Son: <b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.$this->convertir((integer)$total_general).' '.($centimos[1]==''?'00':$centimos[1]).'/100 ........................................................'.($cod_moneda=='Bs'?'Bolivianos.':'Dolares.').'</b></td>
+                        
+               </tr>';
+        $tbl.='</table>';
+        $this->writeHTML ($tbl);
+        /******************************************************DETALLE EVENTUAL******************************************************/
+    }
+
+    function array_sort_by(&$arrIni, $col, $order = SORT_ASC){
+        $arrAux = array();
+        foreach ($arrIni as $key=> $row)
+        {
+            $arrAux[$key] = is_object($row) ? $arrAux[$key] = $row->$col : $row[$col];
+            $arrAux[$key] = strtolower($arrAux[$key]);
+        }
+        array_multisort($arrAux, $order, $arrIni);
     }
 
     function basico($numero) {

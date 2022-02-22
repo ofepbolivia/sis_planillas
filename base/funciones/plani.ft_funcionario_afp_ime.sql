@@ -12,13 +12,13 @@ $body$
  DESCRIPCION:   Funcion que gestiona las operaciones basicas (inserciones, modificaciones, eliminaciones de la tabla 'plani.tfuncionario_afp'
  AUTOR: 		 (admin)
  FECHA:	        20-01-2014 16:05:08
- COMENTARIOS:	
+ COMENTARIOS:
 ***************************************************************************
  HISTORIAL DE MODIFICACIONES:
 
- DESCRIPCION:	
- AUTOR:			
- FECHA:		
+ DESCRIPCION:
+ AUTOR:
+ FECHA:
 ***************************************************************************/
 
 DECLARE
@@ -30,26 +30,26 @@ DECLARE
 	v_nombre_funcion        text;
 	v_mensaje_error         text;
 	v_id_funcionario_afp	integer;
-	v_max_fecha_ini			date;		    
+	v_max_fecha_ini			date;
 BEGIN
 
     v_nombre_funcion = 'plani.ft_funcionario_afp_ime';
     v_parametros = pxp.f_get_record(p_tabla);
 
-	/*********************************    
+	/*********************************
  	#TRANSACCION:  'PLA_FUNAFP_INS'
  	#DESCRIPCION:	Insercion de registros
- 	#AUTOR:		admin	
+ 	#AUTOR:		admin
  	#FECHA:		20-01-2014 16:05:08
 	***********************************/
 
 	if(p_transaccion='PLA_FUNAFP_INS')then
-					
+
         begin
         	select max(fecha_ini) into v_max_fecha_ini
         	from plani.tfuncionario_afp
             where id_funcionario = v_parametros.id_funcionario;
-        	
+
         	if (v_max_fecha_ini + interval '1 day' >= v_parametros.fecha_ini)then
         		raise exception 'Ya existe una Afp asignada para este empleado con fecha inicio: %',v_max_fecha_ini;
         	end if;
@@ -81,11 +81,11 @@ BEGIN
 			p_id_usuario,
 			null,
 			null
-							
+
 			)RETURNING id_funcionario_afp into v_id_funcionario_afp;
-			
+
 			--Definicion de la respuesta
-			v_resp = pxp.f_agrega_clave(v_resp,'mensaje','AFP almacenado(a) con exito (id_funcionario_afp'||v_id_funcionario_afp||')'); 
+			v_resp = pxp.f_agrega_clave(v_resp,'mensaje','AFP almacenado(a) con exito (id_funcionario_afp'||v_id_funcionario_afp||')');
             v_resp = pxp.f_agrega_clave(v_resp,'id_funcionario_afp',v_id_funcionario_afp::varchar);
 
             --Devuelve la respuesta
@@ -93,10 +93,10 @@ BEGIN
 
 		end;
 
-	/*********************************    
+	/*********************************
  	#TRANSACCION:  'PLA_FUNAFP_MOD'
  	#DESCRIPCION:	Modificacion de registros
- 	#AUTOR:		admin	
+ 	#AUTOR:		admin
  	#FECHA:		20-01-2014 16:05:08
 	***********************************/
 
@@ -113,54 +113,61 @@ BEGIN
 			id_usuario_mod = p_id_usuario,
 			fecha_mod = now()
 			where id_funcionario_afp=v_parametros.id_funcionario_afp;
-               
+
 			--Definicion de la respuesta
-            v_resp = pxp.f_agrega_clave(v_resp,'mensaje','AFP modificado(a)'); 
+            v_resp = pxp.f_agrega_clave(v_resp,'mensaje','AFP modificado(a)');
             v_resp = pxp.f_agrega_clave(v_resp,'id_funcionario_afp',v_parametros.id_funcionario_afp::varchar);
-               
+
             --Devuelve la respuesta
             return v_resp;
-            
+
 		end;
 
-	/*********************************    
+	/*********************************
  	#TRANSACCION:  'PLA_FUNAFP_ELI'
  	#DESCRIPCION:	Eliminacion de registros
- 	#AUTOR:		admin	
+ 	#AUTOR:		admin
  	#FECHA:		20-01-2014 16:05:08
 	***********************************/
 
 	elsif(p_transaccion='PLA_FUNAFP_ELI')then
 
-		begin
+		begin --raise 'idssss %, %',v_parametros.id_funcionario_afp, p_id_usuario;
 			--Sentencia de la eliminacion
-			delete from plani.tfuncionario_afp
-            where id_funcionario_afp=v_parametros.id_funcionario_afp;
-               
+
+			/*delete from plani.tfuncionario_afp
+            where id_funcionario_afp=v_parametros.id_funcionario_afp;*/
+
+            update plani.tfuncionario_afp set
+				estado_reg = 'inactivo',
+				id_usuario_mod = p_id_usuario::integer,
+				fecha_mod = now()
+			where id_funcionario_afp = v_parametros.id_funcionario_afp::integer;
+
             --Definicion de la respuesta
-            v_resp = pxp.f_agrega_clave(v_resp,'mensaje','AFP eliminado(a)'); 
+            v_resp = pxp.f_agrega_clave(v_resp,'mensaje','AFP eliminado(a)');
             v_resp = pxp.f_agrega_clave(v_resp,'id_funcionario_afp',v_parametros.id_funcionario_afp::varchar);
-              
+
             --Devuelve la respuesta
             return v_resp;
 
 		end;
-         
+
 	else
-     
+
     	raise exception 'Transaccion inexistente: %',p_transaccion;
 
 	end if;
 
 EXCEPTION
-				
+
 	WHEN OTHERS THEN
 		v_resp='';
 		v_resp = pxp.f_agrega_clave(v_resp,'mensaje',SQLERRM);
 		v_resp = pxp.f_agrega_clave(v_resp,'codigo_error',SQLSTATE);
 		v_resp = pxp.f_agrega_clave(v_resp,'procedimientos',v_nombre_funcion);
 		raise exception '%',v_resp;
-				        
+
 END;
 $body$
 LANGUAGE 'plpgsql'
@@ -168,3 +175,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.ft_funcionario_afp_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;

@@ -34,6 +34,7 @@ Phx.vista.FuncionarioPlanilla = {
         this.addButton('btnBonoDesc',
         {
             text: 'Bono/Descuento',
+            grupo: [0,1],
             iconCls: 'blist',
             disabled: true,
             handler: this.onBtnBonoDesc,
@@ -58,7 +59,38 @@ Phx.vista.FuncionarioPlanilla = {
                 handler: this.onBtnOtrosIngresosPlanilla,
                 tooltip: 'Detalle Otros ingresos x Planilla'
             });
+        this.addButton('btn_lic',
+            {
+                text: 'Licencia Funcionario',
+                iconCls: 'bpagar',
+                grupo: [0,1],
+                disabled: true,
+                handler: this.onLicenciaFuncionario,
+                tooltip: 'Detalle de Licencias Funcionario'
+            }
+        );
+
+        //this.enableTabTipo();
    },
+    /*enableTabTipo:function(){
+        if(this.TabPanelSouth.get(0)){
+            this.TabPanelSouth.get(0).enable();
+            this.TabPanelSouth.setActiveTab(0);
+        }
+    },*/
+    onLicenciaFuncionario: function(){
+        var rec = {maestro: this.sm.getSelected().data};
+
+        Phx.CP.loadWindows('../../../sis_planillas/vista/funcionario/LicenciaFuncionario.php',
+            'Licencias',
+            {
+                width:800,
+                height:500
+            },
+            rec,
+            this.idContenedor,
+            'LicenciaFuncionario');
+    },
 
     onBtnOtrosIngresosFuncionario: function(){
         var rec = {maestro: this.getSelectedData()};
@@ -121,14 +153,17 @@ Phx.vista.FuncionarioPlanilla = {
         this.getBoton('btnAfp').enable();
         this.getBoton('btnBonoDesc').enable();
         this.getBoton('btn_oi').enable();
+        this.getBoton('btn_lic').enable();
         Phx.vista.FuncionarioPlanilla.superclass.preparaMenu.call(this);
     },
     liberaMenu:function()
-    {	
+    {
+        Phx.vista.FuncionarioPlanilla.superclass.liberaMenu.call(this);
         this.getBoton('btnAfp').disable();
         this.getBoton('btnBonoDesc').disable();
         this.getBoton('btn_oi').disable();
-        Phx.vista.FuncionarioPlanilla.superclass.liberaMenu.call(this);
+        this.getBoton('btn_lic').disable();
+
     },
 
     tabsouth:[

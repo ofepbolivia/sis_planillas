@@ -40,6 +40,7 @@ class MODDescuentoBono extends MODbase{
 		$this->captura('codigo_columna','varchar');
 		$this->captura('tipo_descuento_bono','varchar');
 		$this->captura('tipo_dato','varchar');
+		$this->captura('tipo_desc_bono','varchar');
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();
@@ -64,6 +65,7 @@ class MODDescuentoBono extends MODbase{
 		$this->setParametro('fecha_ini','fecha_ini','date');
 		$this->setParametro('estado_reg','estado_reg','varchar');
 		$this->setParametro('fecha_fin','fecha_fin','date');
+		$this->setParametro('tipo_desc_bono','tipo_desc_bono','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -90,6 +92,7 @@ class MODDescuentoBono extends MODbase{
 		$this->setParametro('fecha_ini','fecha_ini','date');
 		$this->setParametro('estado_reg','estado_reg','varchar');
 		$this->setParametro('fecha_fin','fecha_fin','date');
+        $this->setParametro('tipo_desc_bono','tipo_desc_bono','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();

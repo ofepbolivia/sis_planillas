@@ -304,6 +304,10 @@ class ACTPlanilla extends ACTbase{
 
     //(f.e.a) 06/02/2020 reporte excel de otros ingresos por periodo finanzas
     function reporteOtrosIngresos(){
+
+        $periodo = $this->objParam->getParametro('periodo');
+        $gestion = $this->objParam->getParametro('gestion');
+
         $this->objFunc = $this->create('MODPlanilla');
         $this->res=$this->objFunc->reporteOtrosIngresos($this->objParam);
         $titulo_archivo = 'Planilla Otros ingresos';
@@ -316,8 +320,88 @@ class ACTPlanilla extends ACTbase{
         $this->objParam->addParametro('gestion',$this->objParam->getParametro('gestion'));
         $this->objParam->addParametro('periodo',$this->objParam->getParametro('periodo'));
 
+        /**************************************************** BACKGROUND ****************************************************/
+        /*$NEW_LINE = "\r\n";
+        ignore_user_abort(true);
+        header('Connection: close' . $NEW_LINE);
+        header('Content-Encoding: none' . $NEW_LINE);
+        ob_start();
+        $this->mensajeExito=new Mensaje();
+        $this->mensajeExito->setMensaje('EXITO','Reporte.php','Reporte generado '.$nombreArchivo,'Se generó con éxito el reporte: '.$nombreArchivo,'control');
+        $this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
+        $size = ob_get_length();
+        header('Content-Length: ' . $size, TRUE);
+        ob_end_flush();
+        ob_flush();
+        flush();
+        session_write_close();*/
+        /**************************************************** BACKGROUND ****************************************************/
+
         $this->objReporte = new RDetalleOtrosIngresosTableXLS($this->objParam);
         $this->objReporte->generarReporte();
+
+        /**************************************************** RESPONSE ****************************************************/
+//        /** Convertir a megas **/
+//        $file_size = filesize($url_file_xls);
+//        $units = array('B', 'KB', 'MB', 'GB', 'TB');
+//
+//        $bytes = max($file_size, 0);
+//        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+//        $pow = min($pow, count($units) - 1);
+//
+//        $equivalencia = 1;
+//        if ($units[$pow] == 'KB') {
+//            $equivalencia = 1024;
+//        }else if ($units[$pow] == 'MB'){
+//            $equivalencia = 1048576;
+//        }else if ($units[$pow] == 'GB'){
+//            $equivalencia = 1073741824;
+//        }
+//        $file_size = round($bytes/$equivalencia, 2) . ' ' . $units[$pow];
+//        /** Convertir a megas **/
+//
+//        //$url_absolute = './../../../reportes_generados/'.$nombreArchivo;
+//        $url_absolute = $url_file_xls;
+//
+//        $cone = new conexion();
+//        $link = $cone->conectarpdo();
+//
+//        $sql = "UPDATE  plani.tdocumento_generado SET
+//                      estado_reg = 'OLD'
+//                    WHERE format = 'xls' and estado_reg != 'inactivo'";
+//
+//        $stmt = $link->prepare($sql);
+//        $stmt->execute();
+//
+//        $sql = "INSERT INTO plani.tdocumento_generado(id_usuario_reg, url, size, fecha_generacion, file_name, format, estado_reg, periodo, gestion) VALUES (" . $_SESSION["ss_id_usuario"] . "::integer, '" . $url_absolute . "', '" . $file_size . "', now(), '" . $nombreArchivo . "', 'xls', 'NEW', $periodo, $gestion) ";
+//
+//        $stmt = $link->prepare($sql);
+//        $stmt->execute();
+//
+//        /**enviar alert al usuario para indicar que el reporte ha sido generado**/
+//        $evento = "enviarMensajeUsuario";
+//
+//        //mandamos datos al websocket
+//        $data = array(
+//            "mensaje" => 'Estimado Funcionario, su Reporte ya ha sido generado: ' . $nombreArchivo,
+//            "tipo_mensaje" => 'alert',
+//            "titulo" => 'Alerta Reporte',
+//            "id_usuario" => $_SESSION["ss_id_usuario"],
+//            "destino" => 'Unico',
+//            "evento" => $evento,
+//            "url" => 'url_prueba'
+//        );
+//
+//        $send = array(
+//            "tipo" => "enviarMensajeUsuario",
+//            "data" => $data
+//        );
+//
+//        $usuarios_socket = $this->dispararEventoWS($send);
+//
+//        $usuarios_socket = json_decode($usuarios_socket, true);
+        /**enviar alert al usuario para indicar que el reporte ha sido generado**/
+        /**************************************************** RESPONSE ****************************************************/
 
         $this->mensajeExito=new Mensaje();
         $this->mensajeExito->setMensaje('EXITO','Reporte.php','Reporte generado','Se generó con éxito el reporte: '.$nombreArchivo,'control');
@@ -348,6 +432,27 @@ class ACTPlanilla extends ACTbase{
         $this->mensajeExito->setMensaje('EXITO','Reporte.php','Reporte generado', 'Se generó con éxito el reporte: '.$nombreArchivo,'control');
         $this->mensajeExito->setArchivoGenerado($nombreArchivo);
         $this->mensajeExito->imprimirRespuesta($this->mensajeExito->generarJson());
+    }
+
+    //{develop:franklin.espinoza, date:30/7/2020, description: Validar Otros Ingresos por su responsable correspondiente}
+    function validarResponsableOtrosIngresos(){ //var_dump($_SESSION["ss_id_funcionario"]);exit;
+        $this->objFunc=$this->create('MODPlanilla');
+
+        if(($_SESSION["ss_id_funcionario"] == 43 || $_SESSION["ss_id_funcionario"] == 2145) && $this->objParam->getParametro('sistema') == 'refrigerio') {
+            $this->res=$this->objFunc->validarResponsableOtrosIngresos($this->objParam);
+            $this->res->imprimirRespuesta($this->res->generarJson());
+        }else if ($_SESSION["ss_id_funcionario"] == 28 && ($this->objParam->getParametro('sistema') == 'viatico' || $this->objParam->getParametro('sistema') == 'viatico_operativo')) {
+            $this->res = $this->objFunc->validarResponsableOtrosIngresos($this->objParam);
+            $this->res->imprimirRespuesta($this->res->generarJson());
+        }else{
+            $this->mensajeFail=new Mensaje();
+            $this->mensajeFail->setMensaje('EXITO','Planilla.php','Validación Planilla', 'Usted no esta Autorizado para realizar esta Acción ','control');
+            $this->mensajeFail->setDatos(array('error' => true, 'mensaje'=>'Usted no esta Autorizado para realizar esta Acción.'));
+            $this->mensajeFail->imprimirRespuesta($this->mensajeFail->generarJson());
+        }
+
+
+
     }
 }
 ?>

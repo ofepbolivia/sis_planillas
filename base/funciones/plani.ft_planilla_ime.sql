@@ -75,6 +75,16 @@ DECLARE
     v_items				varchar;
 
     v_estado			varchar;
+
+    --Variables validacion Otros ingresos Contabilidad
+    v_sistema			varchar;
+    v_plantilla			text;
+    v_validado			varchar;
+    v_hora_saludo		varchar;
+    v_funcionario		record;
+    v_id_alarma			integer;
+    v_contador_no   integer;
+    v_desc_sistema  varchar;
 BEGIN
 
     v_nombre_funcion = 'plani.ft_planilla_ime';
@@ -89,7 +99,7 @@ BEGIN
 
 	if(p_transaccion='PLA_PLANI_INS')then
 
-        begin --raise exception 'temporalmente inactivo: %', v_parametros;
+        begin --raise exception 'temporalmente inactivo: %', v_parametros.momento_planilla;
         	select pxp.list(id_uo::text) into v_id_uos
         	from param.tdepto_uo
         	where id_depto = v_parametros.id_depto and estado_reg = 'activo';
@@ -204,7 +214,8 @@ BEGIN
 			fecha_planilla,
       id_periodo_pago,
       fecha_sigma,
-      modalidad
+      modalidad,
+      momento_planilla
           	) values(
 			v_parametros.id_periodo,
 			v_parametros.id_gestion,
@@ -225,7 +236,8 @@ BEGIN
 			v_parametros.fecha_planilla,
       v_parametros.periodo_pago,
       v_parametros.fecha_sigma,
-      v_parametros.modalidad
+      v_parametros.modalidad,
+      v_parametros.momento_planilla
 			)RETURNING id_planilla into v_id_planilla;
 
             execute 'select ' || v_tipo_planilla.funcion_obtener_empleados || '(' || v_id_planilla || ')'
@@ -252,13 +264,14 @@ BEGIN
 		begin --raise exception 'periodo_pago: %', v_parametros.periodo_pago;
 			--Sentencia de la modificacion
 			update plani.tplanilla set
-			observaciones = v_parametros.observaciones,
-			id_usuario_mod = p_id_usuario,
-			fecha_planilla = v_parametros.fecha_planilla,
-      id_periodo_pago = v_parametros.periodo_pago,
-      fecha_sigma = v_parametros.fecha_sigma,
-			fecha_mod = now(),
-      modalidad = v_parametros.modalidad
+			    observaciones = v_parametros.observaciones,
+			    id_usuario_mod = p_id_usuario,
+			    fecha_planilla = v_parametros.fecha_planilla,
+                id_periodo_pago = v_parametros.periodo_pago,
+                fecha_sigma = v_parametros.fecha_sigma,
+			    fecha_mod = now(),
+                modalidad = v_parametros.modalidad,
+			    momento_planilla = v_parametros.momento_planilla
 			where id_planilla=v_parametros.id_planilla;
 
 			--Definicion de la respuesta
@@ -769,6 +782,102 @@ BEGIN
         --Devuelve la respuesta
         return v_resp;
         end;
+  /*********************************
+ 	#TRANSACCION:  'PLA_VAL_OTR_ING_IME'
+ 	#DESCRIPCION:	Validar Otros Ingres Personal Contabilidad
+ 	#AUTOR:		franklin.espinoza
+ 	#FECHA:		30/07/2020 15:00
+	***********************************/
+
+	elsif(p_transaccion='PLA_VAL_OTR_ING_IME')then
+
+		begin
+
+        	if v_parametros.sistema = 'refrigerio' then
+            	v_sistema = 'Refrigerios';
+            else
+            	v_sistema = 'Viatico %';
+            end if;
+
+            select count(toi.validado_erp)
+            into v_contador_no
+            from plani.totros_ingresos toi
+            where toi.periodo = v_parametros.periodo and toi.gestion = v_parametros.gestion and
+            toi.sistema_fuente like v_sistema and toi.validado_erp = 'no';
+
+            /*select case when count(toi.id_otros_ingresos) > 0 then 'validado' else 'pendiente' end
+            into v_validado
+            from plani.totros_ingresos toi
+            where toi.periodo = v_parametros.periodo and toi.gestion = v_parametros.gestion and
+            toi.sistema_fuente like v_sistema and toi.validado_erp = 'si';*/
+
+            if v_contador_no = 0 then
+              v_validado = 'validado';
+            else
+              v_validado = 'pendiente';
+            end if;
+
+            if 'validado' = v_validado then
+            	raise 'Estimado Usuario: <br> Otros Ingresos (%), Ya fue Validado.',v_parametros.sistema;
+            else
+
+              update plani.totros_ingresos p set
+              validado_erp = 'si'
+              where periodo = v_parametros.periodo and gestion = v_parametros.gestion and
+              sistema_fuente like v_sistema;
+
+              v_hora_saludo = case when current_time between '08:00:00'::time and '12:00:00'::time then '<b>Buenos dias' ::varchar
+                                   when current_time between '12:00:00'::time and '19:00:00'::time then '<b>Buenas tardes'::varchar end;
+
+              select vf.desc_funcionario2 as funcionario, tf.email_empresa
+              into v_funcionario
+              from segu.tusuario usu
+              inner join orga.vfuncionario vf on vf.id_persona = usu.id_persona
+              inner join orga.tfuncionario tf on tf.id_funcionario = vf.id_funcionario
+              where usu.id_usuario = p_id_usuario;
+
+              if v_parametros.sistema = 'refrigerio' then
+                v_desc_sistema = 'Refrigerios';
+              elsif v_parametros.sistema = 'viatico' then
+                v_desc_sistema = 'Viatico Administrativo';
+              else
+                v_desc_sistema = 'Viatico Operativo';
+              end if;
+
+              v_plantilla = v_hora_saludo||' estimad@ Responsable Planillas R.R.H.H. :</b><br>
+                  <p>El motivo del presente es, confirmarle la validación de Otros Ingresos ('||initcap(v_desc_sistema)||') por el funcionari@: <br> <b>'||coalesce(v_funcionario.funcionario, 'Comunicarse con Franklin Espinoza Alvarez')||'</b>.<br>
+                  <b>Periodo Proceso:</b> '||v_parametros.periodo||'/'||v_parametros.gestion||'<br>
+                  </p>';
+
+                v_id_alarma =  param.f_inserta_alarma(
+                                                    null,
+                                                    v_plantilla,
+                                                    '../../../sis_planillas/vista/reporte/OtrosIngresosCategoria.php',
+                                                    current_date,
+                                                    'notificacion',
+                                                    v_funcionario.funcionario,--'Ninguna',
+                                                    1,
+                                                    'OtrosIngresosCategoria',
+                                                    'Validación Otros Ingresos '||initcap(v_parametros.sistema),--titulo
+                                                    '{filtro_directo:{campo:"p_id_usuario",valor:"'||p_id_usuario::varchar||'"}}',
+                                                    NULL::integer,
+                                                    'Validación Otros Ingresos '||v_parametros.sistema,
+                                                    'roberto.lopez@boa.bo,jvaldivia@boa.bo,['||coalesce(v_funcionario.email_empresa||';','')||'franklin.espinoza@boa.bo]',
+                                                    null,
+                                                    null
+                                                    );
+            end if;
+
+
+          --Definicion de la respuesta
+          v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Validación Otros Ingresos, realizada exitosamente');
+          v_resp = pxp.f_agrega_clave(v_resp,'periodo',v_parametros.periodo::varchar);
+          v_resp = pxp.f_agrega_clave(v_resp,'gestion',v_parametros.gestion::varchar);
+          v_resp = pxp.f_agrega_clave(v_resp,'sistema',v_parametros.sistema::varchar);
+
+          --Devuelve la respuesta
+          return v_resp;
+        end;
 	else
 
     	raise exception 'Transaccion inexistente: %',p_transaccion;
@@ -791,3 +900,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.ft_planilla_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;

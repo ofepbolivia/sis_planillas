@@ -34,6 +34,14 @@ DECLARE
     v_id_funcionario_planilla	integer;
     v_tipo_columna			record;
 
+    /****************************** CALCULO COLUMNAS VALOR ******************************/
+    v_funcionarios		    record;
+    v_valor_generado		numeric;
+    v_valor				    numeric;
+    v_recalcular			varchar;
+    v_planilla              record;
+    /****************************** CALCULO COLUMNAS VALOR ******************************/
+
 BEGIN
 
     v_nombre_funcion = 'plani.ft_columna_valor_ime';
@@ -124,6 +132,143 @@ BEGIN
 			fecha_mod = now(),
 			id_usuario_mod = p_id_usuario
 			where id_columna_valor=v_parametros.id_columna_valor;
+
+            /**************************************** CALCULO COLUMNAS VALOR ****************************************/
+
+			/*select pla.*, per.fecha_ini, per.fecha_fin
+			into v_planilla
+			from plani.tfuncionario_planilla funplan
+			inner join plani.tplanilla  pla on pla.id_planilla = funplan.id_planilla
+			inner join param.tperiodo per on per.id_periodo = pla.id_periodo
+			where  funplan.id_funcionario_planilla = v_parametros.id_funcionario_planilla;*/
+            select pla.*, per.fecha_ini, per.fecha_fin, tpla.codigo
+			into v_planilla
+			from plani.tfuncionario_planilla funplan
+			inner join plani.tplanilla  pla on pla.id_planilla = funplan.id_planilla
+            inner join plani.ttipo_planilla tpla on tpla.id_tipo_planilla = pla.id_tipo_planilla
+			left join param.tperiodo per on per.id_periodo = pla.id_periodo
+			where  funplan.id_funcionario_planilla = v_parametros.id_funcionario_planilla;
+
+          	v_recalcular = 'no';
+			if v_planilla.codigo != 'PLAGUIN' then
+              for v_funcionarios in (	select fp.*,cv.*,tc.tipo_descuento_bono, tc.orden, tc.finiquito,
+                                      tc.decimales_redondeo,tc.tipo_dato
+                              from plani.tfuncionario_planilla fp
+                              inner join plani.tcolumna_valor cv on cv.id_funcionario_planilla = fp.id_funcionario_planilla
+                              inner join plani.ttipo_columna tc on tc.id_tipo_columna = cv.id_tipo_columna
+                              where fp.id_planilla = v_planilla.id_planilla and tc.orden >= v_tipo_columna.orden and fp.id_funcionario_planilla = v_parametros.id_funcionario_planilla
+                              order by fp.id_funcionario_planilla asc,tc.orden asc
+                              ) loop
+
+                      if (v_funcionarios.tipo_descuento_bono is not null and v_funcionarios.tipo_descuento_bono != '') THEN
+                          if (v_funcionarios.valor_generado = v_funcionarios.valor) then
+                              v_valor_generado = plani.f_calcular_descuento_bono(v_funcionarios.id_funcionario,
+                                                  v_planilla.fecha_ini, v_planilla.fecha_fin, v_funcionarios.id_tipo_columna,
+                                                  v_funcionarios.tipo_descuento_bono,v_funcionarios.formula,
+                                                  v_funcionarios.id_funcionario_planilla,v_funcionarios.codigo_columna,
+                                                  v_funcionarios.tipo_dato, v_funcionarios.id_columna_valor);
+                              v_valor = v_valor_generado;
+                          else
+                              v_valor_generado = v_funcionarios.valor_generado;
+                              v_valor = v_funcionarios.valor;
+                          end if;
+                      elsif (v_funcionarios.tipo_dato = 'basica') THEN
+                          if (v_funcionarios.valor_generado = v_funcionarios.valor) then
+
+                              v_valor_generado = plani.f_calcular_basica(v_funcionarios.id_funcionario_planilla,
+                                                      v_planilla.fecha_ini, v_planilla.fecha_fin, v_funcionarios.id_tipo_columna,v_funcionarios.codigo_columna,v_funcionarios.id_columna_valor);
+
+                              v_valor = v_valor_generado;
+
+                          else
+                              v_valor_generado = v_funcionarios.valor_generado;
+                              v_valor = v_funcionarios.valor;
+                          end if;
+                      elsif (v_funcionarios.tipo_dato = 'formula') then
+                          if (v_funcionarios.valor_generado = v_funcionarios.valor) then
+                              v_valor_generado = plani.f_calcular_formula(v_funcionarios.id_funcionario_planilla,
+                                                          v_funcionarios.formula, v_planilla.fecha_ini, v_funcionarios.id_columna_valor,v_recalcular);
+                              v_valor = v_valor_generado;
+                          else
+                              v_valor_generado = v_funcionarios.valor_generado;
+                              v_valor = v_funcionarios.valor;
+                          end if;
+                      else
+                          v_valor_generado = v_funcionarios.valor_generado;
+                          v_valor = v_funcionarios.valor;
+                      end if;
+
+                      --(franklin.espinoza)[13/07/2021]redondeo para el 13 % de facturas
+                      if v_funcionarios.codigo_columna = 'IMPOFAC13' then
+                          if (v_valor-trunc(v_valor)) >= 0.46 and (v_valor_generado-trunc(v_valor_generado)) >= 0.46 then
+                              v_valor = ceiling(v_valor);
+                              v_valor_generado = ceiling(v_valor_generado);
+                          end if;
+                      end if;
+                      --(franklin.espinoza)[13/07/2021]redondeo para el 13 % de facturas
+
+                      update plani.tcolumna_valor set
+                          valor = round (v_valor, v_funcionarios.decimales_redondeo),
+                          valor_generado = round (v_valor_generado, v_funcionarios.decimales_redondeo)
+                      where id_columna_valor = v_funcionarios.id_columna_valor;
+              end loop;
+            else
+            	for v_funcionarios in (	select fp.*,cv.*,tc.tipo_descuento_bono, tc.orden, tc.finiquito,
+                                                tc.decimales_redondeo,tc.tipo_dato
+                                        from plani.tfuncionario_planilla fp
+                                        inner join plani.tcolumna_valor cv on cv.id_funcionario_planilla = fp.id_funcionario_planilla
+                                        inner join plani.ttipo_columna tc on tc.id_tipo_columna = cv.id_tipo_columna
+                                        where fp.id_planilla = v_planilla.id_planilla and tc.orden >= 0 and fp.id_funcionario_planilla = v_parametros.id_funcionario_planilla
+                                        order by fp.id_funcionario_planilla asc,tc.orden asc
+                                        ) loop
+
+                  if (v_funcionarios.tipo_descuento_bono is not null and v_funcionarios.tipo_descuento_bono != '') THEN
+                      if (v_funcionarios.valor_generado = v_funcionarios.valor) then
+                          v_valor_generado = plani.f_calcular_descuento_bono(v_funcionarios.id_funcionario,
+                                              v_planilla.fecha_ini, v_planilla.fecha_fin, v_funcionarios.id_tipo_columna,
+                                              v_funcionarios.tipo_descuento_bono,v_funcionarios.formula,
+                                              v_funcionarios.id_funcionario_planilla,v_funcionarios.codigo_columna,
+                                              v_funcionarios.tipo_dato, v_funcionarios.id_columna_valor);
+                          v_valor = v_valor_generado;
+                      else
+                          v_valor_generado = v_funcionarios.valor_generado;
+                          v_valor = v_funcionarios.valor;
+                      end if;
+                  elsif (v_funcionarios.tipo_dato = 'basica') THEN
+                      if (v_funcionarios.valor_generado = v_funcionarios.valor) then
+
+                          v_valor_generado = plani.f_calcular_basica(v_funcionarios.id_funcionario_planilla,
+                                                  v_planilla.fecha_ini, v_planilla.fecha_fin, v_funcionarios.id_tipo_columna,v_funcionarios.codigo_columna,v_funcionarios.id_columna_valor);
+
+                          v_valor = v_valor_generado;
+
+                      else
+                          v_valor_generado = v_funcionarios.valor_generado;
+                          v_valor = v_funcionarios.valor;
+                      end if;
+                  elsif (v_funcionarios.tipo_dato = 'formula') then
+                      if (v_funcionarios.valor_generado = v_funcionarios.valor) then
+                          v_valor_generado = plani.f_calcular_formula(v_funcionarios.id_funcionario_planilla,
+                                                      v_funcionarios.formula, v_planilla.fecha_ini, v_funcionarios.id_columna_valor,v_recalcular);
+                          v_valor = v_valor_generado;
+                      else
+                          v_valor_generado = v_funcionarios.valor_generado;
+                          v_valor = v_funcionarios.valor;
+                      end if;
+                  else
+                      v_valor_generado = v_funcionarios.valor_generado;
+                      v_valor = v_funcionarios.valor;
+                  end if;
+
+
+
+                  update plani.tcolumna_valor set
+                      valor = round(v_valor, v_funcionarios.decimales_redondeo),
+                      valor_generado = round(v_valor_generado, v_funcionarios.decimales_redondeo)
+                  where id_columna_valor = v_funcionarios.id_columna_valor;
+          		end loop;
+            end if;
+          /**************************************** CALCULO COLUMNAS VALOR ****************************************/
 
 			--Definicion de la respuesta
             v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Columna Valor modificado(a)');
@@ -234,3 +379,6 @@ VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
 COST 100;
+
+ALTER FUNCTION plani.ft_columna_valor_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;
