@@ -59,6 +59,22 @@ header("content-type: text/javascript; charset=UTF-8");
 
             /*this.addButton('ant_estado',{grupo:[0],argument: {estado: 'anterior'},text:'Anterior',iconCls: 'batras',disabled:true,handler:this.antEstado,tooltip: '<b>Pasar al Anterior Estado</b>'});
             this.addButton('sig_estado',{grupo:[0],text:'Siguiente',iconCls: 'badelante',disabled:true,handler:this.sigEstado,tooltip: '<b>Pasar al Siguiente Estado</b>'});*/
+            this.addButton('btnColumnas',
+                {	grupo:[0,1,2],
+                    iconCls: 'bcalculator',
+                    disabled: false,
+                    text:'Columnas',
+                    tooltip: 'Gestion de Columnas (solo es posible subir csv y editar columnas si el estado es calculo_columnas)',
+                    xtype: 'splitbutton',
+                    menu: [{
+                        text: 'Detalle Columnas',
+                        id: 'btnColumnasDetalle-' + this.idContenedor,
+                        handler: this.onButtonColumnasDetalle,
+                        tooltip: 'Detalle de Columnas por Empleado',
+                        scope: this
+                    }]
+                }
+            );
             this.addButton('diagrama_gantt',{grupo:[0,1,2],text:'Gant',iconCls: 'bgantt',disabled:true,handler:diagramGantt,tooltip: '<b>Diagrama Gantt de proceso macro</b>'});
 
             this.addButton('btnChequeoDocumentosWf',
@@ -128,7 +144,19 @@ header("content-type: text/javascript; charset=UTF-8");
             hidden:false,
             width:80
         }),
+        onButtonColumnasDetalle : function() {
+            var rec = {maestro: this.sm.getSelected().data};
 
+            Phx.CP.loadWindows('../../../sis_planillas/vista/funcionario_planilla/FuncionarioPlanillaColumna.php',
+                'Detalle de Columnas por Empleado',
+                {
+                    width:800,
+                    height:'90%'
+                },
+                rec,
+                this.idContenedor,
+                'FuncionarioPlanillaColumna');
+        },
         capturarEventos: function () {
             this.store.baseParams.id_gestion=this.cmbGestion.getValue();
             this.load({params:{start:0, limit:this.tam_pag}});
@@ -217,7 +245,17 @@ header("content-type: text/javascript; charset=UTF-8");
                     listWidth:280,
                     minChars: 2,
                     gwidth: 120,
-                    tpl: '<tpl for="."><div class="x-combo-list-item"><p>{codigo}</p><strong>{nombre}</strong> </div></tpl>'
+                    tpl: '<tpl for="."><div class="x-combo-list-item"><p>{codigo}</p><strong>{nombre}</strong> </div></tpl>',
+                    renderer:function (value, p, record){
+                        if(record.data['nombre_planilla'] == 'PLASUE'){
+                            return String.format('{0}', '<b style="color: green;">'+record.data['nombre_planilla']+'</b>');
+                        }else if(record.data['nombre_planilla'] == 'PLASUB'){
+                            return String.format('{0}', '<b style="color: red;">'+record.data['nombre_planilla']+'</b>');
+                        }else{
+                            return String.format('{0}', '<b style="color: blue;">'+record.data['nombre_planilla']+'</b>');
+                        }
+
+                    }
                 },
                 type: 'ComboBox',
                 id_grupo: 0,
@@ -229,6 +267,34 @@ header("content-type: text/javascript; charset=UTF-8");
                 form: true,
                 bottom_filter : true
             },
+            {
+                config:{
+                    name:'modalidad',
+                    fieldLabel:'Modalidad',
+                    allowBlank:false,
+                    emptyText:'Modalidad...',
+                    disabled: true,
+                    editable: false,
+                    hidden: true,
+                    typeAhead: true,
+                    triggerAction: 'all',
+                    lazyRender:true,
+                    mode: 'local',
+                    store:['administrativo','piloto'],
+                    width: 177,
+                    renderer:function (value, p, record){return String.format('<div style="color:orangered;">{0}</div>', record.data['modalidad']);}
+
+                },
+                type:'ComboBox',
+                id_grupo:0,
+                filters:{
+                    type: 'list',
+                    options:['administrativo','piloto']
+                },
+                grid:true,
+                form:true
+            },
+
             {
                 config:{
                     name: 'estado',
@@ -264,7 +330,7 @@ header("content-type: text/javascript; charset=UTF-8");
                 type:'ComboRec',
                 id_grupo:0,
                 filters:{pfiltro:'depto.nombre',type:'string'},
-                grid:true,
+                grid:false,
                 form:true
             },
             {
@@ -292,7 +358,7 @@ header("content-type: text/javascript; charset=UTF-8");
                 config:{
                     name : 'id_periodo',
                     origen : 'PERIODO',
-                    fieldLabel : 'Periodo',
+                    fieldLabel : 'Mes Proceso',
                     allowBlank : true,
                     gdisplayField : 'periodo',//mapea al store del grid
                     gwidth : 100,
@@ -329,6 +395,73 @@ header("content-type: text/javascript; charset=UTF-8");
 
             {
                 config:{
+                    name : 'periodo_pago',
+                    origen : 'PERIODO',
+                    fieldLabel : 'Periodo Pago',
+                    allowBlank : false,
+                    emptyText: 'Periodo Pago',
+                    gdisplayField : 'periodo',//mapea al store del grid
+                    gwidth : 100,
+
+                    disabled: true,
+                    renderer:function (value, p, record){
+                        var dato='Sin Periodo';
+                        dato = record.data['periodo_pago']=='1'?'Enero':dato;
+                        dato = record.data['periodo_pago']=='2'?'Febrero':dato;
+                        dato = record.data['periodo_pago']=='3'?'Marzo':dato;
+                        dato = record.data['periodo_pago']=='4'?'Abril':dato;
+                        dato = record.data['periodo_pago']=='5'?'Mayo':dato;
+                        dato = record.data['periodo_pago']=='6'?'Junio':dato;
+                        dato = record.data['periodo_pago']=='7'?'Julio':dato;
+                        dato = record.data['periodo_pago']=='8'?'Agosto':dato;
+                        dato = record.data['periodo_pago']=='9'?'Septiembre':dato;
+                        dato = record.data['periodo_pago']=='10'?'Octubre':dato;
+                        dato = record.data['periodo_pago']=='11'?'Noviembre':dato;
+                        dato = record.data['periodo_pago']=='12'?'Diciembre':dato;
+                        if  (dato=='Sin Periodo'){
+                            return String.format('<div ext:qtip="Pago"><span style="color: red">{0}</span></div>', dato);
+                        }else{
+                            return String.format('<div ext:qtip="Pago"><span style="color: green">{0}</span></div>', dato);
+                        }
+
+                    }
+                    //renderer : function (value, p, record){return String.format('{0}', );}
+                },
+                valueField: 'id_periodo',
+                displayField: 'periodo',
+                type : 'ComboRec',
+                id_grupo : 1,
+                filters : {
+                    pfiltro : 'per.periodo',
+                    type : 'numeric'
+                },
+
+                grid : true,
+                form : true,
+                bottom_filter : true
+            },
+            {
+                config:{
+                    name: 'fecha_sigma',
+                    fieldLabel: 'Fecha Form. Sigma',
+                    allowBlank: false,
+                    qtip: 'Esta fecha se tomara como base para afectaciones contables y presupuestarias Sigma',
+                    //anchor: '80%',
+                    gwidth: 120,
+                    width: 177,
+                    format: 'd/m/Y',
+                    msgTarget: 'side',
+                    renderer:function (value,p,record){return value?value.dateFormat('d/m/Y'):''}
+                },
+                type:'DateField',
+                filters:{pfiltro:'plani.fecha_sigma',type:'date'},
+                id_grupo:1,
+                grid:true,
+                form:true
+            },
+
+            {
+                config:{
                     name:'id_uo',
                     hiddenName: 'id_uo',
                     origen:'UO',
@@ -347,7 +480,7 @@ header("content-type: text/javascript; charset=UTF-8");
                     pfiltro:'uo.codigo#uo.nombre_unidad',
                     type:'string'
                 },
-                grid:true,
+                grid:false,
                 form:true
             },
             {
@@ -356,7 +489,7 @@ header("content-type: text/javascript; charset=UTF-8");
                     fieldLabel: 'Observaciones',
                     allowBlank: true,
                     anchor: '80%',
-                    gwidth: 100
+                    gwidth: 300
                 },
                 type:'TextArea',
                 filters:{pfiltro:'plani.observaciones',type:'string'},
@@ -364,8 +497,6 @@ header("content-type: text/javascript; charset=UTF-8");
                 grid:true,
                 form:true
             },
-
-
 
             {
                 config:{
@@ -484,6 +615,9 @@ header("content-type: text/javascript; charset=UTF-8");
             {name:'usr_mod', type: 'string'},
             {name:'codigo_poa', type: 'string'},
             {name:'obs_poa', type: 'string'},
+            {name:'periodo_pago', type: 'numeric'},
+            {name:'fecha_sigma', type: 'date',dateFormat:'Y-m-d'},
+            {name:'modalidad', type: 'string'}
 
         ],
         sortInfo:{

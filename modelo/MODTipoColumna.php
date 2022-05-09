@@ -5,14 +5,6 @@
 *@author  (admin)
 *@date 17-01-2014 19:43:15
 *@description Clase que envia los parametros requeridos a la Base de datos para la ejecucion de las funciones, y que recibe la respuesta del resultado de la ejecucion de las mismas
- * 
- *     HISTORIAL DE MODIFICACIONES:
-       
- ISSUE            FECHA:              AUTOR                 DESCRIPCION
-   
- #0               17-01-2014         JRR KPLIAN       creacion
- #10              04/06/2019        RAC KPLIAN        añade posibilidad  para configurar  si el tipo de columna es editable
- #143			  26.06.2020		MZM KPLIAN		  adicion de campo tipo_movimiento 
 */
 
 class MODTipoColumna extends MODbase{
@@ -37,7 +29,7 @@ class MODTipoColumna extends MODbase{
 		$this->captura('decimales_redondeo','int4');
 		$this->captura('nombre','varchar');
 		$this->captura('estado_reg','varchar');
-		$this->captura('orden','int4');
+		$this->captura('orden','numeric');
 		$this->captura('descripcion','text');
 		$this->captura('formula','varchar');
 		$this->captura('id_usuario_reg','int4');
@@ -49,8 +41,7 @@ class MODTipoColumna extends MODbase{
 		$this->captura('finiquito','varchar');
 		$this->captura('tiene_detalle','varchar');
 		$this->captura('recalcular','varchar');
-		$this->captura('editable','varchar');  // #10 ++
-		$this->captura('tipo_movimiento','varchar');  // #143
+		
 		
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -75,15 +66,12 @@ class MODTipoColumna extends MODbase{
 		$this->setParametro('decimales_redondeo','decimales_redondeo','int4');
 		$this->setParametro('nombre','nombre','varchar');
 		$this->setParametro('estado_reg','estado_reg','varchar');
-		$this->setParametro('orden','orden','int4');
+		$this->setParametro('orden','orden','numeric');
 		$this->setParametro('descripcion','descripcion','text');
 		$this->setParametro('formula','formula','varchar');
 		$this->setParametro('finiquito','finiquito','varchar');
 		$this->setParametro('tiene_detalle','tiene_detalle','varchar');
 		$this->setParametro('recalcular','recalcular','varchar');
-		$this->setParametro('editable','editable','varchar'); //#10 ++
-		$this->setParametro('tipo_movimiento','tipo_movimiento','varchar'); //#143
-		
 		
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -109,14 +97,13 @@ class MODTipoColumna extends MODbase{
 		$this->setParametro('decimales_redondeo','decimales_redondeo','int4');
 		$this->setParametro('nombre','nombre','varchar');
 		$this->setParametro('estado_reg','estado_reg','varchar');
-		$this->setParametro('orden','orden','int4');
+		$this->setParametro('orden','orden','numeric');
 		$this->setParametro('descripcion','descripcion','text');
 		$this->setParametro('formula','formula','varchar');
 		$this->setParametro('finiquito','finiquito','varchar');
 		$this->setParametro('tiene_detalle','tiene_detalle','varchar');
 		$this->setParametro('recalcular','recalcular','varchar');
-		$this->setParametro('editable','editable','varchar'); //#10 ++
-		$this->setParametro('tipo_movimiento','tipo_movimiento','varchar'); //#143
+		
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();

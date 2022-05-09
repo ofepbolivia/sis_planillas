@@ -5,11 +5,6 @@
 *@author  (admin)
 *@date 18-01-2014 02:56:10
 *@description Archivo con la interfaz de usuario que permite la ejecucion de todas las funcionalidades del sistema
- * 
- * 
- * ISSUE            FECHA:		      AUTOR       DESCRIPCION
-* #23  etr 	     29/07/2019			RAC 		reparar bug al cambiar de pagina , no manda el id del reporte  
-*
 */
 
 header("content-type: text/javascript; charset=UTF-8");
@@ -22,7 +17,7 @@ Phx.vista.ReporteColumna=Ext.extend(Phx.gridInterfaz,{
     	//llama al constructor de la clase padre
 		Phx.vista.ReporteColumna.superclass.constructor.call(this,config);
 		this.init();
-		this.iniciarEventos();
+		
 	},
 			
 	Atributos:[
@@ -46,28 +41,6 @@ Phx.vista.ReporteColumna=Ext.extend(Phx.gridInterfaz,{
 			},
 			type:'Field',
 			form:true 
-		},
-		{
-			config:{
-				name: 'origen',
-				fieldLabel: 'Origen',
-				allowBlank:false,
-				emptyText:'Origen...',
-	       		typeAhead: true,
-	       		triggerAction: 'all',
-	       		lazyRender:true,
-	       		mode: 'local',
-				gwidth: 150,
-				store:['vista_externa','columna_planilla'],	
-			},
-				type:'ComboBox',
-				filters:{	
-	       		         type: 'list',
-	       				 options: ['vista_externa','columna_planilla'],	
-	       		 	},
-				id_grupo:1,
-				grid:true,
-				form:true
 		},
 		{
 			config: {
@@ -113,21 +86,7 @@ Phx.vista.ReporteColumna=Ext.extend(Phx.gridInterfaz,{
 			},
 			grid: true,
 			form: true
-		},	{
-			config:{
-				name: 'columna_vista',
-				fieldLabel: 'Columna de Vista',
-				allowBlank: false,
-				anchor: '80%',
-				gwidth: 100,
-				maxLength:30
-			},
-				type:'TextField',
-				filters:{pfiltro:'repcol.columna_vista',type:'string'},
-				id_grupo:0,
-				grid:true,
-				form:true
-		},	
+		},		
 		{
 			config:{
 				name: 'sumar_total',
@@ -308,22 +267,7 @@ Phx.vista.ReporteColumna=Ext.extend(Phx.gridInterfaz,{
 				id_grupo:1,
 				grid:true,
 				form:false
-		},{
-			config:{
-				name: 'espacio_previo',
-				fieldLabel: 'Espacio Previo',
-				allowBlank: false,
-				anchor: '80%',
-				gwidth: 100,
-				maxLength:4
-			},
-				type:'NumberField',
-				filters:{pfiltro:'repcol.espacio_previo',type:'numeric'},
-				id_grupo:1,
-				grid:true,
-				form:true
 		}
-		
 	],
 	tam_pag:50,	
 	title:'Reporte Columna',
@@ -348,10 +292,6 @@ Phx.vista.ReporteColumna=Ext.extend(Phx.gridInterfaz,{
 		{name:'usr_mod', type: 'string'},
 		{name:'titulo_reporte_superior', type: 'string'},
 		{name:'titulo_reporte_inferior', type: 'string'},
-		{name:'espacio_previo', type: 'numeric'},
-		{name:'columna_vista', type: 'string'},
-		{name:'origen', type: 'string'}
-		
 		
 	],
 	sortInfo:{
@@ -362,10 +302,7 @@ Phx.vista.ReporteColumna=Ext.extend(Phx.gridInterfaz,{
 	bsave:true,
 	onReloadPage:function(m){
 		this.maestro=m;
-		this.store.baseParams={id_reporte:this.maestro.id_reporte}; //#23 manda el id_reporte como parametro para todas las paginas
 		if (this.maestro.tipo_reporte == 'boleta') {
-			
-			
 			this.mostrarComponente(this.Cmp.tipo_columna);
 			this.Cmp.tipo_columna.allowBlank = false;
 						
@@ -373,51 +310,15 @@ Phx.vista.ReporteColumna=Ext.extend(Phx.gridInterfaz,{
 			this.ocultarComponente(this.Cmp.tipo_columna);
 			this.Cmp.tipo_columna.allowBlank = true;
 		}
-		this.load({params:{start:0, limit:this.tam_pag}});
+		this.load({params:{start:0, limit:this.tam_pag,id_reporte:this.maestro.id_reporte}});
 		this.Cmp.codigo_columna.store.baseParams.id_tipo_planilla = this.maestro.id_tipo_planilla;			
 	},
 	loadValoresIniciales:function()
     {
     	this.Cmp.tipo_columna.setValue('otro');  
     	this.Cmp.id_reporte.setValue(this.maestro.id_reporte);       
-        Phx.vista.ReporteColumna.superclass.loadValoresIniciales.call(this); 
-        
-        
-     
-          
-               
+        Phx.vista.ReporteColumna.superclass.loadValoresIniciales.call(this);        
     },
-    iniciarEventos:function(){
-    	this.Cmp.codigo_columna.allowBlank=true;
-		this.Cmp.columna_vista.allowBlank=true;
-    	//this.ocultarComponente(this.Cmp.codigo_columna);
-    	//this.ocultarComponente(this.Cmp.columna_vista);
-    	this.Cmp.espacio_previo.setValue(0);
-    	
-    	
-    	this.Cmp.origen.on('select',function(cmp,rec){
-    		if(rec.json=='vista_externa'){
-    			this.Cmp.origen.setValue('vista_externa');
-    			this.mostrarComponente(this.Cmp.columna_vista);
-				this.ocultarComponente(this.Cmp.codigo_columna);
-				this.Cmp.codigo_columna.allowBlank=true;
-				this.Cmp.columna_vista.allowBlank=false;
-				
-    		}else{
-    			this.Cmp.origen.setValue('columna_planilla');
-    			this.mostrarComponente(this.Cmp.codigo_columna);
-				this.ocultarComponente(this.Cmp.columna_vista);
-				this.Cmp.codigo_columna.allowBlank=false;
-				this.Cmp.columna_vista.allowBlank=true;
-    		}
-    	
-			
-    		},this);
-			
-			
-			
-			
-    }
 	}
 )
 </script>

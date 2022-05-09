@@ -37,9 +37,6 @@ class MODReporteColumna extends MODbase{
 		$this->captura('titulo_reporte_inferior','varchar');
 		$this->captura('tipo_columna','varchar');
 		
-		$this->captura('espacio_previo','integer');
-		$this->captura('columna_vista','varchar');
-		$this->captura('origen','varchar');
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();
@@ -64,9 +61,7 @@ class MODReporteColumna extends MODbase{
 		$this->setParametro('titulo_reporte_superior','titulo_reporte_superior','varchar');
 		$this->setParametro('titulo_reporte_inferior','titulo_reporte_inferior','varchar');
 		$this->setParametro('tipo_columna','tipo_columna','varchar');
-		$this->setParametro('espacio_previo','espacio_previo','integer');
-		$this->setParametro('columna_vista','columna_vista','varchar');
-		$this->setParametro('origen','origen','varchar');
+
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();
@@ -92,9 +87,7 @@ class MODReporteColumna extends MODbase{
 		$this->setParametro('titulo_reporte_superior','titulo_reporte_superior','varchar');
 		$this->setParametro('titulo_reporte_inferior','titulo_reporte_inferior','varchar');
 		$this->setParametro('tipo_columna','tipo_columna','varchar');
-		$this->setParametro('espacio_previo','espacio_previo','integer');
-		$this->setParametro('columna_vista','columna_vista','varchar');
-		$this->setParametro('origen','origen','varchar');
+
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();

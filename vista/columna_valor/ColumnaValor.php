@@ -5,14 +5,6 @@
 *@author  (admin)
 *@date 27-01-2014 04:53:54
 *@description Archivo con la interfaz de usuario que permite la ejecucion de todas las funcionalidades del sistema
- * 
- * HISTORIAL DE MODIFICACIONES:
-   	
- ISSUE            FECHA:		      AUTOR                 DESCRIPCION
- ---------------------------------------------------------------------------------------------   
- #00  ETR       27-01-2014        JRR               creacion  
- #14  ETR       10/06/2019        RAC KPLIAN        aumenta capacidad de decimales en columnas editables 
- #78 ETR        18-11-2019        RAC               considerar esquema para origen de datos
 */
 
 header("content-type: text/javascript; charset=UTF-8");
@@ -22,31 +14,9 @@ Phx.vista.ColumnaValor=Ext.extend(Phx.gridInterfaz,{
 
 	constructor:function(config){
 		this.maestro=config.maestro;
-		console.log('config -->',config)
     	//llama al constructor de la clase padre
-    	this.esquema = Phx.CP.getPagina(config.idContenedorPadre).esquema?Phx.CP.getPagina(config.idContenedorPadre).esquema:'plani';
-    	
-    	//#78 si es el esquema de planilla habilita el detalle de columnas
-    	this.east=((this.esquema === 'plani')?{
-												  url:'../../../sis_planillas/vista/columna_detalle/ColumnaDetalle.php',
-												  title:'Columna Detalle', 
-												  width:'50%',
-												  cls:'ColumnaDetalle',
-												  collapsed:true
-											  }:undefined);
-    	
-		Phx.vista.ColumnaValor.superclass.constructor.call(this,config);	
-		
-		
-		this.store.baseParams.esquema = this.esquema?this.esquema:'plani'; //si no existe el dato por defecto recupera de PLANI
-		this.init();
-		//#78
-        if(this.esquema === 'plani'){
-        	this.getBoton('save').enable(); 
-        } else {
-        	this.getBoton('save').disable(); 
-        }
-        
+		Phx.vista.ColumnaValor.superclass.constructor.call(this,config);
+		this.init();		
 	},
 			
 	Atributos:[
@@ -123,8 +93,6 @@ Phx.vista.ColumnaValor=Ext.extend(Phx.gridInterfaz,{
 				name: 'valor',
 				fieldLabel: 'Valor',
 				allowBlank: false,
-				allowDecimals: true, //#14 +
-				decimalPrecision:20, //#14 +
 				anchor: '80%',
 				gwidth: 100,
 				maxLength:1179650
@@ -260,39 +228,23 @@ Phx.vista.ColumnaValor=Ext.extend(Phx.gridInterfaz,{
 		field: 'tipcol.orden',
 		direction: 'ASC'
 	},
-	    
+	east:{
+		  url:'../../../sis_planillas/vista/columna_detalle/ColumnaDetalle.php',
+		  title:'Columna Detalle', 
+		  width:'50%',
+		  cls:'ColumnaDetalle',
+		  collapsed:true
+	},    
 	bdel:false,
 	bnew:false,
 	bedit:false,
-	bsave: true,
-	preparaMenu:function() { //#78	
-		    var rec = this.sm.getSelected();
-            Phx.vista.ColumnaValor.superclass.preparaMenu.call(this);
-            console.log('ESQUEMA...', this.esquema)
-            if(this.esquema === 'plani'){
-	        	this.getBoton('save').enable(); 
-	        } else {
-	        	this.getBoton('save').disable(); 
-	        }
-    },
-    liberaMenu:function() { //#78	
-           Phx.vista.ColumnaValor.superclass.liberaMenu.call(this);
-           if(this.esquema === 'plani'){
-	       	this.getBoton('save').enable(); 
-	       } else {
-	       	this.getBoton('save').disable(); 
-	       }
-     },
+	bsave:true,
 	onReloadPage:function(m, x){  		 
 		this.maestro=m;
 		this.store.baseParams.id_funcionario_planilla = this.maestro.id_funcionario_planilla;
 		this.load({params:{start:0, limit:this.tam_pag}});
-		//#78 habilta opcion de modificar si es el quema principal
-		if(this.esquema === 'plani'){
-	       this.getBoton('save').enable(); 
-	    } else {
-	       this.getBoton('save').disable(); 
-	    }
+
+
 	}
 }
 )

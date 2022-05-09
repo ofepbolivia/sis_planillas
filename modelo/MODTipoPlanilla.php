@@ -5,14 +5,6 @@
 *@author  (admin)
 *@date 17-01-2014 15:36:53
 *@description Clase que envia los parametros requeridos a la Base de datos para la ejecucion de las funciones, y que recibe la respuesta del resultado de la ejecucion de las mismas
- * 
- 
- HISTORIAL DE MODIFICACIONES:
-       
- ISSUE            FECHA:              AUTOR                 DESCRIPCION
-   
- #79              21/11/2019       RAC KPLIAN      adiciona sw_devengado para habilitar o no boton de devegado
- #100			  05/03/2020	   MZM	KPLIAN		Adicion de columna habilitar_impresion_pago
 */
 
 class MODTipoPlanilla extends MODbase{
@@ -46,13 +38,11 @@ class MODTipoPlanilla extends MODbase{
 		$this->captura('calculo_horas','varchar');
 		$this->captura('periodicidad','varchar');
 		$this->captura('funcion_calculo_horas','varchar');
-		$this->captura('recalcular_desde','int4');		
-		$this->captura('sw_devengado','varchar');		
-		$this->captura('desc_tipo_plantilla','varchar');
-		$this->captura('habilitar_impresion_boleta','varchar');//#100
+		$this->captura('recalcular_desde','int4');
+		
 		
 		//Ejecuta la instruccion
-		$this->armarConsulta(); //echo '---'.$this->getConsulta(); exit;
+		$this->armarConsulta();
 		$this->ejecutarConsulta();
 		
 		//Devuelve la respuesta
@@ -77,9 +67,6 @@ class MODTipoPlanilla extends MODbase{
 		$this->setParametro('periodicidad','periodicidad','varchar');
 		$this->setParametro('funcion_calculo_horas','funcion_calculo_horas','varchar');
 		$this->setParametro('recalcular_desde','recalcular_desde','int4');
-		$this->setParametro('sw_devengado','sw_devengado','varchar');
-		$this->setParametro('habilitar_impresion_boleta','habilitar_impresion_boleta','varchar');//#100
-		
 		
 
 		//Ejecuta la instruccion
@@ -109,8 +96,6 @@ class MODTipoPlanilla extends MODbase{
 		$this->setParametro('periodicidad','periodicidad','varchar');
 		$this->setParametro('funcion_calculo_horas','funcion_calculo_horas','varchar');
 		$this->setParametro('recalcular_desde','recalcular_desde','int4');
-		$this->setParametro('sw_devengado','sw_devengado','varchar');
-		$this->setParametro('habilitar_impresion_boleta','habilitar_impresion_boleta','varchar');//#100
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();

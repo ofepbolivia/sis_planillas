@@ -78,7 +78,7 @@ class RPrevisionesXLS
 		$this->docexcel->getActiveSheet()->getStyle('A4:I4')->applyFromArray($styleTitulos);
 		$this->docexcel->getActiveSheet()->mergeCells("C1:E1");
 		$styleTitulos['font']['size'] = 12;
-		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(2,1,'REPORTE DE PREVISIONES AL : ' . $this->objParam->getParametro('fecha'));
+		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(2,1,'PLANILLA DE PREVISIÓN PARA INDEMNIZACIÓN AL : ' . $this->objParam->getParametro('fecha'));
 		
 		$styleTitulos['font']['size'] = 10;
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(0,2,'Gerencia : ' . $this->objParam->getParametro('uo'));
@@ -104,7 +104,7 @@ class RPrevisionesXLS
         $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(1,4,'Presupuesto');
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(2,4,'Cargo');
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(3,4,'Nombre Completo');
-		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(4,4,'Salario');
+		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(4,4,'Total Ingresos');
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(5,4,'Fecha Incorp');
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(6,4,'Dias');
 		$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(7,4,'Indem Dia');
@@ -137,11 +137,13 @@ class RPrevisionesXLS
                     PHPExcel_Style_NumberFormat::FORMAT_GENERAL
                 );
 			$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(7,$fila,$value['indem_dia']);
-			$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(8,$fila,$value['indem']);
+			//$this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(8,$fila,$value['indem']);
+            $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(8,$fila,'=ROUND(G'.$fila.'*H'.$fila.',2)');
 			$fila++;
 		}
-		
-		
+        $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(7,$fila,'TOTAL');
+        $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow(8,$fila,'=SUM(I5:I'.($fila-1).')');
+
 	}
 
 	

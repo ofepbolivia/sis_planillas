@@ -5,11 +5,7 @@
 *@author  (admin)
 *@date 26-01-2014 21:35:44
 *@description Clase que envia los parametros requeridos a la Base de datos para la ejecucion de las funciones, y que recibe la respuesta del resultado de la ejecucion de las mismas
-ISSUE            FECHA:              AUTOR                 DESCRIPCION
-#29 ETR        20/08/2019        MMV       Columna Codigo Funcionarion
-#29 ETR        28/08/2019        MMV       Correccion de nombre de desc_funcionario1
-
- */
+*/
 
 class MODHorasTrabajadas extends MODbase{
 	
@@ -42,9 +38,8 @@ class MODHorasTrabajadas extends MODbase{
 		$this->captura('fecha_mod','timestamp');
 		$this->captura('usr_reg','varchar');
 		$this->captura('usr_mod','varchar');
-		$this->captura('desc_funcionario1','text'); //#29
+		$this->captura('desc_funcionario','text');
         $this->captura('ci','varchar');
-        $this->captura('desc_codigo','varchar'); // #29
 		
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -125,6 +120,37 @@ class MODHorasTrabajadas extends MODbase{
 		//Devuelve la respuesta
 		return $this->respuesta;
 	}
+
+    /**{dev:franklin.espinoza, date:04/12/2020, descripcion:listar Licencia Funcionario}**/
+    function listarLicenciaFuncionario(){
+        //Definicion de variables para ejecucion del procedimiento
+        $this->procedimiento='plani.ft_horas_trabajadas_sel';// nombre procedimiento almacenado
+        $this->transaccion='PLA_HORTRA_LIC';//nombre de la transaccion
+        $this->tipo_procedimiento='SEL';//tipo de transaccion
+        $this->setCount(false);
+
+        $this->setParametro('gestion','gestion','int4');
+        $this->setParametro('id_funcionario','id_funcionario','int4');
+
+        //defino varialbes que se capturan como retorno de la funcion
+
+        $this->captura('id_funcionario','integer');
+        $this->captura('id_persona','integer');
+
+        $this->captura('desc_person','text');
+        $this->captura('nombre','text');
+        $this->captura('fecha_ini','date');
+        $this->captura('fecha_fin','date');
+
+
+        //Ejecuta la funcion
+        $this->armarConsulta();
+        //echo $this->getConsulta(); exit;
+        $this->ejecutarConsulta();
+        return $this->respuesta;
+    }
+
+
 			
 }
 ?>

@@ -1,14 +1,7 @@
-CREATE OR REPLACE FUNCTION plani.ft_tipo_planilla_sel(
-	p_administrador integer,
-	p_id_usuario integer,
-	p_tabla character varying,
-	p_transaccion character varying)
-    RETURNS character varying
-    LANGUAGE 'plpgsql'
-
-    COST 100
-    VOLATILE 
-AS $BODY$
+CREATE OR REPLACE FUNCTION "plani"."ft_tipo_planilla_sel"(	
+				p_administrador integer, p_id_usuario integer, p_tabla character varying, p_transaccion character varying)
+RETURNS character varying AS
+$BODY$
 /**************************************************************************
  SISTEMA:		Sistema de Planillas
  FUNCION: 		plani.ft_tipo_planilla_sel
@@ -18,11 +11,10 @@ AS $BODY$
  COMENTARIOS:	
 ***************************************************************************
  HISTORIAL DE MODIFICACIONES:
-       
- ISSUE            FECHA:              AUTOR                 DESCRIPCION
-   
- #79              21/11/2019       RAC KPLIAN       adiciona sw_devengado para habilitar o no boton de devegado
- #100			  05/03/2020		MZM	KPLIAN		Adicion de columna habilitar_impresion_boleta (para que los funcionarios puedan generar sus boletas para ciertos tipos de planilla)
+
+ DESCRIPCION:	
+ AUTOR:			
+ FECHA:		
 ***************************************************************************/
 
 DECLARE
@@ -54,7 +46,7 @@ BEGIN
 						tippla.tipo_presu_cc,
 						tippla.funcion_obtener_empleados,
 						tippla.estado_reg,
-						tippla.nombre as desc_tipo_plantilla,
+						tippla.nombre,
 						tippla.codigo,
 						tippla.fecha_reg,
 						tippla.id_usuario_reg,
@@ -62,15 +54,12 @@ BEGIN
 						tippla.fecha_mod,
 						usu1.cuenta as usr_reg,
 						usu2.cuenta as usr_mod,
-						pm.nombre as desc_proceso_macro,
+						pm.nombre,
 						tippla.funcion_validacion_nuevo_empleado,
 						tippla.calculo_horas,
 						tippla.periodicidad,
 						tippla.funcion_calculo_horas,
-						tippla.recalcular_desde,
-                        tippla.sw_devengado,                 --#79
-                        tippla.nombre as desc_tipo_plantilla --#79
-                        ,tippla.habilitar_impresion_boleta --#100
+						tippla.recalcular_desde
 						from plani.ttipo_planilla tippla
 						inner join segu.tusuario usu1 on usu1.id_usuario = tippla.id_usuario_reg
 						left join segu.tusuario usu2 on usu2.id_usuario = tippla.id_usuario_mod
@@ -127,7 +116,7 @@ EXCEPTION
 			v_resp = pxp.f_agrega_clave(v_resp,'procedimientos',v_nombre_funcion);
 			raise exception '%',v_resp;
 END;
-$BODY$;
-
-ALTER FUNCTION plani.ft_tipo_planilla_sel(integer, integer, character varying, character varying)
-    OWNER TO postgres;
+$BODY$
+LANGUAGE 'plpgsql' VOLATILE
+COST 100;
+ALTER FUNCTION "plani"."ft_tipo_planilla_sel"(integer, integer, character varying, character varying) OWNER TO postgres;

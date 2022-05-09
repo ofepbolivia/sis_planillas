@@ -12,11 +12,13 @@ $body$
  DESCRIPCION:   Funcion que devuelve conjuntos de registros de las consultas relacionadas con la tabla 'plani.thoras_trabajadas'
  AUTOR: 		 (admin)
  FECHA:	        26-01-2014 21:35:44
- COMENTARIOS:	
+ COMENTARIOS:
 ***************************************************************************
  HISTORIAL DE MODIFICACIONES:
- ISSUE            FECHA:              AUTOR                 DESCRIPCION
- #29 ETR        20/08/2019        MMV       Columna Codigo Funcionarion
+
+ DESCRIPCION:
+ AUTOR:
+ FECHA:
 ***************************************************************************/
 
 DECLARE
@@ -25,6 +27,9 @@ DECLARE
 	v_parametros  		record;
 	v_nombre_funcion   	text;
 	v_resp				varchar;
+
+    v_fecha_inicio		date;
+    v_fecha_final		date;
 
 BEGIN
 
@@ -62,8 +67,7 @@ BEGIN
 						usu1.cuenta as usr_reg,
 						usu2.cuenta as usr_mod,
 						fun.desc_funcionario1,
-                        fun.ci,
-                        fun.codigo as desc_codigo  --#29
+                        fun.ci
 						from plani.thoras_trabajadas hortra
 						inner join segu.tusuario usu1 on usu1.id_usuario = hortra.id_usuario_reg
 						left join segu.tusuario usu2 on usu2.id_usuario = hortra.id_usuario_mod
@@ -75,6 +79,7 @@ BEGIN
 			--Definicion de la respuesta
 			v_consulta:=v_consulta||v_parametros.filtro;
 			v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
+
 			--Devuelve la respuesta
 			return v_consulta;
 
@@ -107,6 +112,41 @@ BEGIN
 			return v_consulta;
 
 		end;
+    /*********************************
+        #TRANSACCION:  'PLA_BENEF_SUB_SEL'
+        #DESCRIPCION:	Listado de pagos de Subsidios
+        #AUTOR:		franklin.espinoza
+        #FECHA:		20-11-2020 16:11:04
+        ***********************************/
+    elsif(p_transaccion='PLA_HORTRA_LIC')then
+
+      begin
+
+
+        v_fecha_inicio = ('01/01/'||v_parametros.gestion)::date;
+        v_fecha_final  = ('31/12/'||v_parametros.gestion)::date;
+
+        v_consulta = '
+        	SELECT
+            funcio.id_funcionario,
+            funcio.id_persona,
+
+            person.nombre_completo2 AS desc_person,
+            tli.motivo::text nombre,
+            tli.desde fecha_ini,
+            tli.hasta fecha_fin
+            FROM plani.tlicencia tli
+            inner join orga.tfuncionario funcio on funcio.id_funcionario = tli.id_funcionario
+            INNER JOIN segu.vpersona person ON person.id_persona=funcio.id_persona
+
+            WHERE tli.estado_reg != ''Eliminado'' and tli.id_funcionario = '||v_parametros.id_funcionario||' and  ((tli.desde between '''||v_fecha_inicio||'''::date and '''||v_fecha_final||'''::date) or (tli.hasta between '''||v_fecha_inicio||'''::date and '''||v_fecha_final||'''::date))';
+		    --v_consulta = v_consulta || ' group by funcio.id_funcionario, desc_person';
+
+        v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' OFFSET ' || v_parametros.puntero;
+        raise notice 'v_consulta: %',v_consulta;
+        --Devuelve la respuesta
+        return v_consulta;
+      end;
 
 	else
 

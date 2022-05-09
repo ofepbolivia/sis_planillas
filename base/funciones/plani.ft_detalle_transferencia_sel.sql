@@ -1,18 +1,7 @@
--- FUNCTION: plani.ft_detalle_transferencia_sel(integer, integer, character varying, character varying)
-
--- DROP FUNCTION plani.ft_detalle_transferencia_sel(integer, integer, character varying, character varying);
-
-CREATE OR REPLACE FUNCTION plani.ft_detalle_transferencia_sel(
-	p_administrador integer,
-	p_id_usuario integer,
-	p_tabla character varying,
-	p_transaccion character varying)
-    RETURNS character varying
-    LANGUAGE 'plpgsql'
-
-    COST 100
-    VOLATILE 
-AS $BODY$
+CREATE OR REPLACE FUNCTION "plani"."ft_detalle_transferencia_sel"(	
+				p_administrador integer, p_id_usuario integer, p_tabla character varying, p_transaccion character varying)
+RETURNS character varying AS
+$BODY$
 /**************************************************************************
  SISTEMA:		Sistema de Planillas
  FUNCION: 		plani.ft_detalle_transferencia_sel
@@ -22,9 +11,10 @@ AS $BODY$
  COMENTARIOS:	
 ***************************************************************************
  HISTORIAL DE MODIFICACIONES:
- 
- ISSUE            FECHA:              AUTOR                 DESCRIPCION
- #112			  13.04.2020		  MZM					Modificacion a columna para listado
+
+ DESCRIPCION:	
+ AUTOR:			
+ FECHA:		
 ***************************************************************************/
 
 DECLARE
@@ -67,7 +57,7 @@ BEGIN
 						usu1.cuenta as usr_reg,
 						usu2.cuenta as usr_mod,
 						fun.ci,
-						fun.desc_funcionario2,--#112
+						fun.desc_funcionario1,
 						ins.nombre	
 						from plani.tdetalle_transferencia detran
 						inner join orga.vfuncionario fun
@@ -131,7 +121,7 @@ EXCEPTION
 			v_resp = pxp.f_agrega_clave(v_resp,'procedimientos',v_nombre_funcion);
 			raise exception '%',v_resp;
 END;
-$BODY$;
-
-ALTER FUNCTION plani.ft_detalle_transferencia_sel(integer, integer, character varying, character varying)
-    OWNER TO postgres;
+$BODY$
+LANGUAGE 'plpgsql' VOLATILE
+COST 100;
+ALTER FUNCTION "plani"."ft_detalle_transferencia_sel"(integer, integer, character varying, character varying) OWNER TO postgres;

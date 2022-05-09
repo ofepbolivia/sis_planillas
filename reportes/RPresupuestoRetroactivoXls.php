@@ -51,100 +51,8 @@ class RPresupuestoRetroactivoXls
         return $this->docexcel;
     }
 
-    function imprimeCabecera() {
-        /*$this->docexcel->createSheet(0);
-        $this->docexcel->setActiveSheetIndex(0);
-        $this->docexcel->getActiveSheet()->setTitle('Detalle');*/
+    function generarDatos(){
 
-        /*$this->docexcel->createSheet(1);
-        $this->docexcel->setActiveSheetIndex(1);
-        $this->docexcel->getActiveSheet()->setTitle('Totales');
-
-        $this->docexcel->setActiveSheetIndex(0);*/
-
-
-
-
-        /*$styleTitulos1 = array(
-            'font'  => array(
-                'bold'  => true,
-                'size'  => 12,
-                'name'  => 'Arial'
-            ),
-            'alignment' => array(
-                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
-                'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
-            ),
-        );
-
-
-        $styleTitulos2 = array(
-            'font'  => array(
-                'bold'  => true,
-                'size'  => 9,
-                'name'  => 'Arial',
-                'color' => array(
-                    'rgb' => 'FFFFFF'
-                )
-
-            ),
-            'alignment' => array(
-                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
-                'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
-            ),
-            'fill' => array(
-                'type' => PHPExcel_Style_Fill::FILL_SOLID,
-                'color' => array(
-                    'rgb' => '0066CC'
-                )
-            ),
-            'borders' => array(
-                'allborders' => array(
-                    'style' => PHPExcel_Style_Border::BORDER_THIN
-                )
-            ));
-        $styleTitulos3 = array(
-            'font'  => array(
-                'bold'  => true,
-                'size'  => 11,
-                'name'  => 'Arial'
-            ),
-            'alignment' => array(
-                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
-                'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
-            ),
-
-        );*/
-
-        //titulos
-
-        /*$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0,2,'BOLIVIANA DE AVIACIÓN - BOA' );
-        $this->docexcel->getActiveSheet()->getStyle('A2:H2')->applyFromArray($styleTitulos1);
-        $this->docexcel->getActiveSheet()->mergeCells('A2:H2');
-        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0,3,'Bienes de Consumo' );
-        $this->docexcel->getActiveSheet()->getStyle('A3:H3')->applyFromArray($styleTitulos1);
-        $this->docexcel->getActiveSheet()->mergeCells('A3:H3');
-        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0,4,'AL: '. $this->obtenerFechaEnLetra($this->objParam->getParametro('fecha_hasta')));
-        $this->docexcel->getActiveSheet()->getStyle('A4:H4')->applyFromArray($styleTitulos3);
-        $this->docexcel->getActiveSheet()->mergeCells('A4:H4');
-        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0,5,'(Expresado en Bolivianos)' );
-        $this->docexcel->getActiveSheet()->getStyle('A5:H5')->applyFromArray($styleTitulos1);
-        $this->docexcel->getActiveSheet()->mergeCells('A5:H5');*/
-
-        /*$this->docexcel->getActiveSheet()->getColumnDimension('A')->setWidth(15);
-        $this->docexcel->getActiveSheet()->getColumnDimension('B')->setWidth(40);
-        $this->docexcel->getActiveSheet()->getColumnDimension('C')->setWidth(20);
-        $this->docexcel->getActiveSheet()->getColumnDimension('D')->setWidth(40);
-        $this->docexcel->getActiveSheet()->getColumnDimension('E')->setWidth(20);
-        $this->docexcel->getActiveSheet()->getColumnDimension('F')->setWidth(20);
-        $this->docexcel->getActiveSheet()->getColumnDimension('G')->setWidth(25);*/
-
-
-
-    }
-
-    function generarDatos()
-    {
         $styleTitulos3 = array(
             'alignment' => array(
                 'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
@@ -238,7 +146,6 @@ class RPresupuestoRetroactivoXls
         $tipo_contrato = '';
         $desc_func = '';
         $codigo_pres = '';
-        //$this->imprimeCabecera(0);
 
         $numberFormat = '#,##0.00';
         $cant_datos = count($datos);
@@ -252,8 +159,7 @@ class RPresupuestoRetroactivoXls
 
 
         $meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-        foreach ($datos as $value)
-        {
+        foreach ($datos as $value){ //var_dump($value);exit;
             //var_dump($value['tipo_contrato']);exit;
             if($tipo_contrato != $value['tipo_contrato']){
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(28, $fila, $total_sueldo);
@@ -268,12 +174,18 @@ class RPresupuestoRetroactivoXls
                 $this->docexcel->getActiveSheet()->mergeCells('G1:G2');
                 $this->docexcel->getActiveSheet()->mergeCells('H1:H2');
 
-                $this->docexcel->getActiveSheet()->mergeCells('I1:P1');
-                $this->docexcel->getActiveSheet()->mergeCells('Q1:U1');
-                $this->docexcel->getActiveSheet()->mergeCells('V1:AC1');
+                /*$this->docexcel->getActiveSheet()->mergeCells('I1:P1');
+                    $this->docexcel->getActiveSheet()->mergeCells('Q1:U1');
+                    $this->docexcel->getActiveSheet()->mergeCells('V1:AC1');*/
+                $this->docexcel->getActiveSheet()->mergeCells('I1:M1');
+                $this->docexcel->getActiveSheet()->mergeCells('N1:R1');
+                $this->docexcel->getActiveSheet()->mergeCells('S1:W1');
 
-                $this->docexcel->getActiveSheet()->getStyle('A1:AC2')->getAlignment()->setWrapText(true);
-                $this->docexcel->getActiveSheet()->getStyle('A1:AC2')->applyFromArray($styleTitulos3);
+                /*$this->docexcel->getActiveSheet()->getStyle('A1:AC2')->getAlignment()->setWrapText(true);
+                $this->docexcel->getActiveSheet()->getStyle('A1:AC2')->applyFromArray($styleTitulos3);*/
+                $this->docexcel->getActiveSheet()->getStyle('A1:W2')->getAlignment()->setWrapText(true);
+                $this->docexcel->getActiveSheet()->getStyle('A1:W2')->applyFromArray($styleTitulos3);
+
                 $this->docexcel->getActiveSheet()->freezePaneByColumnAndRow(0,3);
                 $fila=3;
                 $this->numero=1;
@@ -324,35 +236,36 @@ class RPresupuestoRetroactivoXls
                 $this->docexcel->getActiveSheet()->setCellValue('G1','Fecha Inicio');
                 $this->docexcel->getActiveSheet()->setCellValue('H1','Fecha Fin');
                 $this->docexcel->getActiveSheet()->setCellValue('I1','Bono Frontera');
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8,1,'Bono Antiguedad');
                 $this->docexcel->getActiveSheet()->setCellValue('I2',$meses[0]);
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8,2,$meses[0]);
                 $this->docexcel->getActiveSheet()->setCellValue('J2',$meses[1]);
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9,2,$meses[1]);
                 $this->docexcel->getActiveSheet()->setCellValue('K2',$meses[2]);
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10,2,$meses[2]);
                 $this->docexcel->getActiveSheet()->setCellValue('L2',$meses[3]);
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(11,2,$meses[3]);
-                $this->docexcel->getActiveSheet()->setCellValue('M2',$meses[4]);
-                $this->docexcel->getActiveSheet()->setCellValue('N2',$meses[5]);
-                $this->docexcel->getActiveSheet()->setCellValue('O2',$meses[6]);
-                $this->docexcel->getActiveSheet()->setCellValue('P2','Total');
+                //$this->docexcel->getActiveSheet()->setCellValue('M2',$meses[4]);
+                //$this->docexcel->getActiveSheet()->setCellValue('N2',$meses[5]);
+                //$this->docexcel->getActiveSheet()->setCellValue('O2',$meses[6]);
+                //$this->docexcel->getActiveSheet()->setCellValue('P2','Total');
+                $this->docexcel->getActiveSheet()->setCellValue('M2','Total');
 
-                $this->docexcel->getActiveSheet()->setCellValue('Q1','Bono Antiguedad');
+                /*$this->docexcel->getActiveSheet()->setCellValue('Q1','Bono Antiguedad');
                 $this->docexcel->getActiveSheet()->setCellValue('Q2',$meses[0]);
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8,2,$meses[0]);
                 $this->docexcel->getActiveSheet()->setCellValue('R2',$meses[1]);
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9,2,$meses[1]);
                 $this->docexcel->getActiveSheet()->setCellValue('S2',$meses[2]);
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10,2,$meses[2]);
                 $this->docexcel->getActiveSheet()->setCellValue('T2',$meses[3]);
-                $this->docexcel->getActiveSheet()->setCellValue('U2','Total');
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12,2,$meses[4]);
-                    //$this->docexcel->getActiveSheet()->setCellValue('N2',$meses[5]);
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13,2,$meses[5]);
-                    //$this->docexcel->getActiveSheet()->setCellValue('O2',$meses[6]);
-                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14,2,$meses[6]);
-                $this->docexcel->getActiveSheet()->setCellValue('V1','Sueldo Basico');
+                $this->docexcel->getActiveSheet()->setCellValue('U2','Total');*/
+                $this->docexcel->getActiveSheet()->setCellValue('N1','Bono Antiguedad');
+                $this->docexcel->getActiveSheet()->setCellValue('N2',$meses[0]);
+                $this->docexcel->getActiveSheet()->setCellValue('O2',$meses[1]);
+                $this->docexcel->getActiveSheet()->setCellValue('P2',$meses[2]);
+                $this->docexcel->getActiveSheet()->setCellValue('Q2',$meses[3]);
+                $this->docexcel->getActiveSheet()->setCellValue('R2','Total');
+
+                $this->docexcel->getActiveSheet()->setCellValue('S1','Sueldo Basico');
+                $this->docexcel->getActiveSheet()->setCellValue('S2',$meses[0]);
+                $this->docexcel->getActiveSheet()->setCellValue('T2',$meses[1]);
+                $this->docexcel->getActiveSheet()->setCellValue('U2',$meses[2]);
+                $this->docexcel->getActiveSheet()->setCellValue('V2',$meses[3]);
+                $this->docexcel->getActiveSheet()->setCellValue('W2','Total');
+                /*$this->docexcel->getActiveSheet()->setCellValue('V1','Sueldo Basico');
                 $this->docexcel->getActiveSheet()->setCellValue('V2',$meses[0]);
                 $this->docexcel->getActiveSheet()->setCellValue('W2',$meses[1]);
                 $this->docexcel->getActiveSheet()->setCellValue('X2',$meses[2]);
@@ -360,17 +273,17 @@ class RPresupuestoRetroactivoXls
                 $this->docexcel->getActiveSheet()->setCellValue('Z2',$meses[4]);
                 $this->docexcel->getActiveSheet()->setCellValue('AA2',$meses[5]);
                 $this->docexcel->getActiveSheet()->setCellValue('AB2',$meses[6]);
-                $this->docexcel->getActiveSheet()->setCellValue('AC2','Total');
+                $this->docexcel->getActiveSheet()->setCellValue('AC2','Total');*/
 
                 //if($desc_func != $value['desc_func'] || $codigo_pres!=$value['codigo_pres']) {
-                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0, $fila, $this->numero);
-                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(1, $fila, $value['categoria_prog']);
-                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(2, $fila, $value['presupuesto'].'['.$value['codigo_pres'].']');
-                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['ci']);
-                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['desc_func']);
-                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['nombre_cargo']);
-                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, date_format(date_create($value['fecha_ini']),'d/m/Y'));
-                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, date_format(date_create($value['fecha_fin']),'d/m/Y'));
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0, $fila, $this->numero);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(1, $fila, $value['categoria_prog']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(2, $fila, $value['presupuesto'].'['.$value['codigo_pres'].']');
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['ci']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['desc_func']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['nombre_cargo']);
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, date_format(date_create($value['fecha_ini']),'d/m/Y'));
+                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, date_format(date_create($value['fecha_fin']),'d/m/Y'));
                 switch ($value['periodo']){
 
                     case 1:
@@ -380,10 +293,10 @@ class RPresupuestoRetroactivoXls
                             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['valor']); break;
                         }else if($value['codigo_columna'] == 'REINBANT'){
                             $total_bono += $value['valor'];
-                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $value['valor']); break;
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']); break;
                         }else if($value['codigo_columna'] == 'REISUELDOBA'){
                             $total_sueldo += $value['valor'];
-                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, $value['valor']); break;
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['valor']); break;
                         }
                     case 2:
 
@@ -392,10 +305,10 @@ class RPresupuestoRetroactivoXls
                             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['valor']); break;
                         }else if($value['codigo_columna'] == 'REINBANT'){
                             $total_bono += $value['valor'];
-                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(17, $fila, $value['valor']); break;
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']); break;
                         }else if($value['codigo_columna'] == 'REISUELDOBA'){
                             $total_sueldo += $value['valor'];
-                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, $value['valor']); break;
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, $value['valor']); break;
                         }
 
                     case 3:
@@ -404,10 +317,10 @@ class RPresupuestoRetroactivoXls
                             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['valor']); break;
                         }else if($value['codigo_columna'] == 'REINBANT') {
                             $total_bono += $value['valor'];
-                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['valor']);break;
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $value['valor']);break;
                         }else if($value['codigo_columna'] == 'REISUELDOBA'){
                             $total_sueldo += $value['valor'];
-                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(23, $fila, $value['valor']); break;
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(20, $fila, $value['valor']); break;
                         }
                     case 4:
                         if($value['codigo_columna'] == 'BONFRONTERA'){
@@ -415,12 +328,12 @@ class RPresupuestoRetroactivoXls
                             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(11, $fila, $value['valor']); break;
                         }else if($value['codigo_columna'] == 'REINBANT') {
                             $total_bono += $value['valor'];
-                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, $value['valor']);break;
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $value['valor']);break;
                         }else if($value['codigo_columna'] == 'REISUELDOBA'){
                             $total_sueldo += $value['valor'];
-                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(24, $fila, $value['valor']); break;
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, $value['valor']); break;
                         }
-                    case 5:
+                    /*case 5:
                         if($value['codigo_columna'] == 'BONFRONTERA'){
                             $total_frontera += $value['valor'];
                             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['valor']); break;
@@ -453,7 +366,7 @@ class RPresupuestoRetroactivoXls
                             $total_sueldo += $value['valor'];
                             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['nombre_cargo']);
                             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(27, $fila, $value['valor']); break;
-                        }
+                        }*/
                     /*default:
                         $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($columna, $fila, 0); break;*/
                 }
@@ -469,7 +382,7 @@ class RPresupuestoRetroactivoXls
             }else {
                 if($desc_func != $value['desc_func'] || $codigo_pres!=$value['codigo_pres']){
                     if($desc_func != $value['desc_func']){
-                        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(28, $fila, $total_sueldo);
+                        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, $total_sueldo);
                     }
 
                     $total_bono = 0;
@@ -495,10 +408,10 @@ class RPresupuestoRetroactivoXls
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REINBANT'){
                                 $total_bono += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REISUELDOBA'){
                                 $total_sueldo += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['valor']); break;
                             }
                         case 2:
 
@@ -507,10 +420,10 @@ class RPresupuestoRetroactivoXls
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REINBANT'){
                                 $total_bono += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(17, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REISUELDOBA'){
                                 $total_sueldo += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, $value['valor']); break;
                             }
 
                         case 3:
@@ -519,10 +432,10 @@ class RPresupuestoRetroactivoXls
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REINBANT') {
                                 $total_bono += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['valor']);break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $value['valor']);break;
                             }else if($value['codigo_columna'] == 'REISUELDOBA'){
                                 $total_sueldo += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(23, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(20, $fila, $value['valor']); break;
                             }
                         case 4:
                             if($value['codigo_columna'] == 'BONFRONTERA'){
@@ -530,12 +443,12 @@ class RPresupuestoRetroactivoXls
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(11, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REINBANT') {
                                 $total_bono += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, $value['valor']);break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $value['valor']);break;
                             }else if($value['codigo_columna'] == 'REISUELDOBA'){
                                 $total_sueldo += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(24, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, $value['valor']); break;
                             }
-                        case 5:
+                        /*case 5:
                             if($value['codigo_columna'] == 'BONFRONTERA'){
                                 $total_frontera += $value['valor'];
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['valor']); break;
@@ -568,7 +481,7 @@ class RPresupuestoRetroactivoXls
                                 $total_sueldo += $value['valor'];
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['nombre_cargo']);
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(27, $fila, $value['valor']); break;
-                            }
+                            }*/
                         /*default:
                             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($columna, $fila, 0); break;*/
                     }
@@ -588,10 +501,10 @@ class RPresupuestoRetroactivoXls
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REINBANT'){
                                 $total_bono += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REISUELDOBA'){
                                 $total_sueldo += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['valor']); break;
                             }
                         case 2:
 
@@ -600,10 +513,10 @@ class RPresupuestoRetroactivoXls
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REINBANT'){
                                 $total_bono += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(17, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REISUELDOBA'){
                                 $total_sueldo += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, $value['valor']); break;
                             }
 
                         case 3:
@@ -612,10 +525,10 @@ class RPresupuestoRetroactivoXls
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REINBANT') {
                                 $total_bono += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['valor']);break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $value['valor']);break;
                             }else if($value['codigo_columna'] == 'REISUELDOBA'){
                                 $total_sueldo += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(23, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(20, $fila, $value['valor']); break;
                             }
                         case 4:
                             if($value['codigo_columna'] == 'BONFRONTERA'){
@@ -623,12 +536,12 @@ class RPresupuestoRetroactivoXls
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(11, $fila, $value['valor']); break;
                             }else if($value['codigo_columna'] == 'REINBANT') {
                                 $total_bono += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, $value['valor']);break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $value['valor']);break;
                             }else if($value['codigo_columna'] == 'REISUELDOBA'){
                                 $total_sueldo += $value['valor'];
-                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(24, $fila, $value['valor']); break;
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, $value['valor']); break;
                             }
-                        case 5:
+                        /*case 5:
                             if($value['codigo_columna'] == 'BONFRONTERA'){
                                 $total_frontera += $value['valor'];
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['valor']); break;
@@ -661,17 +574,17 @@ class RPresupuestoRetroactivoXls
                                 $total_sueldo += $value['valor'];
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['nombre_cargo']);
                                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(27, $fila, $value['valor']); break;
-                            }
+                            }*/
                         /*default:
                             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($columna, $fila, 0); break;*/
                     }
                     if($codigo_col!=$value['codigo_columna']){
                         if($codigo_col == 'BONFRONTERA'){
-                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $total_frontera);
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $total_frontera);
                         }else if($codigo_col == 'REINBANT'){
-                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(20, $fila, $total_bono);
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(17, $fila, $total_bono);
                         }else if($codigo_col == 'REISUELDOBA'){
-                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(28, $fila, $total_sueldo);
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, $total_sueldo);
                         }
                     }
                     $codigo_col = $value['codigo_columna'];
@@ -686,7 +599,504 @@ class RPresupuestoRetroactivoXls
             $desc_func = $value['desc_func'];
             $codigo_pres = $value['codigo_pres'];
         }
-        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(28, $fila, $total_sueldo);
+        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, $total_sueldo);
+        $modalidad = '';
+        //Pestaña Modalidades
+        foreach ($datos as $value){
+            if($value['tipo_contrato'] == 'PLA') { //var_dump($value);exit;
+                if ($modalidad != $value['modalidad']) {
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(28, $fila, $total_sueldo);
+                    $this->addHoja($value['modalidad'], $index);
+                    $this->docexcel->getActiveSheet()->getTabColor()->setRGB($color_pestana[$index]);
+                    $this->docexcel->getActiveSheet()->mergeCells('A1:A2');
+                    $this->docexcel->getActiveSheet()->mergeCells('B1:B2');
+                    $this->docexcel->getActiveSheet()->mergeCells('C1:C2');
+                    $this->docexcel->getActiveSheet()->mergeCells('D1:D2');
+                    $this->docexcel->getActiveSheet()->mergeCells('E1:E2');
+                    $this->docexcel->getActiveSheet()->mergeCells('F1:F2');
+                    $this->docexcel->getActiveSheet()->mergeCells('G1:G2');
+                    $this->docexcel->getActiveSheet()->mergeCells('H1:H2');
+
+                    /*$this->docexcel->getActiveSheet()->mergeCells('I1:P1');
+                    $this->docexcel->getActiveSheet()->mergeCells('Q1:U1');
+                    $this->docexcel->getActiveSheet()->mergeCells('V1:AC1');*/
+                    $this->docexcel->getActiveSheet()->mergeCells('I1:M1');
+                    $this->docexcel->getActiveSheet()->mergeCells('N1:R1');
+                    $this->docexcel->getActiveSheet()->mergeCells('S1:W1');
+
+
+                    /*$this->docexcel->getActiveSheet()->getStyle('A1:AC2')->getAlignment()->setWrapText(true);
+                    $this->docexcel->getActiveSheet()->getStyle('A1:AC2')->applyFromArray($styleTitulos3);*/
+                    $this->docexcel->getActiveSheet()->getStyle('A1:W2')->getAlignment()->setWrapText(true);
+                    $this->docexcel->getActiveSheet()->getStyle('A1:W2')->applyFromArray($styleTitulos3);
+                    $this->docexcel->getActiveSheet()->freezePaneByColumnAndRow(0, 3);
+                    $fila = 3;
+                    $this->numero = 1;
+                    $columna = 8;
+
+                    $total_bono = 0;
+                    $total_sueldo = 0;
+                    $total_frontera = 0;
+                    $this->docexcel->getActiveSheet()->setTitle($value['modalidad']);
+                    $this->docexcel->getActiveSheet()->getColumnDimension('A')->setWidth(10);
+                    $this->docexcel->getActiveSheet()->getColumnDimension('B')->setWidth(40);//categoria
+                    $this->docexcel->getActiveSheet()->getColumnDimension('C')->setWidth(40);//pres
+                    $this->docexcel->getActiveSheet()->getColumnDimension('D')->setWidth(20);//ci
+                    $this->docexcel->getActiveSheet()->getColumnDimension('E')->setWidth(40);//funcionario
+                    $this->docexcel->getActiveSheet()->getColumnDimension('F')->setWidth(35);//cargo
+                    $this->docexcel->getActiveSheet()->getColumnDimension('G')->setWidth(20);//fecha
+                    $this->docexcel->getActiveSheet()->getColumnDimension('H')->setWidth(20);//fecha
+                    $this->docexcel->getActiveSheet()->getColumnDimension('I')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('J')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('K')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('L')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('M')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('N')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('O')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('P')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('Q')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('R')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('S')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('T')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('U')->setWidth(20);//mes
+
+                    $this->docexcel->getActiveSheet()->getColumnDimension('V')->setWidth(20);//mes
+                    $this->docexcel->getActiveSheet()->getColumnDimension('W')->setWidth(20);//mes
+                    //$this->docexcel->getActiveSheet()->getColumnDimension('X')->setWidth(20);//mes
+                    //$this->docexcel->getActiveSheet()->getColumnDimension('Y')->setWidth(20);//mes
+                    //$this->docexcel->getActiveSheet()->getColumnDimension('Z')->setWidth(20);//mes
+                    //$this->docexcel->getActiveSheet()->getColumnDimension('AA')->setWidth(20);//mes
+                    //$this->docexcel->getActiveSheet()->getColumnDimension('AB')->setWidth(20);//mes
+                    //$this->docexcel->getActiveSheet()->getColumnDimension('AC')->setWidth(20);//mes
+
+
+                    $this->docexcel->getActiveSheet()->setCellValue('A1','Nro');
+                    $this->docexcel->getActiveSheet()->setCellValue('B1','Categoria Programática');
+                    $this->docexcel->getActiveSheet()->setCellValue('C1','Presupuesto');
+                    $this->docexcel->getActiveSheet()->setCellValue('D1','CI');
+                    $this->docexcel->getActiveSheet()->setCellValue('E1','Funcionario');
+                    $this->docexcel->getActiveSheet()->setCellValue('F1','Cargo');
+                    $this->docexcel->getActiveSheet()->setCellValue('G1','Fecha Inicio');
+                    $this->docexcel->getActiveSheet()->setCellValue('H1','Fecha Fin');
+                    $this->docexcel->getActiveSheet()->setCellValue('I1','Bono Frontera');
+                    $this->docexcel->getActiveSheet()->setCellValue('I2',$meses[0]);
+                    $this->docexcel->getActiveSheet()->setCellValue('J2',$meses[1]);
+                    $this->docexcel->getActiveSheet()->setCellValue('K2',$meses[2]);
+                    $this->docexcel->getActiveSheet()->setCellValue('L2',$meses[3]);
+                    //$this->docexcel->getActiveSheet()->setCellValue('M2',$meses[4]);
+                    //$this->docexcel->getActiveSheet()->setCellValue('N2',$meses[5]);
+                    //$this->docexcel->getActiveSheet()->setCellValue('O2',$meses[6]);
+                    //$this->docexcel->getActiveSheet()->setCellValue('P2','Total');
+                    $this->docexcel->getActiveSheet()->setCellValue('M2','Total');
+
+                    /*$this->docexcel->getActiveSheet()->setCellValue('Q1','Bono Antiguedad');
+                    $this->docexcel->getActiveSheet()->setCellValue('Q2',$meses[0]);
+                    $this->docexcel->getActiveSheet()->setCellValue('R2',$meses[1]);
+                    $this->docexcel->getActiveSheet()->setCellValue('S2',$meses[2]);
+                    $this->docexcel->getActiveSheet()->setCellValue('T2',$meses[3]);
+                    $this->docexcel->getActiveSheet()->setCellValue('U2','Total');*/
+                    $this->docexcel->getActiveSheet()->setCellValue('N1','Bono Antiguedad');
+                    $this->docexcel->getActiveSheet()->setCellValue('N2',$meses[0]);
+                    $this->docexcel->getActiveSheet()->setCellValue('O2',$meses[1]);
+                    $this->docexcel->getActiveSheet()->setCellValue('P2',$meses[2]);
+                    $this->docexcel->getActiveSheet()->setCellValue('Q2',$meses[3]);
+                    $this->docexcel->getActiveSheet()->setCellValue('R2','Total');
+
+                    $this->docexcel->getActiveSheet()->setCellValue('S1','Sueldo Basico');
+                    $this->docexcel->getActiveSheet()->setCellValue('S2',$meses[0]);
+                    $this->docexcel->getActiveSheet()->setCellValue('T2',$meses[1]);
+                    $this->docexcel->getActiveSheet()->setCellValue('U2',$meses[2]);
+                    $this->docexcel->getActiveSheet()->setCellValue('V2',$meses[3]);
+                    $this->docexcel->getActiveSheet()->setCellValue('W2','Total');
+                    /*$this->docexcel->getActiveSheet()->setCellValue('V1','Sueldo Basico');
+                    $this->docexcel->getActiveSheet()->setCellValue('V2',$meses[0]);
+                    $this->docexcel->getActiveSheet()->setCellValue('W2',$meses[1]);
+                    $this->docexcel->getActiveSheet()->setCellValue('X2',$meses[2]);
+                    $this->docexcel->getActiveSheet()->setCellValue('Y2',$meses[3]);
+                    $this->docexcel->getActiveSheet()->setCellValue('Z2',$meses[4]);
+                    $this->docexcel->getActiveSheet()->setCellValue('AA2',$meses[5]);
+                    $this->docexcel->getActiveSheet()->setCellValue('AB2',$meses[6]);
+                    $this->docexcel->getActiveSheet()->setCellValue('AC2','Total');*/
+
+                    //if($desc_func != $value['desc_func'] || $codigo_pres!=$value['codigo_pres']) {
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0, $fila, $this->numero);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(1, $fila, $value['categoria_prog']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(2, $fila, $value['presupuesto'] . '[' . $value['codigo_pres'] . ']');
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['ci']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['desc_func']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['nombre_cargo']);
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, date_format(date_create($value['fecha_ini']), 'd/m/Y'));
+                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, date_format(date_create($value['fecha_fin']), 'd/m/Y'));
+                    switch ($value['periodo']) {
+
+                        case 1:
+
+                            if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                $total_frontera += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['valor']);
+                                break;
+                            } else if ($value['codigo_columna'] == 'REINBANT') {
+                                $total_bono += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']);
+                                break;
+                            } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                $total_sueldo += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['valor']);
+                                break;
+                            }
+                        case 2:
+
+                            if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                $total_frontera += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['valor']);
+                                break;
+                            } else if ($value['codigo_columna'] == 'REINBANT') {
+                                $total_bono += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']);
+                                break;
+                            } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                $total_sueldo += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, $value['valor']);
+                                break;
+                            }
+
+                        case 3:
+                            if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                $total_frontera += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['valor']);
+                                break;
+                            } else if ($value['codigo_columna'] == 'REINBANT') {
+                                $total_bono += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $value['valor']);
+                                break;
+                            } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                $total_sueldo += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(20, $fila, $value['valor']);
+                                break;
+                            }
+                        case 4:
+                            if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                $total_frontera += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(11, $fila, $value['valor']);
+                                break;
+                            } else if ($value['codigo_columna'] == 'REINBANT') {
+                                $total_bono += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $value['valor']);
+                                break;
+                            } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                $total_sueldo += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, $value['valor']);
+                                break;
+                            }
+                        /*case 5:
+                            if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                $total_frontera += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['valor']);
+                                break;
+                            } else if ($value['codigo_columna'] == 'REINBANT') {
+                                $total_bono += $value['valor'];
+                                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['valor']);break;
+                            } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                $total_sueldo += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(25, $fila, $value['valor']);
+                                break;
+                            }
+                        case 6:
+                            if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                $total_frontera += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']);
+                                break;
+                            } else if ($value['codigo_columna'] == 'REINBANT') {
+                                $total_bono += $value['valor'];
+                                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']); break;
+                            } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                $total_sueldo += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(26, $fila, $value['valor']);
+                                break;
+                            }
+                        case 7:
+                            if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                $total_frontera += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']);
+                                break;
+                            } else if ($value['codigo_columna'] == 'REINBANT') {
+                                $total_bono += $value['valor'];
+                                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']); break;
+                            } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                $total_sueldo += $value['valor'];
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['nombre_cargo']);
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(27, $fila, $value['valor']);
+                                break;
+                            }*/
+                        /*default:
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($columna, $fila, 0); break;*/
+                    }
+
+
+                    //}
+                    $columna++;
+                    //$fila++;
+                    $this->numero++;
+                    $index++;
+                    $codigo_col = $value['codigo_columna'];
+
+                } else {
+                    if ($desc_func != $value['desc_func'] || $codigo_pres != $value['codigo_pres']) {
+                        if ($desc_func != $value['desc_func']) {
+                            $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, $total_sueldo);
+                        }
+
+                        $total_bono = 0;
+                        $total_sueldo = 0;
+                        $total_frontera = 0;
+                        $fila++;
+                        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(0, $fila, $this->numero);
+                        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(1, $fila, $value['categoria_prog']);
+                        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(2, $fila, $value['presupuesto'] . '[' . $value['codigo_pres'] . ']');
+                        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(3, $fila, $value['ci']);
+                        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(4, $fila, $value['desc_func']);
+                        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['nombre_cargo']);
+                        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(6, $fila, date_format(date_create($value['fecha_ini']), 'd/m/Y'));
+                        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(7, $fila, date_format(date_create($value['fecha_fin']), 'd/m/Y'));
+
+
+                        switch ($value['periodo']) {
+
+                            case 1:
+
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['valor']);
+                                    break;
+                                }
+                            case 2:
+
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, $value['valor']);
+                                    break;
+                                }
+
+                            case 3:
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(20, $fila, $value['valor']);
+                                    break;
+                                }
+                            case 4:
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(11, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, $value['valor']);
+                                    break;
+                                }
+                            /*case 5:
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['valor']);break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(25, $fila, $value['valor']);
+                                    break;
+                                }
+                            case 6:
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']); break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(26, $fila, $value['valor']);
+                                    break;
+                                }
+                            case 7:
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']); break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['nombre_cargo']);
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(27, $fila, $value['valor']);
+                                    break;
+                                }*/
+                            /*default:
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($columna, $fila, 0); break;*/
+                        }
+
+
+                        $this->numero++;
+                        $columna = 8;
+                        $codigo_col = $value['codigo_columna'];
+                    } else {
+                        switch ($value['periodo']) {
+
+                            case 1:
+
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(8, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(18, $fila, $value['valor']);
+                                    break;
+                                }
+                            case 2:
+
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(9, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(19, $fila, $value['valor']);
+                                    break;
+                                }
+
+                            case 3:
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(10, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(20, $fila, $value['valor']);
+                                    break;
+                                }
+                            case 4:
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(11, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(21, $fila, $value['valor']);
+                                    break;
+                                }
+                            /*case 5:
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['valor']);break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(25, $fila, $value['valor']);
+                                    break;
+                                }
+                            case 6:
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['valor']); break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(26, $fila, $value['valor']);
+                                    break;
+                                }
+                            case 7:
+                                if ($value['codigo_columna'] == 'BONFRONTERA') {
+                                    $total_frontera += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']);
+                                    break;
+                                } else if ($value['codigo_columna'] == 'REINBANT') {
+                                    $total_bono += $value['valor'];
+                                    //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['valor']); break;
+                                } else if ($value['codigo_columna'] == 'REISUELDOBA') {
+                                    $total_sueldo += $value['valor'];
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(5, $fila, $value['nombre_cargo']);
+                                    $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(27, $fila, $value['valor']);
+                                    break;
+                                }*/
+                            /*default:
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow($columna, $fila, 0); break;*/
+                        }
+                        if ($codigo_col != $value['codigo_columna']) {
+                            if ($codigo_col == 'BONFRONTERA') {
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $total_frontera);
+                            } else if ($codigo_col == 'REINBANT') {
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(17, $fila, $total_bono);
+                            } else if ($codigo_col == 'REISUELDOBA') {
+                                $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, $total_sueldo);
+                            }
+                        }
+                        $codigo_col = $value['codigo_columna'];
+                        $columna++;
+                    }
+
+                    //$fila++;
+                    //$this->numero++;
+                }
+                $modalidad = $value['modalidad'];
+                $tipo_contrato = $value['tipo_contrato'];
+                $desc_func = $value['desc_func'];
+                $codigo_pres = $value['codigo_pres'];
+            }
+        }
+        $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(22, $fila, $total_sueldo);
     }
     function obtenerFechaEnLetra($fecha){
         setlocale(LC_ALL,"es_ES@euro","es_ES","esp");
@@ -702,8 +1112,6 @@ class RPresupuestoRetroactivoXls
         $this->docexcel->setActiveSheetIndex(0);
         $this->objWriter = PHPExcel_IOFactory::createWriter($this->docexcel, 'Excel5');
         $this->objWriter->save($this->url_archivo);
-        //$this->imprimeCabecera(0);
-
     }
 
 }

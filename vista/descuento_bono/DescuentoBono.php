@@ -14,10 +14,12 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 
 	constructor:function(config){
 		this.maestro=config.maestro;
+		this.moneda = 0;
     	//llama al constructor de la clase padre
 		Phx.vista.DescuentoBono.superclass.constructor.call(this,config);
 		this.init();
 		this.iniciarEventos();
+
 		this.load({params:{start:0, limit:this.tam_pag, id_funcionario :this.maestro.id_funcionario}})
 	},
 			
@@ -42,6 +44,7 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 			type:'Field',
 			form:true 
 		},
+
 		 {
             config:{
                 name:'id_moneda',
@@ -50,7 +53,11 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
                 fieldLabel:'Moneda',
                 gdisplayField:'desc_moneda',//mapea al store del grid
                 gwidth:80,
-                 renderer:function (value, p, record){return String.format('{0}', record.data['desc_moneda']);}
+                autoSelect:true,
+                listWidth:235,
+                width:235,
+                msgTarget: 'side',
+                renderer:function (value, p, record){return String.format('{0}', record.data['desc_moneda']);}
              },
             type:'ComboRec',
             id_grupo:1,
@@ -92,9 +99,11 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 				mode: 'remote',
 				pageSize: 20,
 				queryDelay: 200,
-				listWidth:280,
+				listWidth:235,
+                width:235,
 				minChars: 2,
 				gwidth: 170,
+                msgTarget: 'side',
 				tpl: '<tpl for="."><div class="x-combo-list-item"><p>{codigo}</p><strong>{nombre}</strong> </div></tpl>'
 			},
 			type: 'ComboBox',
@@ -106,6 +115,32 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 			grid: true,
 			form: true
 		},
+
+        {
+            config:{
+                name: 'tipo_desc_bono',
+                fieldLabel: 'Tipo Desc/Bono',
+                allowBlank: false,
+                emptyText:'Tipo...',
+                typeAhead: true,
+                triggerAction: 'all',
+                lazyRender:true,
+                mode: 'local',
+                gwidth: 200,
+                store:['normal','extraordinaria'],
+                listWidth:235,
+                width:235,
+                msgTarget: 'side'
+            },
+            type:'ComboBox',
+            filters:{
+                type: 'list',
+                options: ['normal','extraordinaria'],
+            },
+            id_grupo:0,
+            grid:true,
+            form:true
+        },
 		
 		{
 			config:{
@@ -114,7 +149,8 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 				allowBlank: true,
 				anchor: '80%',
 				gwidth: 100,
-				maxLength:7
+				maxLength:7,
+                msgTarget: 'side'
 			},
 				type:'NumberField',
 				filters:{pfiltro:'desbon.valor_por_cuota',type:'numeric'},
@@ -143,10 +179,10 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 				name: 'fecha_ini',
 				fieldLabel: 'Fecha Inicio',
 				allowBlank: true,
-				anchor: '80%',
 				gwidth: 100,
-							format: 'd/m/Y', 
-							renderer:function (value,p,record){return value?value.dateFormat('d/m/Y'):''}
+                width:176,
+                format: 'd/m/Y',
+                renderer:function (value,p,record){return value?value.dateFormat('d/m/Y'):''}
 			},
 				type:'DateField',
 				filters:{pfiltro:'desbon.fecha_ini',type:'date'},
@@ -159,10 +195,10 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 				name: 'fecha_fin',
 				fieldLabel: 'Fecha Fin',
 				allowBlank: true,
-				anchor: '80%',
 				gwidth: 100,
-							format: 'd/m/Y', 
-							renderer:function (value,p,record){return value?value.dateFormat('d/m/Y'):''}
+                width:176,
+                format: 'd/m/Y',
+                renderer:function (value,p,record){return value?value.dateFormat('d/m/Y'):''}
 			},
 				type:'DateField',
 				filters:{pfiltro:'desbon.fecha_fin',type:'date'},
@@ -276,7 +312,8 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 		{name:'fecha_mod', type: 'date',dateFormat:'Y-m-d H:i:s.u'},
 		{name:'usr_reg', type: 'string'},
 		{name:'usr_mod', type: 'string'},
-		
+		{name:'tipo_desc_bono', type: 'string'}
+
 	],
 	sortInfo:{
 		field: 'id_descuento_bono',
@@ -294,7 +331,7 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
     	this.ocultarComponente(this.Cmp.monto_total);
     	this.Cmp.monto_total.allowBlank = true;  
     	this.ocultarComponente(this.Cmp.valor_por_cuota);
-    	this.ocultarComponente(this.Cmp.id_tipo_columna);
+    	//this.ocultarComponente(this.Cmp.id_tipo_columna);
     	
     	if (rec.data.tipo_dato == 'basica' || rec.data.tipo_dato == 'formula') {
 			this.ocultarComponente(this.Cmp.monto_total);
@@ -312,9 +349,18 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 			this.Cmp.valor_por_cuota.allowBlank = false;
 		}
     },
+
     onButtonNew : function () {
-    	this.mostrarComponente(this.Cmp.id_tipo_columna);
+    	this.ocultarComponente(this.Cmp.valor_por_cuota);
+        this.ocultarComponente(this.Cmp.monto_total);
     	Phx.vista.DescuentoBono.superclass.onButtonNew.call(this);
+
+        this.Cmp.id_moneda.store.load({params:{start:0, limit:this.tam_pag}, scope:this, callback: function (param,op,suc) {
+            this.Cmp.id_moneda.setValue(param[0].data.id_moneda);
+            this.Cmp.id_moneda.collapse();
+            this.Cmp.id_tipo_columna.focus(false,  5);
+        }});
+
     },
     loadValoresIniciales:function()
     {	
@@ -323,6 +369,7 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
         Phx.vista.DescuentoBono.superclass.loadValoresIniciales.call(this);
     },
     iniciarEventos : function () {
+
 		this.Cmp.id_tipo_columna.on('select',function (c, r, i) {
 				
 			if (r.data.tipo_descuento_bono == 'monto_fijo_indefinido') {				
@@ -352,6 +399,7 @@ Phx.vista.DescuentoBono=Ext.extend(Phx.gridInterfaz,{
 				this.Cmp.monto_total.allowBlank = true;
 				
 				this.mostrarComponente(this.Cmp.valor_por_cuota);
+                this.Cmp.valor_por_cuota.reset();
 				this.Cmp.valor_por_cuota.allowBlank = false;
 			}
 			

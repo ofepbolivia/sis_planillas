@@ -5,20 +5,6 @@
 *@author  (admin)
 *@date 17-01-2014 15:36:53
 *@description Archivo con la interfaz de usuario que permite la ejecucion de todas las funcionalidades del sistema
- * 
- * 
- * 
- *     
-
-    HISTORIAL DE MODIFICACIONES:
-       
- ISSUE            FECHA:              AUTOR                 DESCRIPCION
-   
- #0              17-01-2014        GUY BOA             Creacion 
- #1              22-02-2019        Rarteaga           agregaga  hoja_calculo
- #9 EndeETR      22/05/2019        EGS           	  btn de plantilla para exportar datos del tipo planilla
- #79              21/11/2019       RAC KPLIAN      adiciona sw_devengado para habilitar o no boton de devegado
- #100			 05/03/2020		   MZM	KPLIAN		Adicion de columna habilitar_impresion_boleta
 */
 
 header("content-type: text/javascript; charset=UTF-8");
@@ -50,18 +36,30 @@ Phx.vista.TipoPlanilla=Ext.extend(Phx.gridInterfaz,{
                 tooltip: 'Diseño de Reportes para la Planilla'
             }
         );
-        this.addButton('btnExpPla',//#9
-            {
-                text: 'Exportar Plantilla',
-                iconCls: 'bchecklist',
-                disabled: false,
-                handler: this.expProceso,
-                tooltip: '<b>Exportar</b><br/>Exporta a archivo SQL la plantilla'
-            }
-        );
+        this.addButton('param_varios', {
+            text: 'Parametros Varios',
+            iconCls: 'bfolder',
+            disabled: true,
+            handler: this.onParametroPlanilla,
+            tooltip: 'Parametros Varios Planilla por Gestión'
+        });
 		this.load({params:{start:0, limit:this.tam_pag}})
 	},
-			
+
+    onParametroPlanilla: function(){
+        var rec = {maestro: this.getSelectedData()};
+
+        Phx.CP.loadWindows('../../../sis_planillas/vista/param_planilla/ParamPlanilla.php',
+            'Parametros Varios Planilla x Gestión',
+            {
+                width:700,
+                height:450
+            },
+            rec,
+            this.idContenedor,
+            'ParamPlanilla');
+    },
+
 	Atributos:[
 		{
 			//configuracion del componente
@@ -97,8 +95,7 @@ Phx.vista.TipoPlanilla=Ext.extend(Phx.gridInterfaz,{
 				allowBlank: false,
 				anchor: '80%',
 				gwidth: 150,
-				maxLength:100,
-				gdisplayField:'desc_tipo_plantilla'
+				maxLength:100
 			},
 				type:'TextField',
 				filters:{pfiltro:'tippla.nombre',type:'string'},
@@ -210,12 +207,12 @@ Phx.vista.TipoPlanilla=Ext.extend(Phx.gridInterfaz,{
 	       		lazyRender:true,
 	       		mode: 'local',
 				gwidth: 150,
-				store:['hoja_calculo','parametrizacion','ultimo_activo_periodo','ultimo_activo_gestion','prorrateo_aguinaldo','retroactivo_sueldo','retroactivo_asignaciones','ultimo_activo_gestion_anterior'] //#1 agrega hoja calculo
+				store:['parametrizacion','ultimo_activo_periodo','ultimo_activo_gestion','prorrateo_aguinaldo','retroactivo_sueldo','retroactivo_asignaciones','ultimo_activo_gestion_anterior']
 			},
 				type:'ComboBox',
 				filters:{	
 	       		         type: 'list',
-	       				 options: ['hoja_calculo','parametrizacion','ultimo_activo_periodo','ultimo_activo_gestion','prorrateo_aguinaldo','retroactivo_sueldo','retroactivo_asignaciones','ultimo_activo_gestion_anterior'],	//#1 agrega hoja calculo
+	       				 options: ['parametrizacion','ultimo_activo_periodo','ultimo_activo_gestion','prorrateo_aguinaldo','retroactivo_sueldo','retroactivo_asignaciones','ultimo_activo_gestion_anterior'],	
 	       		 	},
 				id_grupo:1,
 				grid:true,
@@ -249,30 +246,6 @@ Phx.vista.TipoPlanilla=Ext.extend(Phx.gridInterfaz,{
 			config:{
 				name: 'calculo_horas',
 				fieldLabel: 'Existe Calculo de Horas?',
-				allowBlank:false,
-				emptyText:'Calculo horas...',
-	       		typeAhead: true,
-	       		triggerAction: 'all',
-	       		lazyRender:true,
-	       		mode: 'local',
-				gwidth: 150,
-				store:['si','no']
-			},
-				type:'ComboBox',
-				filters:{	
-	       		         type: 'list',
-	       				 options: ['si','no'],	
-	       		 	},
-				id_grupo:1,
-				grid:true,
-				form:true
-		},	
-		
-		{
-			config:{
-				name: 'sw_devengado',
-				fieldLabel: 'Habilitar cbte de devengado',
-				qtip:'si el sistema esta configurado para generar cbtes independientes al flujo, este boton habilita la generacion de cbte de devengado',
 				allowBlank:false,
 				emptyText:'Calculo horas...',
 	       		typeAhead: true,
@@ -387,28 +360,6 @@ Phx.vista.TipoPlanilla=Ext.extend(Phx.gridInterfaz,{
 				id_grupo:1,
 				grid:true,
 				form:false
-		},
-		{//#100
-			config:{
-				name: 'habilitar_impresion_boleta',
-				fieldLabel: 'Funcionario puede imprimir boleta',
-				allowBlank:false,
-				emptyText:'Funcionario puede imprimir boleta...',
-	       		typeAhead: true,
-	       		triggerAction: 'all',
-	       		lazyRender:true,
-	       		mode: 'local',
-				gwidth: 150,
-				store:['si','no']
-			},
-				type:'ComboBox',
-				filters:{	
-	       		         type: 'list',
-	       				 options: ['si','no'],	
-	       		 	},
-				id_grupo:1,
-				grid:true,
-				form:true
 		}
 	],
 	tam_pag:50,	
@@ -436,8 +387,8 @@ Phx.vista.TipoPlanilla=Ext.extend(Phx.gridInterfaz,{
 		{name:'funcion_validacion_nuevo_empleado', type: 'string'},
 		{name:'funcion_calculo_horas', type: 'string'},		
 		{name:'calculo_horas', type: 'string'},
-		{name:'periodicidad', type: 'string'},'desc_tipo_plantilla','sw_devengado'
-		,{name:'habilitar_impresion_boleta', type: 'string'}//#100
+		{name:'periodicidad', type: 'string'}
+		
 	],
 	sortInfo:{
 		field: 'id_tipo_planilla',
@@ -455,19 +406,15 @@ Phx.vista.TipoPlanilla=Ext.extend(Phx.gridInterfaz,{
     {	
         this.getBoton('btnObligaciones').enable();  
         this.getBoton('btnReportes').enable();      
+        this.getBoton('param_varios').enable();
         Phx.vista.TipoPlanilla.superclass.preparaMenu.call(this);
-        
-   		this.getBoton('btnExpPla').enable(); //#9
-
     },
     liberaMenu:function()
     {	
         this.getBoton('btnObligaciones').disable(); 
         this.getBoton('btnReportes').disable();       
+        this.getBoton('param_varios').disable();
         Phx.vista.TipoPlanilla.superclass.liberaMenu.call(this);
-   
-   		this.getBoton('btnExpPla').disable(); //#9
-
     },
     onBtnObligaciones: function(){
 			var rec = {maestro: this.sm.getSelected().data};
@@ -494,21 +441,7 @@ Phx.vista.TipoPlanilla=Ext.extend(Phx.gridInterfaz,{
                     rec,
                     this.idContenedor,
                     'Reporte');
-	},
-	expProceso : function(resp){ //#9
-			var data=this.sm.getSelected().data;
-			console.log('data',data);
-			Phx.CP.loadingShow();
-			Ext.Ajax.request({
-				url: '../../sis_planillas/control/ExportarPlantilla/exportarDatosTipoPlanilla',
-				params: { 'id_tipo_planilla' : data.id_tipo_planilla },
-				success: this.successExport,
-				failure: this.conexionFailure,
-				timeout: this.timeout,
-				scope: this
-			});
-			
-	},
+	}
 	}
 )
 </script>

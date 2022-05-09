@@ -5,20 +5,9 @@
  *@author  (admin)
  *@date 22-01-2014 16:11:04
  *@description Archivo con la interfaz de usuario que permite la ejecucion de todas las funcionalidades del sistema
- * 
-    HISTORIAL DE MODIFICACIONES:       
- ISSUE            FECHA:              AUTOR                 DESCRIPCION   
- * 
- #0              22/01/2014        GUY KPLIAN      creacion 
- #38             11/09/2019        RAC KPLIAN      muestra columnas tipo contrato y cbte dividido  
- #42    ETR      17-09-2019        RAC KPLIAN      exluir estados vobo_conta y finalizado de la interface de vobo planilla
- #49    ETR      17-09-2019        manuel guerra   agregar boton de reporte de verificacion presupuestaria  
- #61    ETR      01-10-2019        RAC KPLIAN      Nueva interface de empleados por planilla, en interface de visto bueno conta y planillas 
- #132   ETR	  	 01/06/2020		   MZM KPLIAN	   Habilitacion de opcion para reseteo de valores de columnas variables
- #139   ETR      10/02/2020        MZM KPLIAN  	   Adicion de opcion para enviar boletas de pago a los funcionarios via correo electronico
- *  */
+ */
 
-header("content-type: text/javascript; charset=UTF-8"); 
+header("content-type: text/javascript; charset=UTF-8");
 ?>
 <script>
     Phx.vista.PlanillaVb=Ext.extend(Phx.gridInterfaz,{
@@ -28,11 +17,10 @@ header("content-type: text/javascript; charset=UTF-8");
         bdel: false,
         btest: false,
         bsave: false,
-        nombreVista: 'PlanillaVb',//#42
 
         constructor:function(config){
 
-            this.maestro=config.maestro; 
+            this.maestro=config.maestro;
             //llama al constructor de la clase padre
             Phx.vista.PlanillaVb.superclass.constructor.call(this,config);
             this.init();
@@ -68,57 +56,6 @@ header("content-type: text/javascript; charset=UTF-8");
                     tooltip: '<b>Documentos de la Solicitud</b><br/>Subir los documetos requeridos en la solicitud seleccionada.'
                 }
             );
-            
-            this.addButton('btnPresupuestos',
-            {	grupo:[0,1,2],
-                iconCls: 'bstats',
-                disabled: false,  
-                text:'Presupuestos',
-                tooltip: 'Gestion de Presupuestos',
-                xtype: 'splitbutton',  
-                menu: [{
-                    text: 'Presupuesto por Empleado',
-                    id: 'btnPresupuestoEmpleado-' + this.idContenedor,
-                    handler: this.onButtonPresupuestoEmpleado,
-                    tooltip: 'Detalle de Presupuestos por Empleado',
-                    scope: this
-                }, {
-                    text: 'Presupuestos Consolidados',
-                    id: 'btnPresupuestosCons-' + this.idContenedor,
-                    handler: this.onButtonPresupuestosConsolidado,
-                    tooltip: 'Presupuestos Consolidados por Columnas' ,
-                    scope: this
-                },//#47
-                {   
-                    text: 'Verificacion Presupuestaria',
-                    id: 'btnVerPre-' + this.idContenedor,
-                    handler: this.onVerPre,
-                    tooltip: 'Verificacion Presupuestaria' ,
-                    scope: this
-                }]                              
-            }
-        );
-        this.addButton('btnObligaciones',
-            {	grupo:[0,1,2],
-                iconCls: 'bmoney',
-                text:'Obligaciones',
-                disabled: true,                
-                handler: this.onButtonObligacionesDetalle,
-                tooltip: 'Detalle de Obligaciones'                
-            }
-        );
-       
-         //#139
-        this.addButton('btnEnvioCorreo',{
-                    text :'Boletas de Pago',
-                    grupo:[1,2],
-                    iconCls : 'bemail',
-                    disabled: true,
-                    handler : this.onReenviar,
-                    tooltip : '<b>Enviar</b><br/><b>Envia las boletas de pago via correo</b>'
-          });
- 
-        
             if(this.nombreVista == 'planillavbpoa') {
                 this.addButton('obs_poa', {
                     grupo: [0, 1],
@@ -178,13 +115,7 @@ header("content-type: text/javascript; charset=UTF-8");
                         handler: this.onButtonColumnasDetalle,
                         tooltip: 'Detalle de Columnas por Empleado',
                         scope: this
-                    }, {//#132
-	                    text: 'Resetear columnas variables',
-	                    id: 'btnResetColumnas-' + this.idContenedor,
-	                    handler: this.onButtonResetColumnas,
-	                    tooltip: 'Resetear Valor de columnas',
-	                    scope: this
-                	}, {
+                    }, {
                         text: 'Subir Columnas desde CSV',
                         id: 'btnColumnasCsv-' + this.idContenedor,
                         handler: this.onButtonColumnasCsv,
@@ -323,71 +254,35 @@ header("content-type: text/javascript; charset=UTF-8");
                 form: true,
                 bottom_filter : true
             },
+
             {
-	            config: {
-	                name: 'id_tipo_contrato',
-	                fieldLabel: 'Tipo Contrato',
-	                //typeAhead: false,
-	                //forceSelection: false,
-	                hiddenName: 'id_tipo_planilla',
-	                allowBlank: true,
-	                emptyText: 'Tipo Contrato...',
-	                store: new Ext.data.JsonStore({
-	                    url: '../../sis_organigrama/control/TipoContrato/listarTipoContrato',
-	                    id: 'id_tipo_contrato',
-	                    root: 'datos',
-	                    sortInfo: {
-	                        field: 'codigo',
-	                        direction: 'ASC'
-	                    },
-	                    totalProperty: 'total',
-	                    fields: ['id_tipo_contrato', 'nombre', 'codigo'],
-	                    // turn on remote sorting
-	                    remoteSort: true,
-	                    baseParams: {par_filtro: 'tipcon.nombre#tipcon.codigo'}
-	                }),
-	                valueField: 'id_tipo_contrato',
-	                displayField: 'nombre',
-	                gdisplayField: 'nombre',
-	                triggerAction: 'all',
-	                lazyRender: true,
-	                mode: 'remote',
-	                pageSize: 20,
-	                queryDelay: 200,
-	                listWidth:280,
-	                minChars: 2,
-	                gwidth: 120,
-	                renderer:function (value, p, record){return String.format('{0}', record.data['tipo_contrato']);},
-	            },
-	            type: 'ComboBox',
-	            id_grupo: 0,
-	            filters: {
-	                pfiltro: 'tipcon.nombre',
-	                type: 'string'
-	            },
-	            grid: true,
-	            form: true
-	        },
-	        {
                 config:{
-                    name: 'dividir_comprobante',
-                    fieldLabel: 'Dividir Comprobante',
-                    allowBlank: true,
-                    width: 80,
-                    gwidth: 80,
+                    name:'modalidad',
+                    fieldLabel:'Modalidad',
+                    allowBlank:false,
+                    emptyText:'Modalidad...',
+                    disabled: true,
+                    editable: false,
+                    hidden: true,
                     typeAhead: true,
                     triggerAction: 'all',
                     lazyRender:true,
                     mode: 'local',
-                    store:['si','no']
+                    store:['administrativo','piloto'],
+                    width: 177,
+                    renderer:function (value, p, record){return String.format('<div style="color:orangered;">{0}</div>', record.data['modalidad']);}
+
                 },
                 type:'ComboBox',
-                id_grupo:1,
-                filters:{pfiltro:'plani.apertura_cb',type:'string'},
-                valorInicial: 'no',
+                id_grupo:0,
+                filters:{
+                    type: 'list',
+                    options:['administrativo','piloto']
+                },
                 grid:true,
                 form:true
             },
+            
             {
                 config:{
                     name: 'estado',
@@ -484,6 +379,54 @@ header("content-type: text/javascript; charset=UTF-8");
                 id_grupo:1,
                 grid:true,
                 form:true
+            },
+
+            {
+                config:{
+                    name : 'periodo_pago',
+                    origen : 'PERIODO',
+                    fieldLabel : 'Periodo Pago',
+                    allowBlank : false,
+                    emptyText: 'Periodo Pago',
+                    gdisplayField : 'periodo',//mapea al store del grid
+                    gwidth : 100,
+
+                    disabled: true,
+                    renderer:function (value, p, record){
+                        var dato='Sin Periodo';
+                        dato = record.data['periodo_pago']=='1'?'Enero':dato;
+                        dato = record.data['periodo_pago']=='2'?'Febrero':dato;
+                        dato = record.data['periodo_pago']=='3'?'Marzo':dato;
+                        dato = record.data['periodo_pago']=='4'?'Abril':dato;
+                        dato = record.data['periodo_pago']=='5'?'Mayo':dato;
+                        dato = record.data['periodo_pago']=='6'?'Junio':dato;
+                        dato = record.data['periodo_pago']=='7'?'Julio':dato;
+                        dato = record.data['periodo_pago']=='8'?'Agosto':dato;
+                        dato = record.data['periodo_pago']=='9'?'Septiembre':dato;
+                        dato = record.data['periodo_pago']=='10'?'Octubre':dato;
+                        dato = record.data['periodo_pago']=='11'?'Noviembre':dato;
+                        dato = record.data['periodo_pago']=='12'?'Diciembre':dato;
+                        if  (dato=='Sin Periodo'){
+                            return String.format('<div ext:qtip="Pago"><span style="color: red">{0}</span></div>', dato);
+                        }else{
+                            return String.format('<div ext:qtip="Pago"><span style="color: green">{0}</span></div>', dato);
+                        }
+
+                    }
+                    //renderer : function (value, p, record){return String.format('{0}', );}
+                },
+                valueField: 'id_periodo',
+                displayField: 'periodo',
+                type : 'ComboRec',
+                id_grupo : 1,
+                filters : {
+                    pfiltro : 'per.periodo',
+                    type : 'numeric'
+                },
+
+                grid : true,
+                form : true,
+                bottom_filter : true
             },
 
             {
@@ -642,10 +585,9 @@ header("content-type: text/javascript; charset=UTF-8");
             {name:'usr_reg', type: 'string'},
             {name:'usr_mod', type: 'string'},
             {name:'codigo_poa', type: 'string'},
-            {name:'obs_poa', type: 'string'},'id_tipo_contrato','tipo_contrato','dividir_comprobante'
-            ,{name:'tipo_contrato', type: 'string'},'calcular_reintegro_rciva','id_tipo_contrato','calcular_prima_rciva'
-		,'habilitar_impresion_boleta','text_rep_boleta','calcular_bono_rciva','envios_boleta'
-            
+            {name:'obs_poa', type: 'string'},
+            {name:'periodo_pago', type: 'numeric'},
+            {name:'modalidad', type: 'string'}
 
         ],
         sortInfo:{
@@ -715,18 +657,7 @@ header("content-type: text/javascript; charset=UTF-8");
                     width:450,
                     height:200
                 },rec.data,this.idContenedor,'ColumnaCsv')
-        },    
-        //#132
-    	onButtonResetColumnas : function() {
-	        var rec=this.sm.getSelected();
-	        Phx.CP.loadWindows('../../../sis_planillas/vista/planilla/ResetColumnas.php',
-	        'Resetear valores para columna',
-	        {
-	            modal:true,
-	            width:450,
-	            height:200
-	        },rec.data,this.idContenedor,'ResetColumnas')
-    	},
+        },
         onButtonGenerarCheque : function() {
             var rec=this.sm.getSelected();
             Phx.CP.loadingShow();
@@ -749,20 +680,6 @@ header("content-type: text/javascript; charset=UTF-8");
             Phx.vista.PlanillaVb.superclass.preparaMenu.call(this);
 
             this.getBoton('btnHoras').enable();
-			
-        	this.getBoton('btnEnvioCorreo').disable();//#139
-			if (rec.data.estado== 'calculo_columnas') {//132
-            	this.getBoton('btnColumnas').menu.items.items[0].enable();
-	            this.getBoton('btnColumnas').menu.items.items[1].enable();
-	            this.getBoton('btnColumnas').menu.items.items[2].enable();
-	            this.getBoton('btnColumnas').menu.items.items[3].enable();
-	        } else {
-	            this.getBoton('btnColumnas').menu.items.items[0].enable();
-	            this.getBoton('btnColumnas').menu.items.items[1].disable();
-	            this.getBoton('btnColumnas').menu.items.items[2].disable();
-	            this.getBoton('btnColumnas').menu.items.items[3].disable();
-	        }
-
 
             if (rec.data.estado == 'registro_funcionarios') {
                 this.getBoton('ant_estado').disable();
@@ -772,21 +689,14 @@ header("content-type: text/javascript; charset=UTF-8");
                 rec.data.estado == 'planilla_finalizada') {
                 this.getBoton('ant_estado').disable();
                 this.getBoton('sig_estado').disable();
-				if(rec.data.habilitar_impresion_boleta=='si'){//#139
-             		this.getBoton('btnEnvioCorreo').enable();
-	            }else{this.getBoton('btnEnvioCorreo').disable();
-	            }
+
 
             } else if (rec.data.estado == 'obligaciones_generadas' ||
                 rec.data.estado == 'comprobante_presupuestario_validado' ||
                 rec.data.estado == 'comprobante_obligaciones') {
                 this.getBoton('ant_estado').enable();
-                this.getBoton('sig_estado').enable();
-				if(rec.data.habilitar_impresion_boleta=='si'){//#139
-             		this.getBoton('btnEnvioCorreo').enable();
-	            }else{
-	             	this.getBoton('btnEnvioCorreo').disable();
-	            }
+                this.getBoton('sig_estado').disable();
+
             } else {
                 this.getBoton('ant_estado').enable();
                 this.getBoton('sig_estado').enable();
@@ -801,9 +711,6 @@ header("content-type: text/javascript; charset=UTF-8");
 
             //MANEJO DEL BOTON DE GESTION DE PRESUPUESTOS
             this.getBoton('diagrama_gantt').enable();
-            
-            this.getBoton('btnPresupuestos').enable();           
-            this.getBoton('btnObligaciones').enable(); 
 
         },
         liberaMenu:function()
@@ -1074,63 +981,6 @@ header("content-type: text/javascript; charset=UTF-8");
             }*/
             this.wObs.show()
         },
-        
-         onButtonPresupuestoEmpleado : function() {
-	    	var rec = {maestro: this.sm.getSelected().data};
-							      
-	            Phx.CP.loadWindows('../../../sis_planillas/vista/presupuesto_empleado/PresupuestoEmpleado.php',
-	                    'Apropiacion Presupuestaria por Empleado',
-	                    {
-	                        width:800,
-	                        height:'90%'
-	                    },
-	                    rec,
-	                    this.idContenedor,
-	                    'PresupuestoEmpleado');
-	    },
-    
-	    onButtonPresupuestosConsolidado : function () {
-	    		var rec = {maestro: this.sm.getSelected().data};
-							      
-	            Phx.CP.loadWindows('../../../sis_planillas/vista/consolidado/Consolidado.php',
-	                    'Consolidado Presupuestario',
-	                    {
-	                        width:800,
-	                        height:'90%'
-	                    },
-	                    rec,
-	                    this.idContenedor,
-	                    'Consolidado');
-	    },
-	        
-         onButtonObligacionesDetalle : function () {
-    		var rec = {maestro: this.sm.getSelected().data};
-						      
-            Phx.CP.loadWindows('../../../sis_planillas/vista/obligacion/Obligacion.php',
-                    'Obligaciones',
-                    {
-                        width:'90%',
-                        height:'90%'
-                    },
-                    rec,
-                    this.idContenedor,
-                    'Obligacion');
-    },  //#139
-    onReenviar: function() {
-           var rec=this.sm.getSelected();
-           if(rec) {
-               Phx.CP.loadWindows('../../../sis_planillas/vista/planilla/CorreoBoleta.php',
-                    'Envio de Boletas por Correo',
-                    {
-                        modal:true,
-                        width:700,
-                        height:500
-                    },rec.data ,this.idContenedor,'CorreoBoleta');
-
-           } else {
-                 alert('seleccione una planilla primero');
-           }
-    },
 
         submitObs:function(){
             Phx.CP.loadingShow();
@@ -1166,36 +1016,7 @@ header("content-type: text/javascript; charset=UTF-8");
                 scope:this
             });
 
-        },
-        //#49
-		onVerPre : function() {
-			var rec = this.getSelectedData();		
-			if(rec)
-			{
-				Phx.CP.loadingShow();
-				Ext.Ajax.request({
-					url:'../../sis_planillas/control/Planilla/reporteVerifPresu',
-					params:{
-						'id_planilla':rec.id_planilla
-					},
-					success:this.successExport,
-					failure: this.conexionFailure,
-					timeout:this.timeout,
-					scope:this
-				});		
-			}
-			else
-			{
-				Ext.MessageBox.alert('Alerta', 'Antes debe seleccionar un item.');
-			}
-		},
-		//#61
-		south:{
-		  url:'../../../sis_planillas/vista/funcionario_planilla/FuncionarioPlanilla.php',
-		  title:'Funcionarios', 
-		  height:'50%',
-		  cls:'FuncionarioPlanilla'
-	    }, 
+        }
 
     })
 </script>

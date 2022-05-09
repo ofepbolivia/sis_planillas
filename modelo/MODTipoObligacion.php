@@ -5,12 +5,7 @@
 *@author  (admin)
 *@date 17-01-2014 19:43:19
 *@description Clase que envia los parametros requeridos a la Base de datos para la ejecucion de las funciones, y que recibe la respuesta del resultado de la ejecucion de las mismas
- * ISSUE 	FORK		FECHA			AUTHOR			DESCRIPCION
- * #3		EndeEtr		05/02/2019		EGS				Se agrego el campo id_tipo_obligacion_agrupador 
-   #1		EndeEtr		19/02/2019		EGS				Se agrego el campo descripcion
- * #1		EndeEtr		20/02/2019		EGS				se agrego los campos codigo_tipo_relacion_debe,codigo_tipo_relacion_haber	 	
- * #46		ETR			19.09.2019		MZM				Adicion de campo tipo_abono para reporte abono en cuentas
- * */
+*/
 
 class MODTipoObligacion extends MODbase{
 	
@@ -39,13 +34,7 @@ class MODTipoObligacion extends MODbase{
 		$this->captura('usr_reg','varchar');
 		$this->captura('usr_mod','varchar');
 		$this->captura('es_pagable','varchar');
-		$this->captura('id_tipo_obligacion_agrupador','int4');//#3 EGS
-		$this->captura('codigo_agrupador','varchar'); //#3 EGS
-		$this->captura('descripcion','varchar'); //#1 EGS
-		$this->captura('codigo_tipo_relacion_debe','varchar'); //#1 EGS
-		$this->captura('codigo_tipo_relacion_haber','varchar');	//#1 EGS	
-		$this->captura('tipo_abono','varchar');//#46 MZM				
-				
+		
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();
@@ -68,11 +57,6 @@ class MODTipoObligacion extends MODbase{
 		$this->setParametro('codigo','codigo','varchar');
 		$this->setParametro('nombre','nombre','varchar');
 		$this->setParametro('es_pagable','es_pagable','varchar');
-		$this->setParametro('id_tipo_obligacion_agrupador','id_tipo_obligacion_agrupador','int4');//#3 EGS
-		$this->setParametro('descripcion','descripcion','varchar');//#1 EGS
-		$this->setParametro('codigo_tipo_relacion_debe','codigo_tipo_relacion_debe','varchar');//#1 EGS
-		$this->setParametro('codigo_tipo_relacion_haber','codigo_tipo_relacion_haber','varchar');//#1 EGS
-		$this->setParametro('tipo_abono','tipo_abono','varchar');//#46 MZM				
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();
@@ -96,11 +80,7 @@ class MODTipoObligacion extends MODbase{
 		$this->setParametro('codigo','codigo','varchar');
 		$this->setParametro('nombre','nombre','varchar');
 		$this->setParametro('es_pagable','es_pagable','varchar');
-		$this->setParametro('id_tipo_obligacion_agrupador','id_tipo_obligacion_agrupador','int4');//#3 EGS
-		$this->setParametro('descripcion','descripcion','varchar');//#1 EGS
-		$this->setParametro('codigo_tipo_relacion_debe','codigo_tipo_relacion_debe','varchar');//#1 EGS
-		$this->setParametro('codigo_tipo_relacion_haber','codigo_tipo_relacion_haber','varchar');//#1 EGS
-		$this->setParametro('tipo_abono','tipo_abono','varchar');//#46 MZM		
+
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();

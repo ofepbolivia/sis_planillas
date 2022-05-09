@@ -62,7 +62,7 @@ class RMinisterioTrabajoUpdateXLS
 
     function imprimeDatosSueldo(){
         $this->docexcel->getActiveSheet()->setTitle('OVTPLA-T02');
-        $datos = $this->objParam->getParametro('datos');
+        $datos = $this->objParam->getParametro('datos'); //var_dump('$datos', $datos);exit;
         $datos_cabecera = $this->objParam->getParametro('datos_cabecera');
         $columnas = 0;
         $this->docexcel->setActiveSheetIndex(0);
@@ -211,7 +211,7 @@ class RMinisterioTrabajoUpdateXLS
         $this->docexcel->getActiveSheet()->setCellValue('R1','Caja de salud');//Modalidad de contrato
         $this->docexcel->getActiveSheet()->setCellValue('S1','AFP a la que aporta');//Horas pagadas (día)
         $this->docexcel->getActiveSheet()->setCellValue('T1','NUA/CUA');//
-        $this->docexcel->getActiveSheet()->setCellValue('U1','Sucursal o ubicacion adicional');//Nº de dominicales
+        $this->docexcel->getActiveSheet()->setCellValue('U1','Sucursal o ubicación adicional');//Nº de dominicales
         $this->docexcel->getActiveSheet()->setCellValue('V1','Clasificación laboral');//
         $this->docexcel->getActiveSheet()->setCellValue('W1','Cargo');//Horas extra
         $this->docexcel->getActiveSheet()->setCellValue('X1','Modalidad de contrato');//Horas de recargo nocturno
@@ -228,7 +228,7 @@ class RMinisterioTrabajoUpdateXLS
         $this->docexcel->getActiveSheet()->setCellValue('AI1','Monto horas extra dominicales');//Otros bonos o pagos
         $this->docexcel->getActiveSheet()->setCellValue('AJ1','Domingos trabajados');//Total ganado
         $this->docexcel->getActiveSheet()->setCellValue('AK1','Monto domingo trabajado');//Aporte a las AFPs
-        $this->docexcel->getActiveSheet()->setCellValue('AL1','Nro. Dominicales');//RC-IVA
+        $this->docexcel->getActiveSheet()->setCellValue('AL1','Nro. dominicales');//RC-IVA
         $this->docexcel->getActiveSheet()->setCellValue('AM1','Salario dominical');//Otros descuentos
         $this->docexcel->getActiveSheet()->setCellValue('AN1','Bono producción');//Total descuentos
         $this->docexcel->getActiveSheet()->setCellValue('AO1','Subsidio frontera');//Líqido pagable
@@ -269,7 +269,7 @@ class RMinisterioTrabajoUpdateXLS
         $this->orden=[];
         $numberFormat = '#0.00;[Red]-##0.00';
         //$this->docexcel->getStyle('AB10:AT1700')->getNumberFormat()->setFormatCode($numberFormat);
-
+        $otros_ingresos = 0;
         foreach($datos as $value) {
 
             if ($numero != $value['fila']) {
@@ -327,6 +327,7 @@ class RMinisterioTrabajoUpdateXLS
                     }
                 }
                 $numero = $value['fila'];
+                $otros_ingresos =  0;
 
             }
 
@@ -378,7 +379,7 @@ class RMinisterioTrabajoUpdateXLS
 
             if ($value['codigo_columna'] == 'SUELDOBA' || $value['codigo_columna'] == 'BONANT' || $value['codigo_columna'] == 'BONFRONTERA' ||
                 $value['codigo_columna'] == 'AFP_LAB' || $value['codigo_columna'] == 'CAJSAL' || $value['codigo_columna'] == 'IMPURET' ||
-                $value['codigo_columna'] == 'OTRO_DESC') {
+                $value['codigo_columna'] == 'OTRO_DESC' || $value['codigo_columna'] == 'REINBANT' || $value['codigo_columna'] == 'PAGOVAR' || $value['codigo_columna'] == 'PAGOFIJ') {
 
                 if($value['codigo_columna'] == 'SUELDOBA' || $value['codigo_columna'] == 'BONANT' || $value['codigo_columna'] == 'BONFRONTERA') {
 
@@ -393,23 +394,30 @@ class RMinisterioTrabajoUpdateXLS
                     $columna++;
                 }else{
 
-                    if($value['codigo_columna'] == 'AFP_LAB') {
-                        $this->orden[2] = $value['valor'];
-                    }else if($value['codigo_columna'] == 'CAJSAL'){
-                        $this->orden[1] = $value['valor'];
-                    }else if($value['codigo_columna'] == 'IMPURET'){
-                        $this->orden[0] = $value['valor'];
-                    }else if($value['codigo_columna'] == 'OTRO_DESC'){
+                    if ($value['codigo_columna'] == 'PAGOVAR' || $value['codigo_columna'] == 'PAGOFIJ'){
+                        $otros_ingresos += $value['valor'];
+                        $this->orden[0] = $otros_ingresos;
+                        $this->resumen['otros_bonos'] += $value['valor'];
+                    }
+                    else if($value['codigo_columna'] == 'AFP_LAB') {
                         $this->orden[3] = $value['valor'];
+                    }else if($value['codigo_columna'] == 'CAJSAL'){
+                        $this->orden[2] = $value['valor'];
+                    }else if($value['codigo_columna'] == 'IMPURET'){
+                        $this->orden[1] = $value['valor'];
+                    }else if($value['codigo_columna'] == 'OTRO_DESC'){
+                        $this->orden[4] = $value['valor'];
                         for($i = 0;$i<count($this->orden);$i++){
                             // var_dump($i.'======>'.$this->orden[$i].'col:'.$columna.'row:'.$fila."\n");
                             if($i == 0){
+                                $this->docexcel->getActiveSheet()->getStyle('AP'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                            }else if($i == 1){
                                 $this->docexcel->getActiveSheet()->getStyle('AQ'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
-                            }else if($i==1){
-                                $this->docexcel->getActiveSheet()->getStyle('AR'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                             }else if($i==2){
-                                $this->docexcel->getActiveSheet()->getStyle('AS'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                                $this->docexcel->getActiveSheet()->getStyle('AR'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                             }else if($i==3){
+                                $this->docexcel->getActiveSheet()->getStyle('AS'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
+                            }else if($i==4){
                                 $this->docexcel->getActiveSheet()->getStyle('AT'.$fila)->getNumberFormat()->setFormatCode($numberFormat);
                             }
                             $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columna, $fila, $this->orden[$i]);
@@ -460,15 +468,16 @@ class RMinisterioTrabajoUpdateXLS
                 $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columna,$fila,0);
                 $columna++;
             }
-            if ($columna == 39) {
+
+            if ($columna == 39 ) {
                 $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columna,$fila,0);
                 $columna++;
             }
 
-            if ($columna == 41) {
+            /*if ($columna == 41) {
                 $this->docexcel->setActiveSheetIndex(0)->setCellValueByColumnAndRow($columna,$fila,0);
                 $columna++;
-            }
+            }*/
         }
 
 

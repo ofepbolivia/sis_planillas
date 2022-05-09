@@ -1,11 +1,8 @@
-CREATE OR REPLACE FUNCTION plani.ft_reporte_columna_ime (
-  p_administrador integer,
-  p_id_usuario integer,
-  p_tabla varchar,
-  p_transaccion varchar
-)
-RETURNS varchar AS
-$body$
+CREATE OR REPLACE FUNCTION "plani"."ft_reporte_columna_ime" (	
+				p_administrador integer, p_id_usuario integer, p_tabla character varying, p_transaccion character varying)
+RETURNS character varying AS
+$BODY$
+
 /**************************************************************************
  SISTEMA:		Sistema de Planillas
  FUNCION: 		plani.ft_reporte_columna_ime
@@ -19,9 +16,6 @@ $body$
  DESCRIPCION:	
  AUTOR:			
  FECHA:		
- #ISSUE				FECHA				AUTOR				DESCRIPCION
- #8		EndeEtr		06-06-2019 			MZM				Se agrego los campos espacio_previo,columna_vista,origen en operaciones basicas (insertar,modificar, eliminar) de la tabla 'plani.treporte_columna',en procedimiento REPCOL	
- 
 ***************************************************************************/
 
 DECLARE
@@ -63,10 +57,7 @@ BEGIN
 			fecha_mod,
 			titulo_reporte_superior,
 			titulo_reporte_inferior,
-			tipo_columna,
-            columna_vista,
-            origen,
-            espacio_previo
+			tipo_columna
           	) values(
 			v_parametros.id_reporte,
 			v_parametros.sumar_total,
@@ -80,10 +71,7 @@ BEGIN
 			null,
 			v_parametros.titulo_reporte_superior,
 			v_parametros.titulo_reporte_inferior,
-			v_parametros.tipo_columna,
-            v_parametros.columna_vista,
-            v_parametros.origen,
-            v_parametros.espacio_previo				
+			v_parametros.tipo_columna				
 			)RETURNING id_reporte_columna into v_id_reporte_columna;
 			
 			v_resp = plani.f_reporte_calcular_ancho_utilizado(v_parametros.id_reporte); 
@@ -118,11 +106,7 @@ BEGIN
 			fecha_mod = now(),
 			titulo_reporte_superior = v_parametros.titulo_reporte_superior,
 			titulo_reporte_inferior = v_parametros.titulo_reporte_inferior,
-			tipo_columna = v_parametros.tipo_columna,
-            columna_vista=v_parametros.columna_vista,
-            origen=v_parametros.origen,
-            espacio_previo=v_parametros.espacio_previo
-            
+			tipo_columna = v_parametros.tipo_columna
 			where id_reporte_columna=v_parametros.id_reporte_columna;
             
             v_resp = plani.f_reporte_calcular_ancho_utilizado(v_parametros.id_reporte); 
@@ -181,9 +165,7 @@ EXCEPTION
 		raise exception '%',v_resp;
 				        
 END;
-$body$
-LANGUAGE 'plpgsql'
-VOLATILE
-CALLED ON NULL INPUT
-SECURITY INVOKER
+$BODY$
+LANGUAGE 'plpgsql' VOLATILE
 COST 100;
+ALTER FUNCTION "plani"."ft_reporte_columna_ime"(integer, integer, character varying, character varying) OWNER TO postgres;

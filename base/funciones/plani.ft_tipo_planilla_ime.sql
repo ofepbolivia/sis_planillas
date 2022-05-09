@@ -1,14 +1,8 @@
-CREATE OR REPLACE FUNCTION plani.ft_tipo_planilla_ime(
-	p_administrador integer,
-	p_id_usuario integer,
-	p_tabla character varying,
-	p_transaccion character varying)
-    RETURNS character varying
-    LANGUAGE 'plpgsql'
+CREATE OR REPLACE FUNCTION "plani"."ft_tipo_planilla_ime" (	
+				p_administrador integer, p_id_usuario integer, p_tabla character varying, p_transaccion character varying)
+RETURNS character varying AS
+$BODY$
 
-    COST 100
-    VOLATILE 
-AS $BODY$
 /**************************************************************************
  SISTEMA:		Sistema de Planillas
  FUNCION: 		plani.ft_tipo_planilla_ime
@@ -17,12 +11,11 @@ AS $BODY$
  FECHA:	        17-01-2014 15:36:53
  COMENTARIOS:	
 ***************************************************************************
-HISTORIAL DE MODIFICACIONES:
-       
- ISSUE            FECHA:              AUTOR                 DESCRIPCION
-   
- #79              21/11/2019       RAC KPLIAN      adiciona sw_devengado para habilitar o no boton de devegado	
- #100			  05/03/2020		MZM KPLIAN		Adicion de columna habilitar_impresion_boleta
+ HISTORIAL DE MODIFICACIONES:
+
+ DESCRIPCION:	
+ AUTOR:			
+ FECHA:		
 ***************************************************************************/
 
 DECLARE
@@ -52,41 +45,37 @@ BEGIN
         begin
         	--Sentencia de la insercion
         	insert into plani.ttipo_planilla(
-              id_proceso_macro,
-              tipo_presu_cc,
-              funcion_obtener_empleados,
-              estado_reg,
-              nombre,
-              codigo,
-              fecha_reg,
-              id_usuario_reg,
-              id_usuario_mod,
-              fecha_mod,
-              funcion_validacion_nuevo_empleado,
-              calculo_horas,
-              periodicidad,
-              funcion_calculo_horas,
-              recalcular_desde,
-              sw_devengado      --#79
-              ,habilitar_impresion_boleta --#100
+			id_proceso_macro,
+			tipo_presu_cc,
+			funcion_obtener_empleados,
+			estado_reg,
+			nombre,
+			codigo,
+			fecha_reg,
+			id_usuario_reg,
+			id_usuario_mod,
+			fecha_mod,
+			funcion_validacion_nuevo_empleado,
+			calculo_horas,
+			periodicidad,
+			funcion_calculo_horas,
+			recalcular_desde
           	) values(
-              v_parametros.id_proceso_macro,
-              v_parametros.tipo_presu_cc,
-              v_parametros.funcion_obtener_empleados,
-              'activo',
-              v_parametros.nombre,
-              v_parametros.codigo,
-              now(),
-              p_id_usuario,
-              null,
-              null,
-              v_parametros.funcion_validacion_nuevo_empleado,
-              v_parametros.calculo_horas,
-              v_parametros.periodicidad,
-              v_parametros.funcion_calculo_horas,
-              v_parametros.recalcular_desde,
-              v_parametros.sw_devengado  --#79
-              ,v_parametros.habilitar_impresion_boleta --#100
+			v_parametros.id_proceso_macro,
+			v_parametros.tipo_presu_cc,
+			v_parametros.funcion_obtener_empleados,
+			'activo',
+			v_parametros.nombre,
+			v_parametros.codigo,
+			now(),
+			p_id_usuario,
+			null,
+			null,
+			v_parametros.funcion_validacion_nuevo_empleado,
+			v_parametros.calculo_horas,
+			v_parametros.periodicidad,
+			v_parametros.funcion_calculo_horas,
+			v_parametros.recalcular_desde
 							
 			)RETURNING id_tipo_planilla into v_id_tipo_planilla;
 			
@@ -111,20 +100,18 @@ BEGIN
 		begin
 			--Sentencia de la modificacion
 			update plani.ttipo_planilla set
-              id_proceso_macro = v_parametros.id_proceso_macro,
-              tipo_presu_cc = v_parametros.tipo_presu_cc,
-              funcion_obtener_empleados = v_parametros.funcion_obtener_empleados,
-              nombre = v_parametros.nombre,
-              codigo = v_parametros.codigo,
-              id_usuario_mod = p_id_usuario,
-              funcion_validacion_nuevo_empleado = v_parametros.funcion_validacion_nuevo_empleado,
-              calculo_horas = v_parametros.calculo_horas,
-              periodicidad = v_parametros.periodicidad,
-              fecha_mod = now(),
-              funcion_calculo_horas = v_parametros.funcion_calculo_horas,
-              recalcular_desde = v_parametros.recalcular_desde,
-              sw_devengado = v_parametros.sw_devengado --#79
-              ,habilitar_impresion_boleta=v_parametros.habilitar_impresion_boleta --#100
+			id_proceso_macro = v_parametros.id_proceso_macro,
+			tipo_presu_cc = v_parametros.tipo_presu_cc,
+			funcion_obtener_empleados = v_parametros.funcion_obtener_empleados,
+			nombre = v_parametros.nombre,
+			codigo = v_parametros.codigo,
+			id_usuario_mod = p_id_usuario,
+			funcion_validacion_nuevo_empleado = v_parametros.funcion_validacion_nuevo_empleado,
+			calculo_horas = v_parametros.calculo_horas,
+			periodicidad = v_parametros.periodicidad,
+			fecha_mod = now(),
+			funcion_calculo_horas = v_parametros.funcion_calculo_horas,
+			recalcular_desde = v_parametros.recalcular_desde
 			where id_tipo_planilla=v_parametros.id_tipo_planilla;
                
 			--Definicion de la respuesta
@@ -175,7 +162,7 @@ EXCEPTION
 		raise exception '%',v_resp;
 				        
 END;
-$BODY$;
-
-ALTER FUNCTION plani.ft_tipo_planilla_ime(integer, integer, character varying, character varying)
-    OWNER TO postgres;
+$BODY$
+LANGUAGE 'plpgsql' VOLATILE
+COST 100;
+ALTER FUNCTION "plani"."ft_tipo_planilla_ime"(integer, integer, character varying, character varying) OWNER TO postgres;

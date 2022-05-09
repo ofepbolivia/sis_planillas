@@ -147,6 +147,7 @@ class RPlanillaActualizadaItemXLS
         $this->docexcel->getActiveSheet()->getColumnDimension('O')->setWidth(20);
         $this->docexcel->getActiveSheet()->getColumnDimension('P')->setWidth(25);
         $this->docexcel->getActiveSheet()->getStyle('A5:P5')->getAlignment()->setWrapText(true);
+        //$this->docexcel->getActiveSheet()->getStyle('A5:P5')->applyFromArray($styleTitulos);
         $this->docexcel->getActiveSheet()->getStyle('A5:O5')->applyFromArray($styleTitulos);
 
         //*************************************Cabecera*****************************************
@@ -165,12 +166,20 @@ class RPlanillaActualizadaItemXLS
         $this->docexcel->getActiveSheet()->setCellValue('M5','EXP');
         $this->docexcel->getActiveSheet()->setCellValue('N5','CIUDAD');
         $this->docexcel->getActiveSheet()->setCellValue('O5','OFICINA');
+        //$this->docexcel->getActiveSheet()->setCellValue('P5','ANTIGÜEDAD (Años.Dias)');
 
 
         if ($tipo == '6.EVE') {
             $this->docexcel->getActiveSheet()->setCellValue('P5','FECHA FIN');
+
+            $this->docexcel->getActiveSheet()->getStyle('P5:P5')->getAlignment()->setWrapText(true);
             $this->docexcel->getActiveSheet()->getStyle('P5:P5')->applyFromArray($styleTitulos);
             $this->docexcel->getActiveSheet()->getStyle('P4:P4')->applyFromArray($styleTitulos8);
+            //$this->docexcel->getActiveSheet()->getStyle('P5:Q5')->getAlignment()->setWrapText(true);
+            //$this->docexcel->getActiveSheet()->getStyle('P5:Q5')->applyFromArray($styleTitulos);
+            //$this->docexcel->getActiveSheet()->getStyle('P4:Q4')->applyFromArray($styleTitulos8);
+
+            //$this->docexcel->getActiveSheet()->setCellValue('Q5','ANTIGÜEDAD (Años.Dias)');
         }
     }
 
@@ -188,7 +197,7 @@ class RPlanillaActualizadaItemXLS
         //*************************************Detalle*****************************************
         $this->numero = 1;
         $fila = 6;
-        $datos = $this->objParam->getParametro('datos');
+        $datos = $this->objParam->getParametro('datos');//var_dump($datos);exit;
         $cat= $datos[0]['categoria_programatica'];
         $ger = '';
         $dep = '';
@@ -351,8 +360,11 @@ class RPlanillaActualizadaItemXLS
             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(12, $fila, $value['expedicion']);
             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(13, $fila, $value['codigo']);
             $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(14, $fila, $value['nombre']);
+            //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $value['tiempo_empresa']);
+
             if($value['nro_item'] == '0' ) {
                 $this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(15, $fila, $value['fecha_finalizacion']);
+                //$this->docexcel->getActiveSheet()->setCellValueByColumnAndRow(16, $fila, $value['tiempo_empresa']);
             }
 
             $fila++;

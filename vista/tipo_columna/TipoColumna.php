@@ -5,16 +5,6 @@
 *@author  (admin)
 *@date 17-01-2014 19:43:15
 *@description Archivo con la interfaz de usuario que permite la ejecucion de todas las funcionalidades del sistema
- 
- 
- 
- HISTORIAL DE MODIFICACIONES:
-       
- ISSUE            FECHA:              AUTOR                 DESCRIPCION
-   
- #0               17-01-2014        JRR KPLIAN       creacion
- #10              04/06/2019        RAC KPLIAN       añade posibilidad  para configurar  si el tipo de columna es editable
- #143			  25.06.2020		MZM KPLIAN		 adicion de campo tipo_movimiento	 
 */
 
 header("content-type: text/javascript; charset=UTF-8");
@@ -187,7 +177,7 @@ Phx.vista.TipoColumna=Ext.extend(Phx.gridInterfaz,{
 	       		lazyRender:true,
 	       		mode: 'local',
 				gwidth: 150,
-				qtip:'si_pago: permite mostrar la columna en el pago de obligaciones pero no ejecutará la columna,  <br> si_contable: no ejuta presupuesto, no es para pagar obligacion pero se contabiliza con una cuenta independiente (cuenta por pagar)',
+				qtip:'si_pago permite mostrar la columna en el pago de obligaciones pero no ejecutará la columna',
 				store:['si','si_pago','si_contable','no']
 			},
 				type:'ComboBox',
@@ -233,8 +223,7 @@ Phx.vista.TipoColumna=Ext.extend(Phx.gridInterfaz,{
 	       		lazyRender:true,
 	       		mode: 'local',
 				gwidth: 150,
-				qtip: 'Permite configurar un bono descuento que se asigna directamente al funcionario de manera programada, eje. los subsidios por natalidad',	//#10 ++			
-				store: ['monto_fijo_indefinido','monto_fijo_por_fechas']
+				store:['monto_fijo_indefinido','monto_fijo_por_fechas']
 			},
 				type:'ComboBox',
 				filters:{	
@@ -290,30 +279,8 @@ Phx.vista.TipoColumna=Ext.extend(Phx.gridInterfaz,{
 				grid:true,
 				form:true
 		},
-		//#10 añade combo para editable
-		{
-			config:{
-				name: 'editable',
-				fieldLabel: 'Columna editable',
-				allowBlank:false,
-				emptyText:'Editable...',
-				qtip:'Habilita o deshabilita la edición manual de columnas (por defecto las columnas no son editables)',
-	       		typeAhead: true,
-	       		triggerAction: 'all',
-	       		lazyRender:true,
-	       		mode: 'local',
-				gwidth: 150,
-				store:['si','no']
-			},
-				type:'ComboBox',
-				filters:{	
-	       		         type: 'list',
-	       				 options: ['si','no'],	
-	       		 	},
-				id_grupo:1,
-				grid:true,
-				form:true
-		},
+		
+		
 		
 		
 		{
@@ -393,28 +360,6 @@ Phx.vista.TipoColumna=Ext.extend(Phx.gridInterfaz,{
 				id_grupo:1,
 				grid:true,
 				form:false
-		},
-		{//#143
-			config:{
-				name: 'tipo_movimiento',
-				fieldLabel: 'Tipo Movimiento',
-				allowBlank:true,
-				emptyText:'Tipo Movimiento...',
-	       		typeAhead: true,
-	       		triggerAction: 'all',
-	       		lazyRender:true,
-	       		mode: 'local',
-				gwidth: 150,
-				store:['ingreso','egreso']
-			},
-				type:'ComboBox',
-				filters:{	
-	       		         type: 'list',
-	       				 options: ['ingreso','egreso'],	
-	       		 	},
-				id_grupo:1,
-				grid:true,
-				form:true
 		}
 	],
 	tam_pag:50,	
@@ -444,8 +389,7 @@ Phx.vista.TipoColumna=Ext.extend(Phx.gridInterfaz,{
 		{name:'id_usuario_mod', type: 'numeric'},
 		{name:'usr_reg', type: 'string'},
 		{name:'usr_mod', type: 'string'},
-		{name:'tiene_detalle', type: 'string'},'editable',
-		{name:'tipo_movimiento', type: 'string'}
+		{name:'tiene_detalle', type: 'string'},
 		
 	],
 	sortInfo:{

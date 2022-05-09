@@ -5,17 +5,7 @@
 *@author  (admin)
 *@date 17-01-2014 22:07:28
 *@description Archivo con la interfaz de usuario que permite la ejecucion de todas las funcionalidades del sistema
-issue 	empresa		autor	fecha	detalle
- *17	etr			MZM		28.06.2019	Adicion de opcion centro en combo ordenar_por
- * #32	etr			MZM		02.09.2019	Adicion de relacion id_pie_firma y funcion para listar firmas por tipo de reporte
- * #58	etr			MZM		30.09.2019	Adicion de campo mostrar_ufv
- * #60	etr			MZM		01.10.2019	Adicion de campo incluir_retirados
- * #65	ETR			MZM		10.10.2019	Adicion de cmpo id_moneda_reporte
- * #71	ETR			MZM		01.11.2019	Refactorizacion para planilla de prima (agrupacion en treporte distrito_banco)
- * #77	ETR			MZM		14.11.2019	Ajustes varios
- * #80	ETR			MZM		22.11.2019	Adicion de tipo_reporte (bono_descuento)
- * #82	ETR			MZM		27.11.2019	Adicion de opcion organigrama en check ordenar_por
- * */
+*/
 
 header("content-type: text/javascript; charset=UTF-8");
 ?>
@@ -27,7 +17,6 @@ Phx.vista.Reporte=Ext.extend(Phx.gridInterfaz,{
     	//llama al constructor de la clase padre
 		Phx.vista.Reporte.superclass.constructor.call(this,config);
 		this.init();
-		this.iniciarEventos();
 		this.load({params:{start:0, limit:this.tam_pag,id_tipo_planilla : this.maestro.id_tipo_planilla}})
 	},
 			
@@ -126,28 +115,8 @@ Phx.vista.Reporte=Ext.extend(Phx.gridInterfaz,{
 				filters:{pfiltro:'repo.ancho_utilizado',type:'numeric'},
 				grid:true,
 				form:false
-		},{
-			config:{
-				name: 'tipo_reporte',
-				fieldLabel: 'Tipo de Reporte',
-				allowBlank:false,
-				emptyText:'Tipo hoja...',
-	       		typeAhead: true,
-	       		triggerAction: 'all',
-	       		lazyRender:true,
-	       		mode: 'local',
-				gwidth: 150,
-				store:['planilla','boleta','archivo_texto','formato_especifico','bono_descuento']//#80
-			},
-				type:'ComboBox',
-				filters:{	
-	       		         type: 'list',
-	       				 options: ['planilla','boleta','archivo_texto','formato_especifico','bono_descuento'],	//#80
-	       		 	},
-				id_grupo:1,
-				grid:true,
-				form:true
-		},			
+		},
+		
 		{
 			config:{
 				name: 'numerar',
@@ -269,18 +238,18 @@ Phx.vista.Reporte=Ext.extend(Phx.gridInterfaz,{
 	       		lazyRender:true,
 	       		mode: 'local',
 				gwidth: 120,
-				store:['gerencia','gerencia_presupuesto','distrito','distrito_banco','centro','ninguno'] //#71
+				store:['gerencia','gerencia_presupuesto']
 			},
 				type:'ComboBox',
 				filters:{	
 	       		         type: 'list',
-	       				 options: ['gerencia','gerencia_presupuesto','distrito','distrito_banco','centro','ninguno'], //#71	
+	       				 options: ['gerencia','gerencia_presupuesto'],	
 	       		 	},
 				id_grupo:1,
 				grid:true,
 				form:true
 		},		
-				{
+		{
 			config:{
 				name: 'ordenar_por',
 				fieldLabel: 'ordenar_por',
@@ -291,12 +260,12 @@ Phx.vista.Reporte=Ext.extend(Phx.gridInterfaz,{
 	       		lazyRender:true,
 	       		mode: 'local',
 				gwidth: 120,
-				store:['nombre','doc_id','codigo_cargo','codigo_empleado','organigrama'] //#17 #82
+				store:['nombre','doc_id','codigo_cargo','codigo_empleado']
 			},
 				type:'ComboBox',
 				filters:{	
 	       		         type: 'list',
-	       				 options: ['nombre','doc_id','codigo_cargo','codigo_empleado','organigrama'], //#17 #82 	
+	       				 options: ['nombre','doc_id','codigo_cargo','codigo_empleado'],	
 	       		 	},
 				id_grupo:1,
 				grid:true,
@@ -380,201 +349,28 @@ Phx.vista.Reporte=Ext.extend(Phx.gridInterfaz,{
 				grid:true,
 				form:false
 		},
-		
 		{
 			config:{
-				name: 'multilinea',
-				fieldLabel: 'Multilinea',
+				name: 'tipo_reporte',
+				fieldLabel: 'Tipo de Reporte',
 				allowBlank:false,
-				emptyText:'Definir Multilinea...',
+				emptyText:'Tipo hoja...',
 	       		typeAhead: true,
 	       		triggerAction: 'all',
 	       		lazyRender:true,
 	       		mode: 'local',
-				gwidth: 80,
-				store:['si','no']
+				gwidth: 150,
+				store:['planilla','boleta','archivo_texto']
 			},
 				type:'ComboBox',
 				filters:{	
 	       		         type: 'list',
-	       				 options: ['si','no'],	
+	       				 options: ['planilla','boleta','archivo_texto'],	
 	       		 	},
 				id_grupo:1,
 				grid:true,
 				form:true
-		},
-		{
-			config:{
-				name: 'vista_datos_externos',
-				fieldLabel: 'Vista Datos Externos',
-				allowBlank: false,
-				anchor: '80%',
-				gwidth: 100,
-				maxLength:100
-			},
-				type:'TextField',
-				filters:{pfiltro:'repo.vista_datos_externos',type:'string'},
-				id_grupo:1,
-				grid:true,
-				form:true
-		},
-		{
-			config:{
-				name: 'num_columna_multilinea',
-				fieldLabel: 'Num Col. para Multilinea',
-				minValue:0,
-				gwidth: 120
-			},
-				type:'NumberField',
-				filters:{pfiltro:'repo.num_columna_multilinea',type:'numeric'},
-				grid:true,
-				form:true
-		},
-		{//#32
-			config: {
-				name: 'id_pie_firma',
-				fieldLabel: 'Pie de Firmas',
-				allowBlank: true,
-				emptyText: 'Elija una opción...',
-				store: new Ext.data.JsonStore({
-					url: '../../sis_parametros/control/PieFirma/listarPieFirma',
-					id: 'id_pie_firma',
-					root: 'datos',
-					sortInfo: {
-						field: 'pie.nombre',
-						direction: 'ASC'
-					},
-					totalProperty: 'total',
-					fields: ['id_pie_firma', 'nombre'],
-					remoteSort: true,
-					baseParams: {par_filtro: 'pie.nombre'}
-				}),
-				valueField: 'id_pie_firma',
-				displayField: 'nombre',
-				gdisplayField: 'nombre',
-				hiddenName: 'nombre',
-				forceSelection: false,
-				typeAhead: false,
-				triggerAction: 'all',
-				lazyRender: true,
-				mode: 'remote',
-				pageSize: 15,
-				queryDelay: 1000,
-				anchor: '100%',
-				gwidth: 200,
-				minChars: 2,
-				renderer : function(value, p, record) {
-					return String.format('{0}', record.data['nombre']);
-				}
-			},
-			type: 'ComboBox',
-			id_grupo: 0,
-			filters: {pfiltro: 'tpie_firma.nombre',type: 'string'},
-			grid: true,
-			form: true
-		},
-		{//#58
-			config:{
-				name: 'mostrar_ufv',
-				fieldLabel: 'Mostrar UFV',
-				allowBlank:false,
-				emptyText:'Mostrar UFV...',
-	       		typeAhead: true,
-	       		triggerAction: 'all',
-	       		lazyRender:true,
-	       		mode: 'local',
-				gwidth: 80,
-				store:['si','no']
-			},
-				type:'ComboBox',
-				filters:{	
-	       		         type: 'list',
-	       				 options: ['si','no'],	
-	       		 	},
-				id_grupo:1,
-				grid:true,
-				form:true
-		},
-		{//#60
-			config:{
-				name: 'incluir_retirados',
-				fieldLabel: 'Incluir Retirados',
-				allowBlank:false,
-				emptyText:'Incluir Retirados...',
-	       		typeAhead: true,
-	       		triggerAction: 'all',
-	       		lazyRender:true,
-	       		mode: 'local',
-				gwidth: 80,
-				store:['si','no']
-			},
-				type:'ComboBox',
-				filters:{	
-	       		         type: 'list',
-	       				 options: ['si','no'],	
-	       		 	},
-				id_grupo:1,
-				grid:true,
-				form:true
-		}
-		,//#65
-		{
-			config : {
-				name : 'id_moneda_reporte',
-				origen : 'MONEDA',
-				allowBlank : false,
-				fieldLabel : 'Moneda del Reporte',
-				gdisplayField : 'codigo', //mapea al store del grid
-				gwidth : 100,
-				anchor: '80%',
-				renderer : function(value, p, record) {
-					return String.format('{0}', record.data['codigo']);
-				}
-			},
-			type : 'ComboRec',
-			id_grupo : 2,
-			filters : {
-				pfiltro : 'mon.moneda',
-				type : 'string'
-			},
-			grid : true,
-			form : true
-		} 
-		,{//#77
-			config:{
-				name: 'bordes',
-				fieldLabel: 'Bordes',
-				allowBlank:false,
-				emptyText:'Bordes...',
-	       		typeAhead: true,
-	       		triggerAction: 'all',
-	       		lazyRender:true,
-	       		mode: 'local',
-				gwidth: 80,
-				store:[0,1]
-			},
-				type:'ComboBox',
-				filters:{	
-	       		         type: 'list',
-	       				 options: [0,1],	
-	       		 	},
-				id_grupo:1,
-				grid:true,
-				form:true
-		},
-		{
-			config:{
-				name: 'interlineado',
-				fieldLabel: 'Interlineado',
-				minValue:0,
-				gwidth: 120
-			},
-				type:'NumberField',
-				filters:{pfiltro:'repo.interlineado',type:'numeric'},
-				grid:true,
-				form:true
-		}
-		
+		},	
 	],
 	tam_pag:50,	
 	title:'Reportes de Planilla',
@@ -605,18 +401,6 @@ Phx.vista.Reporte=Ext.extend(Phx.gridInterfaz,{
 		{name:'usr_reg', type: 'string'},
 		{name:'usr_mod', type: 'string'},
 		{name:'tipo_reporte', type: 'string'},
-		{name:'multilinea', type: 'string'},
-		{name:'vista_datos_externos', type: 'string'},
-		{name:'num_columna_multilinea', type: 'numeric'},
-		//#32
-		{name:'id_pie_firma', type: 'numeric'},
-		{name:'nombre', type: 'varchar'}
-		,{name:'mostrar_ufv', type: 'string'}//#58
-		,{name:'incluir_retirados', type: 'string'}//#60
-		,{name:'id_moneda_reporte', type: 'numeric'}//#65
-		,{name:'codigo', type: 'string'}//#65
-		,{name:'bordes', type: 'string'}//#77
-		,{name:'interlineado', type: 'string'}//#77
 		
 	],
 	sortInfo:{
@@ -635,34 +419,7 @@ Phx.vista.Reporte=Ext.extend(Phx.gridInterfaz,{
 		  title:'Reporte Columna', 
 		  height:'55%',
 		  cls:'ReporteColumna'
-	},
-	
-	iniciarEventos:function(){
-    	this.Cmp.vista_datos_externos.allowBlank=true;
-		this.Cmp.num_columna_multilinea.allowBlank=true;
-		this.Cmp.multilinea.setValue("no");
-    	this.Cmp.num_columna_multilinea.setValue(0);
-    	
-    	this.Cmp.multilinea.on('select',function(cmp,rec){
-    		if(rec.json=='si'){
-    			this.Cmp.multilinea.setValue('si');
-    			this.Cmp.num_columna_multilinea.minValue=1;
-				this.mostrarComponente(this.Cmp.num_columna_multilinea);
-				this.mostrarComponente(this.Cmp.vista_datos_externos);
-				
-    		}else{
-    			this.Cmp.multilinea.setValue('no');
-    			this.Cmp.num_columna_multilinea.minValue=0;
-    			this.Cmp.num_columna_multilinea.setValue(0);
-    			this.ocultarComponente(this.Cmp.num_columna_multilinea);
-    			this.ocultarComponente(this.Cmp.vista_datos_externos);
-    		}
-    		
-    		
-			
-			},this);
-    }
-	
+	}
 	}
 )
 </script>

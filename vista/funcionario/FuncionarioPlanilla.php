@@ -5,9 +5,7 @@
 *@author  (fprudencio)
 *@date 20-09-2011 10:22:05
 *@description Archivo con la interfaz de usuario que permite la ejecucion de todas las funcionalidades del sistema
-	ISSUE		FECHA			AUTHOR				DESCRIPCION
-				07/02/2019		EGS					Se agrego boton y funciones para Licencias
- * */
+*/
 header("content-type: text/javascript; charset=UTF-8");
 ?>
 <script>
@@ -16,7 +14,9 @@ Phx.vista.FuncionarioPlanilla = {
 	requireclase:'Phx.vista.funcionario',
 	title:'Funcionario',
 	nombreVista: 'FuncionarioPlanilla',
-	
+	bedit:false,
+    bnew:false,
+    bdel:false,
 	constructor: function(config) {
 	    
 	    
@@ -24,7 +24,7 @@ Phx.vista.FuncionarioPlanilla = {
         this.addButton('btnAfp',
         {
             text: 'AFP',
-            //grupo: [0,1],
+            grupo: [0,1],
             iconCls: 'blist',
             disabled: true,
             handler: this.onBtnAfp,
@@ -34,20 +34,94 @@ Phx.vista.FuncionarioPlanilla = {
         this.addButton('btnBonoDesc',
         {
             text: 'Bono/Descuento',
+            grupo: [0,1],
             iconCls: 'blist',
             disabled: true,
             handler: this.onBtnBonoDesc,
             tooltip: 'Asignación de Bonos o Descuentos por Empleado'
         });
-         this.addButton('btnLicencia',
-        {
-            text: 'Licencias',
-            iconCls: 'blist',
-            disabled: true,
-            handler: this.onBtnLicencia,
-            tooltip: 'Asignación de Bonos o Descuentos por Empleado'
-        });
+
+        this.addButton('btn_oi',
+            {
+                text: 'Otros Ingresos Funcionario',
+                iconCls: 'bpagar',
+                grupo: [0,1],
+                disabled: true,
+                handler: this.onBtnOtrosIngresosFuncionario,
+                tooltip: 'Detalle Otros ingresos x Funcionario'
+            });
+        this.addButton('btn_oi_pla',
+            {
+                text: 'Otros Ingresos Planilla',
+                iconCls: 'bpagar',
+                grupo: [0,1,2],
+                disabled: false,
+                handler: this.onBtnOtrosIngresosPlanilla,
+                tooltip: 'Detalle Otros ingresos x Planilla'
+            });
+        this.addButton('btn_lic',
+            {
+                text: 'Licencia Funcionario',
+                iconCls: 'bpagar',
+                grupo: [0,1],
+                disabled: true,
+                handler: this.onLicenciaFuncionario,
+                tooltip: 'Detalle de Licencias Funcionario'
+            }
+        );
+
+        //this.enableTabTipo();
    },
+    /*enableTabTipo:function(){
+        if(this.TabPanelSouth.get(0)){
+            this.TabPanelSouth.get(0).enable();
+            this.TabPanelSouth.setActiveTab(0);
+        }
+    },*/
+    onLicenciaFuncionario: function(){
+        var rec = {maestro: this.sm.getSelected().data};
+
+        Phx.CP.loadWindows('../../../sis_planillas/vista/funcionario/LicenciaFuncionario.php',
+            'Licencias',
+            {
+                width:800,
+                height:500
+            },
+            rec,
+            this.idContenedor,
+            'LicenciaFuncionario');
+    },
+
+    onBtnOtrosIngresosFuncionario: function(){
+        var rec = {maestro: this.getSelectedData()};
+
+        Phx.CP.loadWindows('../../../sis_planillas/vista/funcionario/OtrosIngresos.php',
+            'Otros Ingresos Funcionario',
+            {
+                width:700,
+                height:450
+            },
+            rec,
+            this.idContenedor,
+            'OtrosIngresos'
+        );
+    },
+
+    onBtnOtrosIngresosPlanilla: function(){
+        var rec = {maestro: this.getSelectedData()};
+
+        Phx.CP.loadWindows('../../../sis_planillas/vista/funcionario/OtrosIngresosPlanilla.php',
+            'Otros Ingresos Planilla',
+            {
+                width:700,
+                height:450
+            },
+            rec,
+            this.idContenedor,
+            'OtrosIngresosPlanilla'
+        );
+    },
+
    onBtnAfp: function(){
 			var rec = {maestro: this.sm.getSelected().data};
 						      
@@ -74,32 +148,22 @@ Phx.vista.FuncionarioPlanilla = {
                     this.idContenedor,
                     'DescuentoBono');
 	},
-	onBtnLicencia: function(){
-			var rec = {maestro: this.sm.getSelected().data}; 
-						      
-            Phx.CP.loadWindows('../../../sis_planillas/vista/licencia/Licencia.php',
-                    'Licencias',
-                    {
-                        width:700,
-                        height:450
-                    },
-                    rec,
-                    this.idContenedor,
-                    'Licencia');
-	},
 	preparaMenu:function()
     {	
         this.getBoton('btnAfp').enable();
         this.getBoton('btnBonoDesc').enable();
-        this.getBoton('btnLicencia').enable();
+        this.getBoton('btn_oi').enable();
+        this.getBoton('btn_lic').enable();
         Phx.vista.FuncionarioPlanilla.superclass.preparaMenu.call(this);
     },
     liberaMenu:function()
-    {	
+    {
+        Phx.vista.FuncionarioPlanilla.superclass.liberaMenu.call(this);
         this.getBoton('btnAfp').disable();
         this.getBoton('btnBonoDesc').disable();
-        this.getBoton('btnLicencia').disable();              
-        Phx.vista.FuncionarioPlanilla.superclass.liberaMenu.call(this);
+        this.getBoton('btn_oi').disable();
+        this.getBoton('btn_lic').disable();
+
     },
 
     tabsouth:[
@@ -117,6 +181,10 @@ Phx.vista.FuncionarioPlanilla = {
             cls:'UoFuncionarioOpe'
         }*/
 
-    ]
+    ],
+    sortInfo:{
+        field: 'PERSON.nombre_completo2',
+        direction: 'ASC'
+    }
 };
 </script>

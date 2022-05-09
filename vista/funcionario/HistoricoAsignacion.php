@@ -1,17 +1,10 @@
 <?php
- /**
-*@package pXP
-*@file UOFuncionario.php
-*@author KPLIAN (admin)
-*@date 14-02-2011
-*@description  Vista para asociar los funcionarios a su correspondiente Unidad Organizacional
- *    HISTORIAL DE MODIFICACIONES:
-
- ISSUE            FECHA:              AUTOR                 DESCRIPCION
-
-#0             14-02-2011          JRR KPLIAN            creacion
-#138 ETR       12.06.2020          RAC                   Agregar motivo de rescisión en las finalización de contrato
-
+/**
+ *@package pXP
+ *@file UOFuncionario.php
+ *@author KPLIAN (admin)
+ *@date 14-02-2011
+ *@description  Vista para asociar los funcionarios a su correspondiente Unidad Organizacional
  */
 
 header("content-type: text/javascript; charset=UTF-8");
@@ -21,16 +14,33 @@ header("content-type: text/javascript; charset=UTF-8");
         constructor: function(config){
             // configuracion del data store
             this.maestro=config.maestro;
+            this.tipo = config.idContenedorPadre;
             //this.Atributos[1].valorInicial=this.maestro.id_gui;
             Phx.vista.HistoricoAsignacion.superclass.constructor.call(this,config);
             txt_fecha_fin=this.getComponente('fecha_finalizacion');
+
+            this.store.baseParams.tipo = 'oficial';
             this.init();
             this.iniciarEventos();
             //deshabilita botones
-            this.grid.getTopToolbar().disable();
-            this.grid.getBottomToolbar().disable();
+            /*this.grid.getTopToolbar().disable();
+            this.grid.getBottomToolbar().disable();*/
 
         },
+
+        bactGroups:[0,1,2],
+        bexcelGroups:[0,1,2],
+
+        gruposBarraTareas: [
+            {name: 'oficial', title: '<h1 style="text-align: center; color: #00B167;">OFICIAL</h1>',grupo: 0, height: 0},
+            {name: 'funcional', title: '<h1 style="text-align: center; color: #FF8F85;">FUNCIONAL</h1>', grupo: 1, height: 1}
+        ],
+
+        actualizarSegunTab: function(name, indice){
+            this.store.baseParams.tipo = name;
+            this.load({params: {start: 0, limit: 50}});
+        },
+
         Atributos:[
             {
                 // configuracion del componente
@@ -212,6 +222,35 @@ header("content-type: text/javascript; charset=UTF-8");
 
             {
                 config:{
+                    name: 'categoria',
+                    fieldLabel: 'Categoria Prog.',
+                    gwidth: 160,
+                    renderer:function (value, p, record){
+                        return String.format('{0}', "<div style='color: red'><b>"+value+"</b></div>");
+                    }
+                },
+                type:'TextField',
+                filters:{pfiltro:'cp.codigo_categoria',type:'string'},
+                grid:true,
+                form:false
+            },
+            {
+                config:{
+                    name: 'centro_costo',
+                    fieldLabel: 'Centro Costo',
+                    gwidth: 200,
+                    renderer:function (value, p, record){
+                        return String.format('{0}', "<div style='color: green'><b>"+value+"</b></div>");
+                    }
+                },
+                type:'TextField',
+                filters:{pfiltro:'vcc.codigo_tcc',type:'string'},
+                grid:false,
+                form:false
+            },
+
+            {
+                config:{
                     name: 'nro_documento_asignacion',
                     fieldLabel: 'No Doc. Asignación',
                     allowBlank: false,
@@ -272,12 +311,12 @@ header("content-type: text/javascript; charset=UTF-8");
                     lazyRender:true,
                     mode: 'local',
                     gwidth: 100,
-                    store:['fin contrato','retiro','renuncia','promocion','transferencia','rescision']
+                    store:['fin contrato','retiro','renuncia','promocion','transferencia']
                 },
                 type:'ComboBox',
                 filters:{
                     type: 'list',
-                    options: ['fin contrato','retiro','renuncia','promocion','transferencia','rescision'],
+                    options: ['fin contrato','retiro','renuncia','promocion','transferencia'],
                 },
                 id_grupo:1,
                 grid:true,
@@ -296,7 +335,75 @@ header("content-type: text/javascript; charset=UTF-8");
                 grid:true,
                 form:false,
                 grid:true
+            },
+            /************************************************* INFORMACIÓN REGISTRO *************************************************/
+            {
+                config: {
+                    name: 'usr_reg',
+                    fieldLabel: 'Creado por',
+                    allowBlank: true,
+                    anchor: '80%',
+                    gwidth: 100,
+                    maxLength: 4
+                },
+                type: 'Field',
+                filters: {pfiltro: 'usu1.cuenta', type: 'string'},
+                id_grupo: 1,
+                grid: true,
+                form: false
+            },
+            {
+                config: {
+                    name: 'fecha_reg',
+                    fieldLabel: 'Fecha creación',
+                    allowBlank: true,
+                    anchor: '80%',
+                    gwidth: 100,
+                    format: 'd/m/Y',
+                    renderer: function (value, p, record) {
+                        return value ? value.dateFormat('d/m/Y H:i:s') : ''
+                    }
+                },
+                type: 'DateField',
+                filters: {pfiltro: 'rec.fecha_reg', type: 'date'},
+                id_grupo: 1,
+                grid: true,
+                form: false
+            },
+            {
+                config: {
+                    name: 'usr_mod',
+                    fieldLabel: 'Modificado por',
+                    allowBlank: true,
+                    anchor: '80%',
+                    gwidth: 100,
+                    maxLength: 4
+                },
+                type: 'Field',
+                filters: {pfiltro: 'usu2.cuenta', type: 'string'},
+                id_grupo: 1,
+                grid: true,
+                form: false
+            },
+            {
+                config: {
+                    name: 'fecha_mod',
+                    fieldLabel: 'Fecha Modif.',
+                    allowBlank: true,
+                    anchor: '80%',
+                    gwidth: 100,
+                    format: 'd/m/Y',
+                    renderer: function (value, p, record) {
+                        return value ? value.dateFormat('d/m/Y H:i:s') : ''
+                    }
+                },
+                type: 'DateField',
+                filters: {pfiltro: 'rec.fecha_mod', type: 'date'},
+                id_grupo: 1,
+                grid: true,
+                form: false
             }
+            /************************************************* INFORMACIÓN REGISTRO *************************************************/
         ],
 
 
@@ -325,12 +432,19 @@ header("content-type: text/javascript; charset=UTF-8");
             {name:'fecha_asignacion', type: 'date',dateFormat:'Y-m-d'},
             'estado_reg',
             {name:'fecha_finalizacion', type: 'date',dateFormat:'Y-m-d'},
-            'fecha_reg',
-            'fecha_mod',
-            'USUREG',
-            'USUMOD','correspondencia',
+            {name: 'fecha_reg', type: 'date', dateFormat: 'Y-m-d H:i:s.u'},
+            {name: 'fecha_mod', type: 'date', dateFormat: 'Y-m-d H:i:s.u'},
+            {name: 'usr_reg', type: 'string'},
+            {name: 'usr_mod', type: 'string'},
+            'correspondencia',
             {name:'haber_basico', type: 'numeric'},
-            'tipo_contrato'
+            'tipo_contrato',
+            /**************************** INFORMACIÓN REGISTRO ****************************/
+            {name: 'id_usuario_reg', type: 'numeric'},
+            {name: 'id_usuario_mod', type: 'numeric'},
+            /**************************** INFORMACIÓN REGISTRO ****************************/
+            {name:'centro_costo', type: 'string'},
+            {name:'categoria', type: 'string'}
         ],
         sortInfo:{
             field: 'fecha_asignacion',
@@ -372,13 +486,18 @@ header("content-type: text/javascript; charset=UTF-8");
 
         /*funcion corre cuando el padre cambia el nodo maestero*/
         onReloadPage:function(m){
-            this.maestro=m; console.log('master', this.maestro);
-            this.Atributos[1].valorInicial=this.maestro.id_uo;
-            this.Cmp.id_cargo.tdata.id_uo = this.maestro.id_uo;
+            this.maestro=m;console.log('this.maestro',this.maestro);
+            //this.Atributos[1].valorInicial=this.maestro.id_uo;
+            //this.Cmp.id_cargo.tdata.id_uo = this.maestro.id_uo;
             //this.Cmp.id_funcionario.tdata.id_uo = this.maestro.id_uo;
-            this.Cmp.id_cargo.store.setBaseParam('id_uo',this.maestro.id_uo);
+            //this.Cmp.id_cargo.store.setBaseParam('id_uo',this.maestro.id_uo);
             //this.Cmp.id_funcionario.store.setBaseParam('id_uo',this.maestro.id_uo);
             this.store.baseParams = {id_funcionario : this.maestro.id_funcionario};
+            if('docs-FUNPLAN' == this.tipo){
+                this.store.baseParams.tipo = 'oficial';
+            }
+
+
             this.load({params:{start:0, limit:50}})
             /*if(m.id != 'id'){
 

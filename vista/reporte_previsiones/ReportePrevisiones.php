@@ -52,8 +52,16 @@ header("content-type: text/javascript; charset=UTF-8");
 					totalProperty: 'total',
 					fields: ['id_tipo_contrato', 'nombre', 'codigo'],
 					remoteSort: true,
-					baseParams: {par_filtro: 'tipcon.nombre#tipcon.codigo'}
+					baseParams: {par_filtro: 'tipcon.nombre#tipcon.codigo', permanente: 'permanente'}
 				}),
+                tpl: new Ext.XTemplate([
+                    '<tpl for=".">',
+                    '<div class="x-combo-list-item">',
+                    '<div class="awesomecombo-item {checked}">',
+                    '<p><b>Codigo: {codigo}</b></p>',
+                    '</div><p><b>Nombre: </b> <span style="color: green;">{nombre}</span></p>',
+                    '</div></tpl>'
+                ]),
 				valueField: 'id_tipo_contrato',
 				displayField: 'nombre',				
 				hiddenName: 'id_tipo_contrato',
@@ -65,10 +73,11 @@ header("content-type: text/javascript; charset=UTF-8");
 				pageSize: 15,
 				queryDelay: 1000,
 				anchor: '50%',				
-				minChars: 2
+				minChars: 2,
+                enableMultiSelect: true
 				
 			},
-			type: 'ComboBox',
+			type: 'AwesomeCombo',
 			id_grupo: 1,			
 			form: true
 		},

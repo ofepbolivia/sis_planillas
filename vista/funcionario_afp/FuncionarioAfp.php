@@ -91,7 +91,7 @@ Phx.vista.FuncionarioAfp=Ext.extend(Phx.gridInterfaz,{
 			config:{
 				name: 'nro_afp',
 				fieldLabel: 'No AFP',
-				allowBlank: true,
+				allowBlank: false,
 				anchor: '80%',
 				gwidth: 100,
 				maxLength:100
@@ -113,14 +113,7 @@ Phx.vista.FuncionarioAfp=Ext.extend(Phx.gridInterfaz,{
 	       		lazyRender:true,
 	       		mode: 'local',
 				gwidth: 150,
-				store:[['no','no'],['mayor_65','(M) Mayor 65'],['mayor_55','Mayor 55'],['jubilado_55','(J) Jubilado 55'],['jubilado_65','(N) Jubilado 65']],
-				renderer:function (value,p,record){
- 					if (value=='mayor_65') {return '(M) Mayor 65'}
- 					else if (value=='jubilado_55') {return '(J) Jubilado 55'}
-					else if (value=='jubilado_65') {return '(N) Jubilado 65'}
-					else return value;
-
-}
+				store:['no','mayor_65','mayor_55','jubilado_55','jubilado_65']
 			},
 				type:'ComboBox',
 				filters:{	
@@ -274,7 +267,7 @@ Phx.vista.FuncionarioAfp=Ext.extend(Phx.gridInterfaz,{
 	bdel:true,
 	bsave:true,
 	onButtonEdit : function () {
-    	this.ocultarComponente(this.Cmp.fecha_ini); 
+    	//this.ocultarComponente(this.Cmp.fecha_ini);
     	Phx.vista.FuncionarioAfp.superclass.onButtonEdit.call(this);
     	
     },

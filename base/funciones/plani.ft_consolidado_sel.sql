@@ -1,5 +1,3 @@
---------------- SQL ---------------
-
 CREATE OR REPLACE FUNCTION plani.ft_consolidado_sel (
   p_administrador integer,
   p_id_usuario integer,
@@ -20,14 +18,7 @@ $body$
 
  DESCRIPCION:	
  AUTOR:			
- FECHA:	
- 
- HISTORIAL DE MODIFICACIONES:
-
- ISSUE            FECHA:              AUTOR                 DESCRIPCION
- #0             14/07/2014        GUY       Creacion
- #53 ETR        26/09/2019        RAC       agrega centro de costo techo y totalizadores
-	
+ FECHA:		
 ***************************************************************************/
 
 DECLARE
@@ -68,16 +59,14 @@ BEGIN
 						conpre.fecha_mod,
 						usu1.cuenta as usr_reg,
 						usu2.cuenta as usr_mod,
-                        cc.codigo_cc,         
+                        cc.codigo_cc,
                         sum(concol.valor) as suma,
-                        sum(concol.valor_ejecutado) as suma_ejecutado,                        
-                        tcc.id_tipo_cc_techo,       --#53
-                        tcc.codigo_techo,           --#53
-                        tcc.descripcion_techo      --#53	
+                        sum(concol.valor_ejecutado) as suma_ejecutado	
 						from plani.tconsolidado conpre
-                        inner join param.vcentro_costo cc  on cc.id_centro_costo = conpre.id_presupuesto
-                        inner join param.vtipo_cc_techo tcc on tcc.id_tipo_cc = cc.id_tipo_cc   --#53 agrega techos
-                        inner join plani.tconsolidado_columna concol on concol.id_consolidado = conpre.id_consolidado
+                        inner join param.vcentro_costo cc 
+                        	on cc.id_centro_costo = conpre.id_presupuesto
+                        inner join plani.tconsolidado_columna concol
+                        	on concol.id_consolidado = conpre.id_consolidado
 						inner join segu.tusuario usu1 on usu1.id_usuario = conpre.id_usuario_reg
 						left join segu.tusuario usu2 on usu2.id_usuario = conpre.id_usuario_mod
 				        where  ';
@@ -98,13 +87,9 @@ BEGIN
 						conpre.fecha_mod,
 						usu1.cuenta,
 						usu2.cuenta,
-                        cc.codigo_cc,
-                        tcc.id_tipo_cc_techo,
-                        tcc.codigo_techo,
-                        tcc.descripcion_techo ';
+                        cc.codigo_cc ';
 			v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
 
-          raise  notice '%', v_consulta;
 			--Devuelve la respuesta
 			return v_consulta;
 						
@@ -121,36 +106,18 @@ BEGIN
 
 		begin
 			--Sentencia de la consulta de conteo de registros
-			v_consulta:='WITH base_qr as (
-
-                        SELECT conpre.id_consolidado,
-                               conpre.id_presupuesto,
-                               sum(valor) AS total_suma, --#53
-                               sum(valor_ejecutado) AS total_ejecutado --#53   
-
-                        from plani.tconsolidado conpre
-                        inner join param.vcentro_costo cc  on cc.id_centro_costo = conpre.id_presupuesto
-                        inner join param.vtipo_cc_techo tcc on tcc.id_tipo_cc = cc.id_tipo_cc   --#53 agrega techos
-                        inner join plani.tconsolidado_columna concol on concol.id_consolidado = conpre.id_consolidado
-                        inner join segu.tusuario usu1 on usu1.id_usuario = conpre.id_usuario_reg
-                        left join segu.tusuario usu2 on usu2.id_usuario = conpre.id_usuario_mod
-				        where  ';
+			v_consulta:='select count(*)
+					    from plani.tconsolidado conpre
+                        inner join param.vcentro_costo cc 
+                        	on cc.id_centro_costo = conpre.id_presupuesto                        
+					    inner join segu.tusuario usu1 on usu1.id_usuario = conpre.id_usuario_reg
+						left join segu.tusuario usu2 on usu2.id_usuario = conpre.id_usuario_mod
+					    where ';
 			
-			--Definicion de la respuesta
+			--Definicion de la respuesta		    
 			v_consulta:=v_consulta||v_parametros.filtro;
-            
-            v_consulta=v_consulta ||'
-                        group by conpre.id_consolidado,
-						conpre.id_presupuesto
-                        )
-
-                        SELECT count(id_consolidado) AS total,
-                               sum(total_suma) AS total_suma, --#53
-                               sum(total_ejecutado) AS total_ejecutado --#53   
-
-                        from base_qr';
+			
 			--Devuelve la respuesta
-            raise  notice '%', v_consulta;
 			return v_consulta;
 
 		end;

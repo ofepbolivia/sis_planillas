@@ -5,12 +5,6 @@
 *@author  (admin)
 *@date 27-01-2014 04:53:54
 *@description Clase que envia los parametros requeridos a la Base de datos para la ejecucion de las funciones, y que recibe la respuesta del resultado de la ejecucion de las mismas
- * 
-HISTORIAL DE MODIFICACIONES:
-#ISSUE				FECHA				AUTOR				DESCRIPCION
-#0              27-01-2014         RAC              creacion
-#78	ETR			19-11-2019         RAC				considerar esquema para origen de datos
-#132ETR		  	01/06/2020		   MZM KPLIAN		Habilitacion de opcion para reseteo de valores de columnas variables
 */
 
 class MODColumnaValor extends MODbase{
@@ -24,8 +18,6 @@ class MODColumnaValor extends MODbase{
 		$this->procedimiento='plani.ft_columna_valor_sel';
 		$this->transaccion='PLA_COLVAL_SEL';
 		$this->tipo_procedimiento='SEL';//tipo de transaccion
-		
-		$this->setParametro('esquema','esquema','varchar'); //#78
 				
 		//Definicion de la lista del resultado del query
 		$this->captura('id_columna_valor','int4');
@@ -129,27 +121,6 @@ class MODColumnaValor extends MODbase{
 		//Define los parametros para la funcion
 		$this->setParametro('id_columna_valor','id_columna_valor','int4');
 
-		//Ejecuta la instruccion
-		$this->armarConsulta();
-		$this->ejecutarConsulta();
-
-		//Devuelve la respuesta
-		return $this->respuesta;
-	}
-	
-	
-	//#132
-	function resetColumnaValor(){
-		//Definicion de variables para ejecucion del procedimiento
-		$this->procedimiento='plani.ft_columna_valor_ime';
-		$this->transaccion='PLA_COLVALRES_MOD';
-		$this->tipo_procedimiento='IME';
-				
-		//Define los parametros para la funcion
-		
-		$this->setParametro('id_planilla','id_planilla','int4');
-		$this->setParametro('id_tipo_col','id_tipo_col','int4');
-		
 		//Ejecuta la instruccion
 		$this->armarConsulta();
 		$this->ejecutarConsulta();
